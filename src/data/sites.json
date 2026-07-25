@@ -1,0 +1,317 @@
+{
+  "version": "1.0.0",
+  "updated_at": "2025-01-01",
+  "bundles": [
+    {
+      "key": "youtube",
+      "display_name": "YouTube",
+      "category": "video",
+      "domains": [
+        "youtube.com", "www.youtube.com", "m.youtube.com",
+        "youtu.be", "ytimg.com", "i.ytimg.com", "s.ytimg.com",
+        "googlevideo.com", "yt3.ggpht.com"
+      ]
+    },
+    {
+      "key": "instagram",
+      "display_name": "Instagram",
+      "category": "social",
+      "domains": [
+        "instagram.com", "www.instagram.com",
+        "cdninstagram.com", "i.instagram.com", "graph.instagram.com"
+      ]
+    },
+    {
+      "key": "twitter",
+      "display_name": "Twitter / X",
+      "category": "social",
+      "domains": [
+        "twitter.com", "www.twitter.com", "x.com", "www.x.com",
+        "t.co", "twimg.com", "pbs.twimg.com", "abs.twimg.com",
+        "mobile.twitter.com"
+      ]
+    },
+    {
+      "key": "tiktok",
+      "display_name": "TikTok",
+      "category": "video",
+      "domains": [
+        "tiktok.com", "www.tiktok.com", "m.tiktok.com",
+        "musical.ly", "tiktokcdn.com", "p16-tiktokcdn-com.akamaized.net"
+      ]
+    },
+    {
+      "key": "reddit",
+      "display_name": "Reddit",
+      "category": "social",
+      "domains": [
+        "reddit.com", "www.reddit.com", "old.reddit.com",
+        "new.reddit.com", "redd.it", "redditmedia.com",
+        "redditstatic.com", "preview.redd.it"
+      ]
+    },
+    {
+      "key": "facebook",
+      "display_name": "Facebook",
+      "category": "social",
+      "domains": [
+        "facebook.com", "www.facebook.com", "m.facebook.com",
+        "web.facebook.com", "fbcdn.net", "scontent.fbcdn.net",
+        "static.xx.fbcdn.net"
+      ]
+    },
+    {
+      "key": "netflix",
+      "display_name": "Netflix",
+      "category": "video",
+      "domains": [
+        "netflix.com", "www.netflix.com", "api.netflix.com",
+        "nflxvideo.net", "nflximg.net", "nflxext.com"
+      ]
+    },
+    {
+      "key": "snapchat",
+      "display_name": "Snapchat",
+      "category": "social",
+      "domains": [
+        "snapchat.com", "www.snapchat.com",
+        "snap.com", "sc-cdn.net"
+      ]
+    },
+    {
+      "key": "whatsapp",
+      "display_name": "WhatsApp Web",
+      "category": "messaging",
+      "domains": [
+        "web.whatsapp.com", "www.whatsapp.com",
+        "whatsapp.com", "whatsapp.net"
+      ]
+    },
+    {
+      "key": "discord",
+      "display_name": "Discord",
+      "category": "messaging",
+      "domains": [
+        "discord.com", "www.discord.com", "discordapp.com",
+        "cdn.discordapp.com", "gateway.discord.gg", "discord.gg"
+      ]
+    },
+    {
+      "key": "twitch",
+      "display_name": "Twitch",
+      "category": "video",
+      "domains": [
+        "twitch.tv", "www.twitch.tv", "m.twitch.tv",
+        "static.twitchsvc.net", "twitchsvc.net", "jtvnw.net",
+        "twitchapps.com"
+      ]
+    },
+    {
+      "key": "pinterest",
+      "display_name": "Pinterest",
+      "category": "social",
+      "domains": [
+        "pinterest.com", "www.pinterest.com", "in.pinterest.com",
+        "pinimg.com", "i.pinimg.com"
+      ]
+    },
+    {
+      "key": "linkedin",
+      "display_name": "LinkedIn",
+      "category": "social",
+      "domains": [
+        "linkedin.com", "www.linkedin.com", "m.linkedin.com",
+        "licdn.com", "media.licdn.com"
+      ]
+    },
+    {
+      "key": "amazon",
+      "display_name": "Amazon Shopping",
+      "category": "shopping",
+      "domains": [
+        "amazon.com", "www.amazon.com", "amazon.in", "www.amazon.in",
+        "images-amazon.com", "ssl-images-amazon.com"
+      ]
+    },
+    {
+      "key": "flipkart",
+      "display_name": "Flipkart",
+      "category": "shopping",
+      "domains": [
+        "flipkart.com", "www.flipkart.com",
+        "rukminim1.flixcart.com", "rukminim2.flixcart.com"
+      ]
+    },
+    {
+      "key": "spotify",
+      "display_name": "Spotify",
+      "category": "misc",
+      "domains": [
+        "spotify.com", "open.spotify.com", "scdn.co",
+        "audio-ak-spotify-com.akamaized.net"
+      ]
+    },
+    {
+      "key": "hbomax",
+      "display_name": "Max (HBO)",
+      "category": "video",
+      "domains": [
+        "max.com", "www.max.com", "hbomax.com",
+        "www.hbomax.com"
+      ]
+    },
+    {
+      "key": "disneyplus",
+      "display_name": "Disney+",
+      "category": "video",
+      "domains": [
+        "disneyplus.com", "www.disneyplus.com",
+        "bamgrid.com", "execute-api.us-east-1.amazonaws.com"
+      ]
+    },
+    {
+      "key": "steam",
+      "display_name": "Steam",
+      "category": "gaming",
+      "domains": [
+        "store.steampowered.com", "steampowered.com",
+        "steamcommunity.com", "steamgames.com", "steamcontent.com"
+      ]
+    },
+    {
+      "key": "epicgames",
+      "display_name": "Epic Games Store",
+      "category": "gaming",
+      "domains": [
+        "epicgames.com", "www.epicgames.com",
+        "launcher.epicgames.com"
+      ]
+    },
+    {
+      "key": "9gag",
+      "display_name": "9GAG",
+      "category": "social",
+      "domains": [
+        "9gag.com", "www.9gag.com",
+        "img-9gag-fun.9cache.com"
+      ]
+    },
+    {
+      "key": "quora",
+      "display_name": "Quora",
+      "category": "social",
+      "domains": [
+        "quora.com", "www.quora.com",
+        "qphoto.quoracdn.net"
+      ]
+    },
+    {
+      "key": "hackernews",
+      "display_name": "Hacker News",
+      "category": "news",
+      "domains": [
+        "news.ycombinator.com"
+      ]
+    },
+    {
+      "key": "buzzfeed",
+      "display_name": "BuzzFeed",
+      "category": "news",
+      "domains": [
+        "buzzfeed.com", "www.buzzfeed.com",
+        "img.buzzfeed.com"
+      ]
+    },
+    {
+      "key": "tumblr",
+      "display_name": "Tumblr",
+      "category": "social",
+      "domains": [
+        "tumblr.com", "www.tumblr.com",
+        "assets.tumblr.com", "api.tumblr.com"
+      ]
+    },
+    {
+      "key": "medium",
+      "display_name": "Medium",
+      "category": "misc",
+      "domains": [
+        "medium.com", "www.medium.com"
+      ]
+    },
+    {
+      "key": "telegram",
+      "display_name": "Telegram Web",
+      "category": "messaging",
+      "domains": [
+        "web.telegram.org", "telegram.org",
+        "t.me", "cdn.tlgr.org"
+      ]
+    },
+    {
+      "key": "messenger",
+      "display_name": "Facebook Messenger",
+      "category": "messaging",
+      "domains": [
+        "messenger.com", "www.messenger.com"
+      ]
+    },
+    {
+      "key": "roblox",
+      "display_name": "Roblox",
+      "category": "gaming",
+      "domains": [
+        "roblox.com", "www.roblox.com",
+        "rbxcdn.com", "robloxlabs.com"
+      ]
+    },
+    {
+      "key": "miniclip",
+      "display_name": "Miniclip / Online Games",
+      "category": "gaming",
+      "domains": [
+        "miniclip.com", "www.miniclip.com"
+      ]
+    },
+    {
+      "key": "gmail_webmail",
+      "display_name": "Gmail / Webmail (distraction)",
+      "category": "productivity",
+      "domains": [
+        "mail.google.com"
+      ]
+    },
+    {
+      "key": "news_bbc",
+      "display_name": "BBC News",
+      "category": "news",
+      "domains": [
+        "bbc.com", "www.bbc.com", "bbc.co.uk", "www.bbc.co.uk"
+      ]
+    },
+    {
+      "key": "news_cnn",
+      "display_name": "CNN",
+      "category": "news",
+      "domains": [
+        "cnn.com", "www.cnn.com", "edition.cnn.com"
+      ]
+    },
+    {
+      "key": "news_ndtv",
+      "display_name": "NDTV",
+      "category": "news",
+      "domains": [
+        "ndtv.com", "www.ndtv.com"
+      ]
+    },
+    {
+      "key": "pornhub",
+      "display_name": "Pornhub",
+      "category": "adult",
+      "domains": [
+        "pornhub.com", "www.pornhub.com", "phncdn.com"
+      ]
+    }
+  ]
+}

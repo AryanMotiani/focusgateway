@@ -1,0 +1,8 @@
+[
+  { "icon": "🚫", "title": "Smart Site Blocking", "desc": "Block distracting sites at the DNS level — no browser extensions needed." },
+  { "icon": "✅", "title": "Task-Gated Access", "desc": "Unblock sites only when your assigned tasks are complete." },
+  { "icon": "🔒", "title": "Failsafe Override", "desc": "Emergency access with PIN + cooling-off period, so you are never trapped." },
+  { "icon": "📊", "title": "Accountability History", "desc": "See your forwarded tasks, missed deadlines, and focus streaks over time." },
+  { "icon": "🎯", "title": "Focus Mode", "desc": "Ad-hoc Pomodoro-style sessions with custom site lists." },
+  { "icon": "🗓", "title": "Recurring Tasks", "desc": "Daily, weekly, monthly — tasks that repeat with full procrastination tracking." }
+]
