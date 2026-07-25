@@ -12,6 +12,6 @@
     "resolveJsonModule": true,
     "declaration": true
   },
-  "include": ["src/**/*", "landing/**/*", "dashboard/**/*", "tests/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*", "landing/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist", "dashboard"]
 }
