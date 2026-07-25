@@ -1,14 +1,13 @@
-'use strict';
+export interface AutoStartConfig {
+  type: 'task_scheduler' | 'launchd' | 'systemd';
+  command: string;
+  fileContent?: string;
+}
 
-const path = require('path');
-
-/**
- * Generates OS-specific auto-start registration command/config.
- * @param {'win32'|'darwin'|'linux'} platform
- * @param {string} execPath Path to Node wrapper script
- * @returns {{ type: string, command: string, fileContent?: string }}
- */
-function getAutoStartConfig(platform = process.platform, execPath = '/opt/focusgateway/wrapper.js') {
+export function getAutoStartConfig(
+  platform: NodeJS.Platform = process.platform,
+  execPath: string = '/opt/focusgateway/wrapper.js'
+): AutoStartConfig {
   if (platform === 'win32') {
     return {
       type: 'task_scheduler',
@@ -35,7 +34,6 @@ function getAutoStartConfig(platform = process.platform, execPath = '/opt/focusg
     };
   }
 
-  // Linux
   const unit = `[Unit]
 Description=FocusGateway Site-Blocker Service
 After=network.target
@@ -53,5 +51,3 @@ WantedBy=default.target`;
     fileContent: unit,
   };
 }
-
-module.exports = { getAutoStartConfig };

@@ -1,15 +1,8 @@
-'use strict';
+import fs from 'fs';
+import path from 'path';
+import { getDb, closeDb } from './sqlite';
 
-const fs = require('fs');
-const path = require('path');
-const { getDb, closeDb } = require('./sqlite');
-
-/**
- * Runs the SQLite schema migration.
- * @param {string} [customPath]
- * @returns {Promise<boolean>}
- */
-async function runMigrations(customPath) {
+export async function runMigrations(customPath?: string): Promise<boolean> {
   const db = await getDb(customPath);
   const schemaPath = path.join(__dirname, 'sqlite_schema.sql');
   const sql = fs.readFileSync(schemaPath, 'utf8');
@@ -33,5 +26,3 @@ if (require.main === module) {
       process.exit(1);
     });
 }
-
-module.exports = { runMigrations };

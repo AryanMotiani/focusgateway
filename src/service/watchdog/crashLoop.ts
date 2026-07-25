@@ -1,26 +1,26 @@
-'use strict';
+export class CrashLoopDetector {
+  public maxCrashes: number;
+  public windowMs: number;
+  public timestamps: number[];
 
-class CrashLoopDetector {
-  constructor(maxCrashes = 3, windowMs = 60000) {
+  constructor(maxCrashes: number = 3, windowMs: number = 60000) {
     this.maxCrashes = maxCrashes;
     this.windowMs = windowMs;
     this.timestamps = [];
   }
 
-  recordCrash(timestamp = Date.now()) {
+  public recordCrash(timestamp: number = Date.now()): boolean {
     const now = timestamp;
     this.timestamps = this.timestamps.filter(t => now - t < this.windowMs);
     this.timestamps.push(now);
     return this.isLooping();
   }
 
-  isLooping() {
+  public isLooping(): boolean {
     return this.timestamps.length >= this.maxCrashes;
   }
 
-  reset() {
+  public reset(): void {
     this.timestamps = [];
   }
 }
-
-module.exports = { CrashLoopDetector };

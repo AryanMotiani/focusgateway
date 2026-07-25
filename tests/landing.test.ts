@@ -1,13 +1,11 @@
-'use strict';
+import request from 'supertest';
+import fs from 'fs';
+import path from 'path';
+import { createLandingApp } from '../landing/server/index';
+import { runHelloScript } from '../landing/scripts/hello';
 
-const request = require('supertest');
-const fs = require('fs');
-const path = require('path');
-const { createLandingApp } = require('../landing/server/index');
-const { runHelloScript } = require('../landing/scripts/hello');
-
-describe('Ticket 7 — Landing Page Technical Spec Unit & API Tests', () => {
-  let app;
+describe('Ticket 7 — Landing Page Technical Spec Unit & API Tests (TypeScript)', () => {
+  let app: any;
 
   beforeAll(() => {
     app = createLandingApp();

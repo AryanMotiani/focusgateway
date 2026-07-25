@@ -1,15 +1,19 @@
-'use strict';
+import fs from 'fs';
+import path from 'path';
 
-const fs = require('fs');
-const path = require('path');
+export interface LogEntry {
+  message: string;
+  started_at: string;
+  node_version: string;
+}
 
-function runHelloScript() {
+export function runHelloScript(): LogEntry {
   const logDir = path.join(__dirname, '../logs');
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
   }
 
-  const logEntry = {
+  const logEntry: LogEntry = {
     message: 'Hello from FocusGateway Landing Server',
     started_at: new Date().toISOString(),
     node_version: process.version,
@@ -25,5 +29,3 @@ function runHelloScript() {
 if (require.main === module) {
   runHelloScript();
 }
-
-module.exports = { runHelloScript };

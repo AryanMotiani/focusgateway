@@ -1,17 +1,15 @@
-'use strict';
+import { spawn } from 'child_process';
+import path from 'path';
+import { CrashLoopDetector } from './crashLoop';
+import { clearBlock } from '../hosts/hostsFile';
 
-const { spawn } = require('child_process');
-const path = require('path');
-const { CrashLoopDetector } = require('./crashLoop');
-const { clearBlock } = require('../hosts/hostsFile');
+export const detector = new CrashLoopDetector(3, 60000);
 
-const detector = new CrashLoopDetector(3, 60000);
-
-function startService() {
-  const servicePath = path.join(__dirname, '../index.js');
+export function startService(): void {
+  const servicePath = path.join(__dirname, '../index.ts');
   console.log(`[Watchdog] Spawning service: ${servicePath}`);
 
-  const child = spawn(process.execPath, [servicePath], {
+  const child = spawn(process.execPath, ['-r', 'ts-node/register', servicePath], {
     stdio: 'inherit',
     env: process.env,
   });
@@ -40,5 +38,3 @@ function startService() {
 if (require.main === module) {
   startService();
 }
-
-module.exports = { startService, detector };

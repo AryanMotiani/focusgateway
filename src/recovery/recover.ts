@@ -1,31 +1,21 @@
-#!/usr/bin/env node
-'use strict';
+import fs from 'fs';
+import http from 'http';
 
-/**
- * FocusGateway Emergency Recovery Script
- * Zero external dependencies.
- * Restores hosts file by removing FocusGateway blocks when background service is unreachable/crashed.
- */
-
-const fs   = require('fs');
-const http = require('http');
-const path = require('path');
-
-const HEALTH_URL  = 'http://localhost:7000/api/health';
-const HOSTS_PATHS = {
-  win32:  'C:\\Windows\\System32\\drivers\\etc\\hosts',
+export const HEALTH_URL = 'http://localhost:7000/api/health';
+export const HOSTS_PATHS: Record<string, string> = {
+  win32: 'C:\\Windows\\System32\\drivers\\etc\\hosts',
   darwin: '/etc/hosts',
-  linux:  '/etc/hosts',
+  linux: '/etc/hosts',
 };
 
-const MARKER_BEGIN = '# FocusGateway BEGIN — do not edit this block manually';
-const MARKER_END   = '# FocusGateway END';
+export const MARKER_BEGIN = '# FocusGateway BEGIN — do not edit this block manually';
+export const MARKER_END   = '# FocusGateway END';
 
-function getHostsPath() {
+export function getHostsPath(): string {
   return HOSTS_PATHS[process.platform] || '/etc/hosts';
 }
 
-function isServiceRunning() {
+export function isServiceRunning(): Promise<boolean> {
   return new Promise((resolve) => {
     const req = http.get(HEALTH_URL, (res) => {
       resolve(res.statusCode === 200);
@@ -38,10 +28,10 @@ function isServiceRunning() {
   });
 }
 
-function cleanHostsContent(content) {
+export function cleanHostsContent(content: string): string {
   const lines = content.split(/\r?\n/);
   let inside = false;
-  const cleaned = [];
+  const cleaned: string[] = [];
 
   for (const line of lines) {
     if (line.includes(MARKER_BEGIN)) {
@@ -60,7 +50,14 @@ function cleanHostsContent(content) {
   return cleaned.join('\n');
 }
 
-async function runRecovery(customPath) {
+export interface RecoveryResult {
+  success: boolean;
+  refused: boolean;
+  message?: string;
+  error?: string;
+}
+
+export async function runRecovery(customPath?: string): Promise<RecoveryResult> {
   const hostsPath = customPath || getHostsPath();
   const running = await isServiceRunning();
 
@@ -85,7 +82,7 @@ async function runRecovery(customPath) {
       refused: false,
       message: 'Successfully removed FocusGateway entries from hosts file.',
     };
-  } catch (err) {
+  } catch (err: any) {
     return {
       success: false,
       refused: false,
@@ -102,10 +99,3 @@ if (require.main === module) {
       process.exit(result.success ? 0 : 1);
     });
 }
-
-module.exports = {
-  getHostsPath,
-  isServiceRunning,
-  cleanHostsContent,
-  runRecovery,
-};

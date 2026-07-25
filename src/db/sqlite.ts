@@ -1,26 +1,19 @@
-'use strict';
+import sqlite3 from 'sqlite3';
+import { getAppConfig } from '../config';
 
-const sqlite3 = require('sqlite3').verbose();
-const { getAppConfig } = require('../config');
+const sqliteVerbose = sqlite3.verbose();
+let dbInstance: sqlite3.Database | null = null;
 
-let dbInstance = null;
-
-/**
- * Returns the singleton SQLite database connection.
- * @param {string} [customPath]
- * @returns {Promise<sqlite3.Database>}
- */
-function getDb(customPath) {
+export function getDb(customPath?: string): Promise<sqlite3.Database> {
   if (dbInstance) return Promise.resolve(dbInstance);
 
   const config = getAppConfig();
   const dbPath = customPath || config.dbPath;
 
   return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(dbPath, (err) => {
+    const db = new sqliteVerbose.Database(dbPath, (err) => {
       if (err) return reject(err);
 
-      // Enable foreign keys
       db.run('PRAGMA foreign_keys = ON;', (pragmaErr) => {
         if (pragmaErr) return reject(pragmaErr);
         dbInstance = db;
@@ -30,42 +23,32 @@ function getDb(customPath) {
   });
 }
 
-/**
- * Execute an SQL query returning all rows.
- * @param {string} sql
- * @param {any[]} [params]
- * @returns {Promise<any[]>}
- */
-async function queryAll(sql, params = []) {
+export async function queryAll<T = any>(sql: string, params: any[] = []): Promise<T[]> {
   const db = await getDb();
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => {
       if (err) return reject(err);
-      resolve(rows);
+      resolve(rows as T[]);
     });
   });
 }
 
-/**
- * Execute an SQL statement (INSERT, UPDATE, DELETE, CREATE).
- * @param {string} sql
- * @param {any[]} [params]
- * @returns {Promise<{lastID: number, changes: number}>}
- */
-async function run(sql, params = []) {
+export interface RunResult {
+  lastID: number;
+  changes: number;
+}
+
+export async function run(sql: string, params: any[] = []): Promise<RunResult> {
   const db = await getDb();
   return new Promise((resolve, reject) => {
-    db.run(sql, params, function(err) {
+    db.run(sql, params, function(this: any, err: Error | null) {
       if (err) return reject(err);
       resolve({ lastID: this.lastID, changes: this.changes });
     });
   });
 }
 
-/**
- * Close SQLite database connection.
- */
-function closeDb() {
+export function closeDb(): Promise<void> {
   return new Promise((resolve, reject) => {
     if (!dbInstance) return resolve();
     dbInstance.close((err) => {
@@ -75,5 +58,3 @@ function closeDb() {
     });
   });
 }
-
-module.exports = { getDb, queryAll, run, closeDb };

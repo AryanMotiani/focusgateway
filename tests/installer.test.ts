@@ -1,12 +1,7 @@
-'use strict';
+import { getHostsPath, cleanHostsContent } from '../src/recovery/recover';
+import { getAutoStartConfig } from '../src/installer/autostart';
 
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const { getHostsPath, cleanHostsContent, runRecovery } = require('../src/recovery/recover');
-const { getAutoStartConfig } = require('../src/installer/autostart');
-
-describe('Ticket 6 — Installer/Packaging & Cross-Platform Unit Tests', () => {
+describe('Ticket 6 — Installer/Packaging & Cross-Platform Unit Tests (TypeScript)', () => {
   test('getHostsPath returns valid OS path', () => {
     const hostsPath = getHostsPath();
     expect(hostsPath).toBeDefined();

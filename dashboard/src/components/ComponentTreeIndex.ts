@@ -1,9 +1,11 @@
-'use strict';
+export interface ComponentTreeRegistry {
+  layout: string[];
+  views: string[];
+  tasks: string[];
+  modals: string[];
+}
 
-/**
- * Component tree registry verifying all required UI components from Ticket 4 spec.
- */
-const ComponentTree = {
+export const ComponentTree: ComponentTreeRegistry = {
   layout: ['App', 'OnboardingFlow', 'AppLayout', 'Sidebar', 'TopBar'],
   views: [
     'DashboardHome',
@@ -32,5 +34,3 @@ const ComponentTree = {
     'ConflictExplainerModal',
   ],
 };
-
-module.exports = ComponentTree;

@@ -1,9 +1,7 @@
-'use strict';
+import { vUppercaseOnDrag, vFormatDate } from '../dashboard/src/directives/customDirectives';
+import { ComponentTree } from '../dashboard/src/components/ComponentTreeIndex';
 
-const { vUppercaseOnDrag, vFormatDate } = require('../dashboard/src/directives/customDirectives');
-const ComponentTree = require('../dashboard/src/components/ComponentTreeIndex');
-
-describe('Ticket 4 — Frontend Component Tree Unit Tests', () => {
+describe('Ticket 4 — Frontend Component Tree Unit Tests (TypeScript)', () => {
   test('Component Tree registry includes all required top-level views', () => {
     expect(ComponentTree.views).toContain('DashboardHome');
     expect(ComponentTree.views).toContain('SBWView');
@@ -22,13 +20,13 @@ describe('Ticket 4 — Frontend Component Tree Unit Tests', () => {
   });
 
   test('vFormatDate formats ISO dates properly', () => {
-    const el = {};
+    const el = {} as HTMLElement;
     const binding = { value: '2026-01-15T10:00:00.000Z' };
 
     vFormatDate.mounted(el, binding);
 
     expect(el.textContent).toBeDefined();
     expect(typeof el.textContent).toBe('string');
-    expect(el.textContent.length).toBeGreaterThan(0);
+    expect(el.textContent?.length).toBeGreaterThan(0);
   });
 });

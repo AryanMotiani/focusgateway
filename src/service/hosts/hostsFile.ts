@@ -1,18 +1,11 @@
-'use strict';
+import fs from 'fs/promises';
+import fsSync from 'fs';
+import path from 'path';
 
-const fs = require('fs/promises');
-const fsSync = require('fs');
-const path = require('path');
-const os = require('os');
+export const MARKER_BEGIN = '# FocusGateway BEGIN — do not edit this block manually';
+export const MARKER_END   = '# FocusGateway END';
 
-const MARKER_BEGIN = '# FocusGateway BEGIN — do not edit this block manually';
-const MARKER_END   = '# FocusGateway END';
-
-/**
- * Platform-specific hosts file path.
- * @returns {string}
- */
-function getHostsPath() {
+export function getHostsPath(): string {
   if (process.platform === 'win32') {
     const windir = process.env.WINDIR || 'C:\\Windows';
     return path.join(windir, 'System32', 'drivers', 'etc', 'hosts');
@@ -20,25 +13,15 @@ function getHostsPath() {
   return '/etc/hosts';
 }
 
-/**
- * Reads hosts file content.
- * @param {string} [customPath]
- * @returns {Promise<string>}
- */
-async function readHostsFile(customPath) {
+export async function readHostsFile(customPath?: string): Promise<string> {
   const filePath = customPath || getHostsPath();
   return fs.readFile(filePath, 'utf8');
 }
 
-/**
- * Extracts user-defined lines (preserving anything outside FocusGateway markers).
- * @param {string} content
- * @returns {string[]}
- */
-function extractUserLines(content) {
+export function extractUserLines(content: string): string[] {
   const lines = content.split(/\r?\n/);
   let inside = false;
-  const result = [];
+  const result: string[] = [];
 
   for (const line of lines) {
     if (line.includes(MARKER_BEGIN)) {
@@ -57,12 +40,7 @@ function extractUserLines(content) {
   return result;
 }
 
-/**
- * Builds FocusGateway block string from a domain list.
- * @param {string[]} domains
- * @returns {string}
- */
-function buildBlock(domains = []) {
+export function buildBlock(domains: string[] = []): string {
   if (!domains.length) return '';
 
   const lines = [MARKER_BEGIN];
@@ -76,13 +54,7 @@ function buildBlock(domains = []) {
   return lines.join('\n');
 }
 
-/**
- * Performs atomic write to hosts file using temp file rename pattern.
- * @param {string} newContent
- * @param {string} [customPath]
- * @returns {Promise<void>}
- */
-async function atomicWrite(newContent, customPath) {
+export async function atomicWrite(newContent: string, customPath?: string): Promise<void> {
   const targetPath = customPath || getHostsPath();
   const tmpPath = targetPath + '.fg-tmp';
 
@@ -93,18 +65,13 @@ async function atomicWrite(newContent, customPath) {
     await fh.sync();
     await fh.close();
   } catch (err) {
-    // Ignore sync errors if platform unsupported in test mocks
+    // Ignore sync error in virtual file systems/tests
   }
 
   await fs.rename(tmpPath, targetPath);
 }
 
-/**
- * Clears FocusGateway block from hosts file.
- * @param {string} [customPath]
- * @returns {Promise<void>}
- */
-async function clearBlock(customPath) {
+export async function clearBlock(customPath?: string): Promise<void> {
   const filePath = customPath || getHostsPath();
   const raw = await readHostsFile(filePath);
   const userLines = extractUserLines(raw);
@@ -112,13 +79,7 @@ async function clearBlock(customPath) {
   await atomicWrite(cleanContent, filePath);
 }
 
-/**
- * Saves a backup copy of current hosts file to app-data / designated path.
- * @param {string} backupDir
- * @param {string} [customHostsPath]
- * @returns {Promise<string>} Backup filepath
- */
-async function backupHostsFile(backupDir, customHostsPath) {
+export async function backupHostsFile(backupDir: string, customHostsPath?: string): Promise<string> {
   const hostsPath = customHostsPath || getHostsPath();
   const raw = await readHostsFile(hostsPath);
   if (!fsSync.existsSync(backupDir)) {
@@ -128,15 +89,3 @@ async function backupHostsFile(backupDir, customHostsPath) {
   await fs.writeFile(target, raw, 'utf8');
   return target;
 }
-
-module.exports = {
-  MARKER_BEGIN,
-  MARKER_END,
-  getHostsPath,
-  readHostsFile,
-  extractUserLines,
-  buildBlock,
-  atomicWrite,
-  clearBlock,
-  backupHostsFile,
-};

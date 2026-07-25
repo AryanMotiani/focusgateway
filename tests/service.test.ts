@@ -1,22 +1,20 @@
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const {
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+import {
   extractUserLines,
   buildBlock,
   atomicWrite,
   MARKER_BEGIN,
   MARKER_END,
-} = require('../src/service/hosts/hostsFile');
+} from '../src/service/hosts/hostsFile';
 
-const { hashPin, verifyPin } = require('../src/service/auth/pinAuth');
-const { issueToken, verifyToken } = require('../src/service/auth/jwtAuth');
-const { FailsafeStateMachine } = require('../src/service/failsafe/failsafeState');
-const { CrashLoopDetector } = require('../src/service/watchdog/crashLoop');
+import { hashPin, verifyPin } from '../src/service/auth/pinAuth';
+import { issueToken, verifyToken } from '../src/service/auth/jwtAuth';
+import { FailsafeStateMachine } from '../src/service/failsafe/failsafeState';
+import { CrashLoopDetector } from '../src/service/watchdog/crashLoop';
 
-describe('Ticket 2 — Backend Service Architecture Unit Tests', () => {
+describe('Ticket 2 — Backend Service Architecture Unit Tests (TypeScript)', () => {
   describe('Hosts File Module', () => {
     test('extractUserLines strips FocusGateway markers cleanly', () => {
       const input = [
@@ -40,7 +38,7 @@ describe('Ticket 2 — Backend Service Architecture Unit Tests', () => {
     });
 
     test('atomicWrite creates file atomically', async () => {
-      const tmpFile = path.join(os.tmpdir(), `fg-test-hosts-${Date.now()}.txt`);
+      const tmpFile = path.join(os.tmpdir(), `fg-test-hosts-ts-${Date.now()}.txt`);
       await atomicWrite('127.0.0.1 test.local', tmpFile);
 
       const content = fs.readFileSync(tmpFile, 'utf8');
@@ -65,7 +63,7 @@ describe('Ticket 2 — Backend Service Architecture Unit Tests', () => {
       const payload = verifyToken(token);
 
       expect(payload).not.toBeNull();
-      expect(payload.role).toBe('admin');
+      expect(payload?.role).toBe('admin');
     });
   });
 
@@ -79,8 +77,8 @@ describe('Ticket 2 — Backend Service Architecture Unit Tests', () => {
       state = fsMachine.submitPinSuccess();
       expect(state.state).toBe('WAITING');
 
-      state = fsMachine.cancel();
-      expect(state.state).toBe('IDLE');
+      const cancelState = fsMachine.cancel();
+      expect(cancelState.state).toBe('IDLE');
     });
   });
 

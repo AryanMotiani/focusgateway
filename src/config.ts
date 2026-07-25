@@ -1,18 +1,17 @@
-'use strict';
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
 
-const path = require('path');
-const fs = require('fs');
-const crypto = require('crypto');
+export interface AppConfig {
+  appDir: string;
+  dbPath: string;
+  jwtSecret: string;
+  port: number;
+}
 
-let cachedConfig = null;
+let cachedConfig: AppConfig | null = null;
 
-/**
- * Resolves the OS-standard app-data directory for FocusGateway.
- * Windows: %APPDATA%\FocusGateway
- * macOS: ~/Library/Application Support/FocusGateway
- * Linux: ~/.config/FocusGateway
- */
-function getAppDataDir() {
+export function getAppDataDir(): string {
   if (process.env.NODE_ENV === 'test') {
     const testDir = path.join(__dirname, '../.test_appdata');
     if (!fs.existsSync(testDir)) {
@@ -21,7 +20,7 @@ function getAppDataDir() {
     return testDir;
   }
 
-  let baseDir;
+  let baseDir: string;
   if (process.platform === 'win32') {
     baseDir = process.env.APPDATA || path.join(process.env.USERPROFILE || 'C:\\', 'AppData', 'Roaming');
   } else if (process.platform === 'darwin') {
@@ -38,10 +37,7 @@ function getAppDataDir() {
   return appDir;
 }
 
-/**
- * Loads or generates a persistent machine-specific config file (config.json).
- */
-function getAppConfig() {
+export function getAppConfig(): AppConfig {
   if (cachedConfig && process.env.NODE_ENV !== 'test') {
     return cachedConfig;
   }
@@ -49,7 +45,7 @@ function getAppConfig() {
   const appDir = getAppDataDir();
   const configPath = path.join(appDir, 'config.json');
 
-  let config = {};
+  let config: Record<string, string> = {};
   if (fs.existsSync(configPath)) {
     try {
       config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
@@ -60,7 +56,6 @@ function getAppConfig() {
 
   let updated = false;
 
-  // Auto-generate JWT secret on first launch
   if (!config.jwt_secret) {
     config.jwt_secret = crypto.randomBytes(32).toString('hex');
     updated = true;
@@ -81,5 +76,3 @@ function getAppConfig() {
 
   return cachedConfig;
 }
-
-module.exports = { getAppDataDir, getAppConfig };

@@ -1,12 +1,10 @@
-'use strict';
+import request from 'supertest';
+import { createApp } from '../src/service/api/app';
 
-const request = require('supertest');
-const { createApp } = require('../src/service/api/app');
-
-describe('Ticket 3 — API Contract Integration Tests', () => {
-  let app;
-  let standardToken;
-  let adminToken;
+describe('Ticket 3 — API Contract Integration Tests (TypeScript)', () => {
+  let app: any;
+  let standardToken: string;
+  let adminToken: string;
 
   beforeAll(async () => {
     app = createApp();
@@ -80,7 +78,6 @@ describe('Ticket 3 — API Contract Integration Tests', () => {
     expect(parentRes.status).toBe(201);
     const parentId = parentRes.body.id;
 
-    // Invalid subtask (deadline later than parent)
     const invalidSubtaskRes = await request(app)
       .post('/api/tasks')
       .set('Authorization', `Bearer ${standardToken}`)
@@ -91,6 +88,6 @@ describe('Ticket 3 — API Contract Integration Tests', () => {
       });
 
     expect(invalidSubtaskRes.status).toBe(400);
-    expect(invalidSubtaskRes.error.text).toContain('DEADLINE_AFTER_PARENT');
+    expect(invalidSubtaskRes.text).toContain('DEADLINE_AFTER_PARENT');
   });
 });

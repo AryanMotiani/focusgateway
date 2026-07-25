@@ -1,18 +1,12 @@
-'use strict';
-
-/**
- * Vue 3 directive: v-uppercase-on-drag
- * Uppercases task title during HTML5 drag operation.
- */
-const vUppercaseOnDrag = {
-  mounted(el) {
+export const vUppercaseOnDrag = {
+  mounted(el: HTMLElement) {
     if (!el || typeof el.addEventListener !== 'function') return;
 
     el.addEventListener('dragstart', () => {
       const titleEl = el.querySelector('.task-title');
       if (titleEl) {
-        el.dataset.originalTitle = titleEl.textContent;
-        titleEl.textContent = titleEl.textContent.toUpperCase();
+        el.dataset.originalTitle = titleEl.textContent || '';
+        titleEl.textContent = (titleEl.textContent || '').toUpperCase();
       }
     });
 
@@ -25,12 +19,8 @@ const vUppercaseOnDrag = {
   },
 };
 
-/**
- * Vue 3 directive: v-format-date
- * Formats a Date object or ISO string to a human-readable format.
- */
-const vFormatDate = {
-  mounted(el, binding) {
+export const vFormatDate = {
+  mounted(el: HTMLElement, binding: { value: string | Date }) {
     if (!el || !binding.value) return;
     const date = new Date(binding.value);
     if (!isNaN(date.getTime())) {
@@ -43,7 +33,7 @@ const vFormatDate = {
       });
     }
   },
-  updated(el, binding) {
+  updated(el: HTMLElement, binding: { value: string | Date }) {
     if (!el || !binding.value) return;
     const date = new Date(binding.value);
     if (!isNaN(date.getTime())) {
@@ -57,5 +47,3 @@ const vFormatDate = {
     }
   },
 };
-
-module.exports = { vUppercaseOnDrag, vFormatDate };

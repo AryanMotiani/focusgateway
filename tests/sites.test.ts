@@ -1,14 +1,12 @@
-'use strict';
-
-const {
+import {
   sitesData,
   getAllBundles,
   getBundleByKey,
   isValidCustomDomain,
   resolveDomains,
-} = require('../src/data/sites');
+} from '../src/data/sites';
 
-describe('Ticket 5 — Sites/Domain-Bundle Data Model Unit Tests', () => {
+describe('Ticket 5 — Sites/Domain-Bundle Data Model Unit Tests (TypeScript)', () => {
   test('sites.json contains valid version and >=30 bundles', () => {
     expect(sitesData.version).toBe('1.0.0');
     expect(Array.isArray(sitesData.bundles)).toBe(true);
@@ -18,10 +16,10 @@ describe('Ticket 5 — Sites/Domain-Bundle Data Model Unit Tests', () => {
   test('getBundleByKey returns correct bundle details', () => {
     const youtube = getBundleByKey('youtube');
     expect(youtube).not.toBeNull();
-    expect(youtube.display_name).toBe('YouTube');
-    expect(youtube.category).toBe('video');
-    expect(youtube.domains).toContain('youtube.com');
-    expect(youtube.domains).toContain('googlevideo.com');
+    expect(youtube?.display_name).toBe('YouTube');
+    expect(youtube?.category).toBe('video');
+    expect(youtube?.domains).toContain('youtube.com');
+    expect(youtube?.domains).toContain('googlevideo.com');
   });
 
   test('isValidCustomDomain validates hostnames strictly', () => {
