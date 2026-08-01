@@ -36,7 +36,7 @@ export function createLandingApp(): express.Application {
       { country: 'United States', count: 42, lat: 37.0902, lon: -95.7129 },
       { country: 'India', count: 28, lat: 20.5937, lon: 78.9629 },
       { country: 'United Kingdom', count: 15, lat: 55.3781, lon: -3.4360 },
-      { country: 'Germany', count: 51.1657, lon: 10.4515 },
+      { country: 'Germany', count: 12, lat: 51.1657, lon: 10.4515 },
     ]);
   });
 

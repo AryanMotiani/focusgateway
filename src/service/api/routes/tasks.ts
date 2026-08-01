@@ -99,4 +99,20 @@ router.post('/:id/forward', requireAuth, (req: AuthenticatedRequest, res: Respon
   res.json({ forward_count: task.forward_count, max_forwards: maxForwards });
 });
 
+router.delete('/:id', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  const taskId = getParamId(req);
+  const index = tasks.findIndex(t => t.id === taskId);
+  if (index === -1) {
+    res.status(404).json({ error: 'NOT_FOUND' });
+    return;
+  }
+  const { reason } = req.body;
+  if (!reason || reason.trim().length < 10) {
+    res.status(400).json({ error: 'REASON_REQUIRED', action: 'task_deletion' });
+    return;
+  }
+  tasks.splice(index, 1);
+  res.status(204).end();
+});
+
 export default router;

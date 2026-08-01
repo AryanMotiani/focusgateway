@@ -20,9 +20,44 @@
         <button v-if="!isRunning" @click="startTimer" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition-all shadow-lg shadow-indigo-600/30">
           Start Focus Session (25 min)
         </button>
-        <button v-else @click="stopTimer" class="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm transition-all shadow-lg shadow-rose-600/30">
+        <button v-else @click="openStopModal" class="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm transition-all shadow-lg shadow-rose-600/30">
           Stop Session Early
         </button>
+      </div>
+    </div>
+
+    <!-- Stop Early Type-to-Confirm Modal -->
+    <div v-if="showStopModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="glass-card p-6 rounded-2xl w-full max-w-md space-y-4 border border-rose-500/30">
+        <h2 class="text-lg font-bold text-rose-400">Stop Focus Session Early</h2>
+        <p class="text-xs text-slate-300">
+          Stopping early compromises your focus commitment. Type the confirmation phrase below (paste disabled):
+        </p>
+
+        <p class="text-xs font-mono text-rose-300 bg-rose-950/30 p-3 rounded-xl border border-rose-500/20 select-none">
+          {{ requiredPhrase }}
+        </p>
+
+        <textarea
+          v-model="userPhraseInput"
+          @paste.prevent
+          rows="2"
+          placeholder="Type the sentence above exactly..."
+          class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-rose-500 resize-none"
+        ></textarea>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button @click="showStopModal = false" class="px-4 py-2 text-sm text-slate-400 hover:text-white">
+            Resume Focus
+          </button>
+          <button
+            @click="confirmStopEarly"
+            :disabled="userPhraseInput.trim() !== requiredPhrase"
+            class="px-4 py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium"
+          >
+            Confirm Stop Early
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -33,6 +68,10 @@ import { ref } from 'vue';
 
 const secondsLeft = ref(1500); // 25 min
 const isRunning = ref(false);
+const showStopModal = ref(false);
+const requiredPhrase = ref('I am stopping my focus session early and breaking commitment');
+const userPhraseInput = ref('');
+
 let timerId: any = null;
 
 function formatTime(totalSeconds: number) {
@@ -54,14 +93,17 @@ function startTimer() {
   }, 1000);
 }
 
-function stopTimer() {
-  const reason = prompt('Type-to-confirm reason for stopping early (full sentence):');
-  if (reason && reason.trim().length >= 10) {
+function openStopModal() {
+  userPhraseInput.value = '';
+  showStopModal.value = true;
+}
+
+function confirmStopEarly() {
+  if (userPhraseInput.value.trim() === requiredPhrase.value) {
     clearInterval(timerId);
     isRunning.value = false;
     secondsLeft.value = 1500;
-  } else {
-    alert('Full sentence reason required to stop early.');
+    showStopModal.value = false;
   }
 }
 </script>

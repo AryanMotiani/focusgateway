@@ -26,6 +26,7 @@
         </div>
 
         <div v-for="task in getColumnTasks('pending')" :key="task.id"
+             v-uppercase-on-drag
              draggable="true" @dragstart="onDragStart($event, task)"
              class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all cursor-grab active:cursor-grabbing space-y-2">
           <div class="flex items-start justify-between gap-2">
@@ -43,6 +44,12 @@
                     class="w-2 h-2 rounded-full"></span>
             </div>
           </div>
+
+          <div class="flex items-center justify-end gap-2 pt-1">
+            <button @click="confirmDeleteTask(task)" class="text-[10px] text-rose-400/70 hover:text-rose-400 transition-colors">
+              🗑 Delete
+            </button>
+          </div>
         </div>
       </div>
 
@@ -59,6 +66,7 @@
         </div>
 
         <div v-for="task in getColumnTasks('in_progress')" :key="task.id"
+             v-uppercase-on-drag
              draggable="true" @dragstart="onDragStart($event, task)"
              class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all cursor-grab active:cursor-grabbing space-y-2">
           <div class="flex items-start justify-between gap-2">
@@ -70,8 +78,20 @@
 
           <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800/60">
             <span>📅 {{ formatDate(task.deadline) }}</span>
+            <!-- Forward dots (same as Pending column) -->
+            <div class="flex items-center gap-1" title="Forward Count (Procrastination)">
+              <span v-for="n in getMaxForwards(task.priority)" :key="n"
+                    :class="n <= task.forward_count ? 'bg-rose-500' : 'bg-slate-700'"
+                    class="w-2 h-2 rounded-full"></span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-2 pt-1">
             <button @click="tasksStore.forwardTask(task.id)" class="text-xs text-amber-400 hover:underline">
               Forward ➔
+            </button>
+            <button @click="confirmDeleteTask(task)" class="text-[10px] text-rose-400/70 hover:text-rose-400 transition-colors">
+              🗑 Delete
             </button>
           </div>
         </div>
@@ -96,6 +116,11 @@
             <span class="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               Done
             </span>
+          </div>
+          <div class="flex justify-end">
+            <button @click="confirmDeleteTask(task)" class="text-[10px] text-rose-400/50 hover:text-rose-400 transition-colors">
+              🗑 Delete
+            </button>
           </div>
         </div>
       </div>
@@ -132,6 +157,39 @@
         </form>
       </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div v-if="deleteTarget" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div class="glass-card p-6 rounded-2xl w-full max-w-md space-y-4 border border-rose-500/30">
+        <h2 class="text-lg font-bold text-rose-400">Delete Task</h2>
+        <p class="text-sm text-slate-300">
+          You are deleting: <span class="font-semibold text-white">{{ deleteTarget.title }}</span>
+        </p>
+        <p class="text-xs text-slate-400">
+          Type the full sentence below to confirm deletion (no copy-paste allowed):
+        </p>
+        <p class="text-xs font-mono text-rose-300 bg-rose-950/30 p-2 rounded-lg border border-rose-500/20 select-none">
+          {{ deleteConfirmPhrase }}
+        </p>
+        <textarea
+          v-model="deleteConfirmInput"
+          @paste.prevent
+          rows="2"
+          placeholder="Type the phrase exactly..."
+          class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-rose-500 resize-none"
+        ></textarea>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button @click="cancelDelete" class="px-4 py-2 text-sm text-slate-400 hover:text-white">Cancel</button>
+          <button
+            @click="executeDelete"
+            :disabled="deleteConfirmInput.trim() !== deleteConfirmPhrase"
+            class="px-4 py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium"
+          >
+            Confirm Delete
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -147,6 +205,11 @@ const newTask = ref({
   priority: 'medium' as 'low' | 'medium' | 'high',
   deadline: '',
 });
+
+// Delete task state
+const deleteTarget = ref<TaskItem | null>(null);
+const deleteConfirmInput = ref('');
+const deleteConfirmPhrase = ref('');
 
 function getColumnTasks(status: string) {
   return tasksStore.tasks.filter(t => t.status === status);
@@ -189,6 +252,28 @@ async function submitTask() {
   if (res.ok) {
     showModal.value = false;
     newTask.value = { title: '', priority: 'medium', deadline: '' };
+  }
+}
+
+function confirmDeleteTask(task: TaskItem) {
+  deleteTarget.value = task;
+  deleteConfirmPhrase.value = `I confirm deleting task ${task.id}`;
+  deleteConfirmInput.value = '';
+}
+
+function cancelDelete() {
+  deleteTarget.value = null;
+  deleteConfirmInput.value = '';
+}
+
+async function executeDelete() {
+  if (!deleteTarget.value) return;
+  if (deleteConfirmInput.value.trim() !== deleteConfirmPhrase.value) return;
+  const res = await tasksStore.deleteTask(deleteTarget.value.id, deleteConfirmInput.value);
+  if (res.ok) {
+    cancelDelete();
+  } else {
+    alert(res.error || 'Failed to delete task');
   }
 }
 

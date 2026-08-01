@@ -36,6 +36,11 @@ export function createApp(): express.Application {
       res.status(400).json({ error: 'PIN_REQUIRED' });
       return;
     }
+    const correctPin = process.env.FG_ADMIN_PIN || '1234';
+    if (pin !== correctPin) {
+      res.status(401).json({ error: 'INVALID_PIN', message: 'Incorrect PIN' });
+      return;
+    }
     const token = issueToken('admin', '15m');
     res.json({ token, role: 'admin' });
   });

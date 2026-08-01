@@ -101,5 +101,27 @@ export const useTasksStore = defineStore('tasks', () => {
     }
   }
 
-  return { tasks, loading, fetchTasks, createTask, updateTask, forwardTask };
+  async function deleteTask(id: number, reason: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      if (!authStore.token) await authStore.loginStandard();
+      const res = await fetch(`/api/tasks/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authStore.token}`,
+        },
+        body: JSON.stringify({ reason }),
+      });
+      if (res.ok) {
+        await fetchTasks();
+        return { ok: true };
+      }
+      const data = await res.json();
+      return { ok: false, error: data.error };
+    } catch (e: any) {
+      return { ok: false, error: e.message };
+    }
+  }
+
+  return { tasks, loading, fetchTasks, createTask, updateTask, forwardTask, deleteTask };
 });
