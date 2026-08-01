@@ -71,7 +71,7 @@ export function getAppConfig(): AppConfig {
     appDir,
     dbPath: process.env.DB_PATH || path.join(appDir, 'focusgateway.db'),
     jwtSecret: process.env.JWT_SECRET || config.jwt_secret,
-    port: parseInt(process.env.SERVICE_PORT || '7000', 10),
+    port: parseInt(process.env.SERVICE_PORT || '3000', 10),
   };
 
   return cachedConfig;

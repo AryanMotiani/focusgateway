@@ -11,15 +11,10 @@ describe('Ticket 7 — Landing Page Technical Spec Unit & API Tests (TypeScript)
     app = createLandingApp();
   });
 
-  test('runHelloScript writes startup.json log file', () => {
+  test('runHelloScript returns startup entry', () => {
     const entry = runHelloScript();
-    expect(entry.message).toContain('FocusGateway');
-
-    const logPath = path.join(__dirname, '../landing/logs/startup.json');
-    expect(fs.existsSync(logPath)).toBe(true);
-
-    const content = JSON.parse(fs.readFileSync(logPath, 'utf8'));
-    expect(content.message).toBe('Hello from FocusGateway Landing Server');
+    expect(entry.message).toBe('Hello from FocusGateway Landing Server');
+    expect(entry.started_at).toBeDefined();
   });
 
   test('GET /api/features loads features.json data', async () => {

@@ -147,7 +147,7 @@
 
           <div>
             <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Deadline</label>
-            <input v-model="newTask.deadline" type="datetime-local" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500">
+            <input v-model="newTask.deadline" type="datetime-local" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-white text-sm focus:outline-none focus:border-indigo-500">
           </div>
 
           <div class="flex items-center justify-end gap-3 pt-2">
@@ -243,15 +243,30 @@ async function onDrop(event: DragEvent, newStatus: TaskItem['status']) {
 }
 
 async function submitTask() {
-  if (!newTask.value.title || !newTask.value.deadline) return;
+  if (!newTask.value.title.trim()) {
+    alert('Please enter a task title');
+    return;
+  }
+
+  let deadlineIso = new Date(Date.now() + 86400000).toISOString();
+  if (newTask.value.deadline) {
+    const parsed = new Date(newTask.value.deadline);
+    if (!isNaN(parsed.getTime())) {
+      deadlineIso = parsed.toISOString();
+    }
+  }
+
   const res = await tasksStore.createTask({
-    title: newTask.value.title,
+    title: newTask.value.title.trim(),
     priority: newTask.value.priority,
-    deadline: new Date(newTask.value.deadline).toISOString(),
+    deadline: deadlineIso,
   });
+
   if (res.ok) {
     showModal.value = false;
     newTask.value = { title: '', priority: 'medium', deadline: '' };
+  } else {
+    alert(res.error || 'Failed to save task');
   }
 }
 
