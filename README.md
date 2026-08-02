@@ -139,6 +139,6 @@ npx ts-node -e "import { cleanHostsContent, getHostsPath } from './src/recovery/
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
