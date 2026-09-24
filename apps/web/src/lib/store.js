@@ -1,6 +1,6 @@
 import { reactive, computed } from 'vue'
 import { computeBlocks, allSites } from '@focusgateway/core'
-import { connect, createLocalAdapter } from './api.js'
+import { connect, createLocalAdapter, readLocalState, clearLocalData } from './api.js'
 
 export const store = reactive({
   ready: false,
@@ -47,10 +47,12 @@ export async function init() {
     pollApproval()
   }
   await refresh()
+  await adoptLocalSetup()
   store.ready = true
   setInterval(() => (store.now = Date.now() + store.clockOffset), 1000)
   // Local mode has no background worker, so run housekeeping from the page.
-  setInterval(() => adapter.mode === 'local' ? call('system.tick').catch(() => {}) : refresh(), 30_000)
+  setInterval(() => (adapter.mode === 'local' ? call('system.tick').catch(() => {}) : refresh()), 30_000)
+  setInterval(() => adapter.mode !== 'local' && store.state && !store.state.onboarding.completed && refresh(), 3000)
   if (adapter.mode === 'local') call('system.tick').catch(() => {})
   document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && refresh())
   window.addEventListener('focus', refresh)
@@ -64,8 +66,30 @@ async function pollApproval() {
     if (hello?.ok && hello.data.approved) {
       store.pendingApproval = false
       await refresh()
+      await adoptLocalSetup()
       location.hash = wantedHash && wantedHash !== '#/home' ? wantedHash : '#/'
     }
+  }
+}
+
+/**
+ * Someone set up FocusGateway on the website first (PIN, tutorial, maybe rules),
+ * then installed the extension. Hand that setup to the extension once, so the
+ * tutorial never runs twice. Only happens while the extension is still empty.
+ */
+async function adoptLocalSetup() {
+  if (store.mode === 'local' || !store.state) return
+  const local = readLocalState()
+  if (!local?.security?.pin) return
+  const ext = store.state
+  const fresh = !ext.security.hasPin && !ext.onboarding.completed && !ext.rules.length && !ext.tasks.length
+  if (!fresh) return // Settings offers "Move my data" for this case
+  try {
+    await call('setup.adopt', { state: local })
+    clearLocalData()
+    toast('Your setup moved into the extension. Blocking is on.', 'success')
+  } catch (e) {
+    console.warn('Could not move the local setup', e)
   }
 }
 

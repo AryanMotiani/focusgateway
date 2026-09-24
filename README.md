@@ -1,5 +1,10 @@
 # FocusGateway
 
+[![CI](https://github.com/YOUR-USERNAME/focusgateway/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR-USERNAME/focusgateway/actions/workflows/ci.yml)
+[![Deploy website](https://github.com/YOUR-USERNAME/focusgateway/actions/workflows/pages.yml/badge.svg)](https://github.com/YOUR-USERNAME/focusgateway/actions/workflows/pages.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-6152e8.svg)](LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-1f9d6a.svg)](CONTRIBUTING.md)
+
 Block distracting websites until your work is done. Tasks, a minimal habit tracker, a weekly schedule and a lofi study room, all in one free and open-source app.
 
 It works in Chrome, Edge, Brave, Opera, Vivaldi, Arc and Firefox. With the optional lock agent it blocks in every browser and app on the computer (Safari included). There is no server and no account. Your data stays on your computer.
@@ -64,22 +69,26 @@ The web app runs in three modes and picks one on its own:
 
 ## Run it locally
 
-Needs Node.js 18 or newer.
+Needs Node.js 20.19 or newer.
 
 ```bash
 npm install
-npm test            # 60 tests for the engine, backend and agent
-npm run dev         # web app at http://localhost:5173
-npm run build       # web app + extension (extension/dist/chromium and extension/dist/firefox)
+npm run dev          # web app at http://localhost:5173
+npm test             # unit tests for the engine, backend and agent
+npm run build        # web app + extension (extension/dist/chromium and extension/dist/firefox)
+npm run test:e2e     # loads the built extension into Chromium and tests real blocking
+npm run check        # everything CI checks: lint, format, unit tests, build
 ```
 
 Load the extension in Chrome: `chrome://extensions`, turn on Developer mode, **Load unpacked**, pick `extension/dist/chromium`. For Firefox use `about:debugging`, **Load Temporary Add-on**, pick `extension/dist/firefox/manifest.json`.
+
+If you set FocusGateway up on the website before installing the extension, you don't redo anything: approve the site in the extension's toolbar popup and your PIN, rules, tasks and habits move into the extension.
 
 ## Deploy for free
 
 The web app is a static site. Any of these work with no server and no database:
 
-- **GitHub Pages.** Push to `main`. The included workflow (`.github/workflows/pages.yml`) tests, builds and deploys. Turn on Pages with source "GitHub Actions" in the repo settings.
+- **GitHub Pages.** Push to `main`. Once CI passes, `.github/workflows/pages.yml` builds and deploys. Turn on Pages with source "GitHub Actions" in the repo settings.
 - **Netlify.** Import the repo. `netlify.toml` is already set up.
 - **Vercel.** Import the repo. `vercel.json` is already set up.
 - **Cloudflare Pages.** Build command `npm run build:web`, output directory `apps/web/dist`.
@@ -123,9 +132,11 @@ The original `SPEC.md` and `TECHNICAL-PRD.md` are kept as the product source. Th
 - **Added:** habit tracker, lofi study room, Kanban board, week view.
 - **Trimmed:** the landing-page analytics globe and waitlist (these needed a server and a database), the tray icon (the extension's toolbar popup does the same job without native dependencies).
 
-## Project workflow
+## Contributing
 
-The repo includes the [SkilledAgent](https://www.npmjs.com/package/skilledagent) workspace in `.agents/`. The locked decisions are in `.agents/ACTIVE_SPEC.md`. Tests live next to each package (`packages/core/test`, `agent/test`).
+Contributions are welcome, from adding a distracting site to the block list to new features. Start with [CONTRIBUTING.md](CONTRIBUTING.md). Please read the [Code of Conduct](CODE_OF_CONDUCT.md), and report security problems or ways around a block privately as described in [SECURITY.md](SECURITY.md).
+
+Every pull request runs lint, unit tests on Windows, macOS and Linux, the build, a Firefox add-on lint and end-to-end tests with the real extension. Merging to `main` deploys the website. Pushing a version tag publishes a release. The locked design decisions are in `.agents/ACTIVE_SPEC.md` (the repo uses the [SkilledAgent](https://www.npmjs.com/package/skilledagent) workspace).
 
 ## License
 

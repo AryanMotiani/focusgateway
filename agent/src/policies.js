@@ -34,17 +34,32 @@ export function firefoxPolicy({ strict = false, firefoxXpiUrl = '' } = {}) {
     p.BlockAboutProfiles = true
     p.DisableDeveloperTools = true
   }
-  if (firefoxXpiUrl) p.ExtensionSettings = { 'focusgateway@focusgateway.app': { installation_mode: 'force_installed', install_url: firefoxXpiUrl } }
+  if (firefoxXpiUrl)
+    p.ExtensionSettings = { 'focusgateway@focusgateway.app': { installation_mode: 'force_installed', install_url: firefoxXpiUrl } }
   return p
 }
 
 const CHROMIUM = {
-  win32: ['SOFTWARE\\Policies\\Google\\Chrome', 'SOFTWARE\\Policies\\Microsoft\\Edge', 'SOFTWARE\\Policies\\BraveSoftware\\Brave', 'SOFTWARE\\Policies\\Chromium'],
+  win32: [
+    'SOFTWARE\\Policies\\Google\\Chrome',
+    'SOFTWARE\\Policies\\Microsoft\\Edge',
+    'SOFTWARE\\Policies\\BraveSoftware\\Brave',
+    'SOFTWARE\\Policies\\Chromium',
+  ],
   darwin: ['com.google.Chrome', 'com.microsoft.Edge', 'com.brave.Browser', 'org.chromium.Chromium'],
-  linux: ['/etc/opt/chrome/policies/managed', '/etc/chromium/policies/managed', '/etc/chromium-browser/policies/managed', '/etc/brave/policies/managed', '/etc/opt/edge/policies/managed'],
+  linux: [
+    '/etc/opt/chrome/policies/managed',
+    '/etc/chromium/policies/managed',
+    '/etc/chromium-browser/policies/managed',
+    '/etc/brave/policies/managed',
+    '/etc/opt/edge/policies/managed',
+  ],
 }
 const FIREFOX_DIRS = {
-  win32: [path.join(process.env.ProgramFiles || 'C:\\Program Files', 'Mozilla Firefox', 'distribution'), path.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', 'Mozilla Firefox', 'distribution')],
+  win32: [
+    path.join(process.env.ProgramFiles || 'C:\\Program Files', 'Mozilla Firefox', 'distribution'),
+    path.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', 'Mozilla Firefox', 'distribution'),
+  ],
   darwin: ['/Applications/Firefox.app/Contents/Resources/distribution'],
   linux: ['/etc/firefox/policies', '/usr/lib/firefox/distribution', '/usr/lib64/firefox/distribution'],
 }
@@ -58,7 +73,9 @@ function writeRegistry(key, policy) {
   for (const [name, value] of Object.entries(policy)) {
     if (Array.isArray(value)) {
       const sub = `HKLM\\${key}\\${name}`
-      try { reg(['delete', sub, '/f']) } catch {}
+      try {
+        reg(['delete', sub, '/f'])
+      } catch {}
       value.forEach((v, i) => reg(['add', sub, '/v', String(i + 1), '/t', 'REG_SZ', '/d', v, '/f']))
       written.push({ kind: 'regkey', key: sub })
     } else {
@@ -78,7 +95,9 @@ function plistValue(v, indent) {
   if (typeof v === 'number') return `${pad}<integer>${v}</integer>`
   if (typeof v === 'string') return `${pad}<string>${v.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</string>`
   if (Array.isArray(v)) return `${pad}<array>\n${v.map((x) => plistValue(x, indent + 1)).join('\n')}\n${pad}</array>`
-  return `${pad}<dict>\n${Object.entries(v).map(([k, x]) => `${pad}  <key>${k}</key>\n${plistValue(x, indent + 1)}`).join('\n')}\n${pad}</dict>`
+  return `${pad}<dict>\n${Object.entries(v)
+    .map(([k, x]) => `${pad}  <key>${k}</key>\n${plistValue(x, indent + 1)}`)
+    .join('\n')}\n${pad}</dict>`
 }
 export function toPlist(obj) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n${plistValue(obj, 0)}\n</plist>\n`
@@ -112,7 +131,9 @@ export function applyPolicies(opts) {
     try {
       const f = path.join(dir, 'policies.json')
       let existing = {}
-      try { existing = JSON.parse(fs.readFileSync(f, 'utf8')) } catch {}
+      try {
+        existing = JSON.parse(fs.readFileSync(f, 'utf8'))
+      } catch {}
       const merged = { ...existing, policies: { ...(existing.policies || {}), ...ff } }
       backupAndWrite(f, JSON.stringify(merged, null, 2), written)
     } catch (e) {

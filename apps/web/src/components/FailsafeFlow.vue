@@ -43,15 +43,18 @@ async function cancel() {
 }
 const cont = () => run(() => call('failsafe.continue'))
 const submitPin = () => run(() => call('failsafe.pin', { pin: pin.value }))
-const confirm = () => run(async () => {
-  result.value = await call('failsafe.confirm', { confirmation: text.value })
-  emit('done', result.value)
-})
+const confirm = () =>
+  run(async () => {
+    result.value = await call('failsafe.confirm', { confirmation: text.value })
+    emit('done', result.value)
+  })
 </script>
 
 <template>
   <Modal :title="practice ? 'Failsafe practice run' : 'Failsafe'" :dismissable="false" @close="cancel">
-    <p v-if="practice" class="mb-4 rounded-xl bg-accent-soft p-3 text-sm text-accent">This is a real run-through with a short 10 second wait. Nothing gets unlocked.</p>
+    <p v-if="practice" class="mb-4 rounded-xl bg-accent-soft p-3 text-sm text-accent">
+      This is a real run-through with a short 10 second wait. Nothing gets unlocked.
+    </p>
 
     <div v-if="step === 'intent'" class="space-y-4">
       <div class="rounded-2xl bg-warm-soft p-5 text-center">
@@ -78,12 +81,24 @@ const confirm = () => run(async () => {
         <div class="relative grid h-36 w-36 place-items-center">
           <svg viewBox="0 0 100 100" class="absolute inset-0 -rotate-90">
             <circle cx="50" cy="50" r="44" fill="none" stroke="var(--fg-line)" stroke-width="6" />
-            <circle cx="50" cy="50" r="44" fill="none" stroke="var(--fg-accent)" stroke-width="6" stroke-linecap="round"
-              :stroke-dasharray="276.5" :stroke-dashoffset="276.5 * (remaining / total)" class="transition-all duration-1000 ease-linear" />
+            <circle
+              cx="50"
+              cy="50"
+              r="44"
+              fill="none"
+              stroke="var(--fg-accent)"
+              stroke-width="6"
+              stroke-linecap="round"
+              :stroke-dasharray="276.5"
+              :stroke-dashoffset="276.5 * (remaining / total)"
+              class="transition-all duration-1000 ease-linear"
+            />
           </svg>
           <span class="font-mono text-2xl font-semibold">{{ countdown(remaining) }}</span>
         </div>
-        <p class="max-w-xs text-center text-sm text-muted">Take a breath. Is this really worth it? You can walk away now and nothing is lost.</p>
+        <p class="max-w-xs text-center text-sm text-muted">
+          Take a breath. Is this really worth it? You can walk away now and nothing is lost.
+        </p>
       </div>
       <template v-else>
         <TypeToConfirm ref="confirmRef" v-model="text" :phrase="requiredPhrase('failsafe')" />
@@ -96,7 +111,9 @@ const confirm = () => run(async () => {
 
     <div v-else-if="step === 'done'" class="space-y-4 text-center">
       <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-accent"><Icon name="unlock" :size="26" /></div>
-      <p v-if="result?.practice" class="text-sm">Practice complete. Now you know exactly how the emergency exit works, and how annoying it is on purpose.</p>
+      <p v-if="result?.practice" class="text-sm">
+        Practice complete. Now you know exactly how the emergency exit works, and how annoying it is on purpose.
+      </p>
       <p v-else class="text-sm">Unlocked for the rest of this window. The rule comes back next time. It's logged in your history.</p>
       <button class="btn btn-primary w-full" @click="emit('close')">Close</button>
     </div>

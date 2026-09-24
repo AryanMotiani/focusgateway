@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest an idea or improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe the situation, not the solution first. "When I study at night I..."
+    validations: { required: true }
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+    validations: { required: true }
+  - type: textarea
+    id: bypass
+    attributes:
+      label: Could this be used to get around a block?
+      description: FocusGateway's whole point is making it hard to give in. Think about how a tired student at 1 am might misuse the feature.
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contribution
+      options:
+        - label: I would like to build this myself

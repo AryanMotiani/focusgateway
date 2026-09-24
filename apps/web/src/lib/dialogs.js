@@ -6,7 +6,13 @@ export const dialogs = reactive({ current: null })
 
 function open(d) {
   return new Promise((resolve) => {
-    dialogs.current = { ...d, resolve: (v) => { dialogs.current = null; resolve(v) } }
+    dialogs.current = {
+      ...d,
+      resolve: (v) => {
+        dialogs.current = null
+        resolve(v)
+      },
+    }
   })
 }
 

@@ -17,7 +17,11 @@ const month = computed(() => Array.from({ length: 30 }, (_, i) => addDays(startO
 const form = ref(null)
 
 function openForm(h) {
-  form.value = reactive(h ? { id: h.id, name: h.name, emoji: h.emoji, color: h.color, days: [...h.days] } : { name: '', emoji: '💧', color: 'violet', days: [1, 2, 3, 4, 5, 6, 7] })
+  form.value = reactive(
+    h
+      ? { id: h.id, name: h.name, emoji: h.emoji, color: h.color, days: [...h.days] }
+      : { name: '', emoji: '💧', color: 'violet', days: [1, 2, 3, 4, 5, 6, 7] },
+  )
 }
 async function save() {
   const f = form.value
@@ -26,13 +30,20 @@ async function save() {
   form.value = null
 }
 async function remove(h) {
-  if (await askYesNo(`Delete “${h.name}”?`, 'Its history is deleted too. Archive it instead if you might come back to it.', { yes: 'Delete', danger: true })) {
+  if (
+    await askYesNo(`Delete “${h.name}”?`, 'Its history is deleted too. Archive it instead if you might come back to it.', {
+      yes: 'Delete',
+      danger: true,
+    })
+  ) {
     await attempt(() => call('habits.delete', { id: h.id }))
     form.value = null
   }
 }
 const toggle = (h, d) => attempt(() => call('habits.toggle', { id: h.id, date: dateKey(d) }))
-const doneToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.now) && isHabitDone(store.state.habitLogs, h.id, store.now)).length)
+const doneToday = computed(
+  () => habits.value.filter((h) => isHabitDue(h, store.now) && isHabitDone(store.state.habitLogs, h.id, store.now)).length,
+)
 const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.now)).length)
 </script>
 
@@ -50,27 +61,60 @@ const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.n
       <article v-for="h in habits" :key="h.id" class="card p-4">
         <div class="flex flex-wrap items-center gap-4">
           <button class="flex min-w-0 flex-1 items-center gap-3 text-left" @click="openForm(h)">
-            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-xl" :style="{ background: COLORS[h.color] + '22' }">{{ h.emoji || '•' }}</span>
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-xl" :style="{ background: COLORS[h.color] + '22' }">{{
+              h.emoji || '•'
+            }}</span>
             <span class="min-w-0">
               <span class="block truncate font-semibold">{{ h.name }}</span>
-              <span class="text-xs text-muted">{{ daysLabel(h.days) }} · {{ habitStreak(h, store.state.habitLogs, store.now) }} day streak<template v-if="habitRate(h, store.state.habitLogs, store.now) !== null"> · {{ Math.round(habitRate(h, store.state.habitLogs, store.now) * 100) }}% this month</template></span>
+              <span class="text-xs text-muted"
+                >{{ daysLabel(h.days) }} · {{ habitStreak(h, store.state.habitLogs, store.now) }} day streak<template
+                  v-if="habitRate(h, store.state.habitLogs, store.now) !== null"
+                >
+                  · {{ Math.round(habitRate(h, store.state.habitLogs, store.now) * 100) }}% this month</template
+                ></span
+              >
             </span>
           </button>
           <div class="flex gap-1.5">
-            <button v-for="d in week" :key="d" class="flex w-9 flex-col items-center gap-1 text-[10px] text-muted" :disabled="!isHabitDue(h, d)"
-              :aria-label="`${h.name} on ${new Date(d).toDateString()}`" @click="toggle(h, d)">
+            <button
+              v-for="d in week"
+              :key="d"
+              class="flex w-9 flex-col items-center gap-1 text-[10px] text-muted"
+              :disabled="!isHabitDue(h, d)"
+              :aria-label="`${h.name} on ${new Date(d).toDateString()}`"
+              @click="toggle(h, d)"
+            >
               <span>{{ DAY_NAMES[(new Date(d).getDay() + 6) % 7].slice(0, 2) }}</span>
-              <span class="grid h-9 w-9 place-items-center rounded-xl border-2 transition"
-                :style="isHabitDone(store.state.habitLogs, h.id, d) ? { background: COLORS[h.color], borderColor: COLORS[h.color], color: 'white' } : {}"
-                :class="[!isHabitDue(h, d) && 'opacity-30', d === week[6] && !isHabitDone(store.state.habitLogs, h.id, d) ? 'border-ink/40' : 'border-line']">
+              <span
+                class="grid h-9 w-9 place-items-center rounded-xl border-2 transition"
+                :style="
+                  isHabitDone(store.state.habitLogs, h.id, d)
+                    ? { background: COLORS[h.color], borderColor: COLORS[h.color], color: 'white' }
+                    : {}
+                "
+                :class="[
+                  !isHabitDue(h, d) && 'opacity-30',
+                  d === week[6] && !isHabitDone(store.state.habitLogs, h.id, d) ? 'border-ink/40' : 'border-line',
+                ]"
+              >
                 <Icon v-if="isHabitDone(store.state.habitLogs, h.id, d)" name="check" :size="16" />
               </span>
             </button>
           </div>
         </div>
         <div class="mt-3 flex gap-[3px]" aria-hidden="true">
-          <span v-for="d in month" :key="d" class="h-2 flex-1 rounded-sm"
-            :style="{ background: isHabitDone(store.state.habitLogs, h.id, d) ? COLORS[h.color] : isHabitDue(h, d) && d >= startOfDay(h.createdAt) ? 'var(--fg-sunk)' : 'transparent' }" />
+          <span
+            v-for="d in month"
+            :key="d"
+            class="h-2 flex-1 rounded-sm"
+            :style="{
+              background: isHabitDone(store.state.habitLogs, h.id, d)
+                ? COLORS[h.color]
+                : isHabitDue(h, d) && d >= startOfDay(h.createdAt)
+                  ? 'var(--fg-sunk)'
+                  : 'transparent',
+            }"
+          />
         </div>
       </article>
 
@@ -86,7 +130,9 @@ const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.n
       <div class="mt-2 space-y-1">
         <div v-for="h in archived" :key="h.id" class="flex items-center justify-between rounded-xl px-3 py-2 hover:bg-sunk">
           <span>{{ h.emoji }} {{ h.name }}</span>
-          <button class="btn btn-sm" @click="attempt(() => call('habits.update', { id: h.id, patch: { archived: false } }))">Restore</button>
+          <button class="btn btn-sm" @click="attempt(() => call('habits.update', { id: h.id, patch: { archived: false } }))">
+            Restore
+          </button>
         </div>
       </div>
     </details>
@@ -100,13 +146,31 @@ const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.n
         <div>
           <span class="label">Icon</span>
           <div class="flex flex-wrap gap-1.5">
-            <button v-for="e in EMOJI" :key="e" type="button" class="grid h-9 w-9 place-items-center rounded-xl border text-lg" :class="form.emoji === e ? 'border-accent bg-accent-soft' : 'border-line'" @click="form.emoji = e">{{ e }}</button>
+            <button
+              v-for="e in EMOJI"
+              :key="e"
+              type="button"
+              class="grid h-9 w-9 place-items-center rounded-xl border text-lg"
+              :class="form.emoji === e ? 'border-accent bg-accent-soft' : 'border-line'"
+              @click="form.emoji = e"
+            >
+              {{ e }}
+            </button>
           </div>
         </div>
         <div>
           <span class="label">Colour</span>
           <div class="flex gap-2">
-            <button v-for="(hex, name) in COLORS" :key="name" type="button" class="h-8 w-8 rounded-full ring-offset-2 ring-offset-card" :class="form.color === name && 'ring-2 ring-ink'" :style="{ background: hex }" :aria-label="name" @click="form.color = name" />
+            <button
+              v-for="(hex, name) in COLORS"
+              :key="name"
+              type="button"
+              class="h-8 w-8 rounded-full ring-offset-2 ring-offset-card"
+              :class="form.color === name && 'ring-2 ring-ink'"
+              :style="{ background: hex }"
+              :aria-label="name"
+              @click="form.color = name"
+            />
           </div>
         </div>
         <div>
@@ -115,8 +179,16 @@ const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.n
         </div>
         <div class="flex flex-wrap justify-between gap-2 pt-2">
           <div v-if="form.id" class="flex gap-2">
-            <button type="button" class="btn btn-sm" @click="attempt(() => call('habits.update', { id: form.id, patch: { archived: true } })).then(() => (form = null))">Archive</button>
-            <button type="button" class="btn btn-sm text-bad" @click="remove(store.state.habits.find((h) => h.id === form.id))">Delete</button>
+            <button
+              type="button"
+              class="btn btn-sm"
+              @click="attempt(() => call('habits.update', { id: form.id, patch: { archived: true } })).then(() => (form = null))"
+            >
+              Archive
+            </button>
+            <button type="button" class="btn btn-sm text-bad" @click="remove(store.state.habits.find((h) => h.id === form.id))">
+              Delete
+            </button>
           </div>
           <div class="ml-auto flex gap-2">
             <button type="button" class="btn" @click="form = null">Cancel</button>

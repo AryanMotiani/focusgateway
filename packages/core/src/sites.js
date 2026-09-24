@@ -30,7 +30,9 @@ export function normalizeDomain(input) {
 }
 
 export function parseDomainList(text) {
-  const parts = String(text).split(/[\s,;]+/).filter(Boolean)
+  const parts = String(text)
+    .split(/[\s,;]+/)
+    .filter(Boolean)
   const good = []
   const bad = []
   for (const p of parts) {

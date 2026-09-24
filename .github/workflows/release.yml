@@ -1,20 +1,28 @@
 name: Release
+
+# Push a tag like v1.2.0 (see CONTRIBUTING.md, "Releasing").
 on:
   push:
-    tags: ['v*']
+    tags: ['v*.*.*']
+
 permissions:
   contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
+        with: { node-version-file: .nvmrc, cache: npm }
       - run: npm ci
-      - run: npm test
-      - run: npm run build:ext
-      - name: Source bundle (includes the lock agent)
+      - name: Tag must match package.json version
+        run: |
+          v=$(node -p "require('./package.json').version")
+          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME does not match package.json version $v"; exit 1; }
+      - run: npm run check
+      - run: npm run lint:firefox
+      - name: Source bundle (contains the lock agent)
         run: git archive --format=zip --prefix=focusgateway/ -o focusgateway-${GITHUB_REF_NAME}.zip HEAD
       - uses: softprops/action-gh-release@v2
         with:
@@ -23,3 +31,46 @@ jobs:
             extension/dist/focusgateway-chromium-*.zip
             extension/dist/focusgateway-firefox-*.zip
             focusgateway-${{ github.ref_name }}.zip
+      - uses: actions/upload-artifact@v4
+        with: { name: extension-zips, path: extension/dist/*.zip }
+
+  # Optional store publishing. Each job only runs when its secrets exist,
+  # so forks and new repos are not affected. See CONTRIBUTING.md, "Store publishing".
+  chrome-web-store:
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+    steps:
+      - if: env.CWS_EXTENSION_ID == ''
+        run: echo "Chrome Web Store secrets not set, skipping."
+      - uses: actions/download-artifact@v4
+        if: env.CWS_EXTENSION_ID != ''
+        with: { name: extension-zips }
+      - if: env.CWS_EXTENSION_ID != ''
+        run: npx -y chrome-webstore-upload-cli@3 upload --source focusgateway-chromium-*.zip --auto-publish
+        env:
+          EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+
+  firefox-addons:
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+    steps:
+      - if: env.AMO_JWT_ISSUER == ''
+        run: echo "addons.mozilla.org secrets not set, skipping."
+      - uses: actions/checkout@v4
+        if: env.AMO_JWT_ISSUER != ''
+      - uses: actions/setup-node@v4
+        if: env.AMO_JWT_ISSUER != ''
+        with: { node-version-file: .nvmrc, cache: npm }
+      - if: env.AMO_JWT_ISSUER != ''
+        run: npm ci && npm run build
+      - if: env.AMO_JWT_ISSUER != ''
+        run: npx web-ext sign --source-dir extension/dist/firefox --channel listed --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
+        env:
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}

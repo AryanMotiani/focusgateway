@@ -17,7 +17,10 @@ export function requiredPhrase(action, subject = '') {
   return f(String(subject).slice(0, 80))
 }
 
-const squash = (s) => String(s || '').replace(/\s+/g, ' ').trim()
+const squash = (s) =>
+  String(s || '')
+    .replace(/\s+/g, ' ')
+    .trim()
 
 /** Returns the typed reason, or throws a user-facing error. */
 export function checkConfirmation(action, subject, typed) {

@@ -48,7 +48,8 @@ export async function withConfirm(cmd, payload, action, subject, opts = {}) {
 export async function updateTask(task, patch) {
   const r = await withConfirm('tasks.update', { id: task.id, patch }, 'ease_task', task.title, {
     title: 'Making it easier?',
-    message: 'Pushing a deadline back, lowering priority or detaching a task from a study window makes today easier. That is allowed, but you have to own it.',
+    message:
+      'Pushing a deadline back, lowering priority or detaching a task from a study window makes today easier. That is allowed, but you have to own it.',
   })
   if (r?.praise) praise('Tighter deadline or higher priority. Future you says thanks.')
   return r

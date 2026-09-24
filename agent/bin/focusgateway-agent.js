@@ -23,13 +23,21 @@ const option = (name) => {
   return i >= 0 ? rest[i + 1] : undefined
 }
 
-const c = { b: (s) => `\x1b[1m${s}\x1b[0m`, g: (s) => `\x1b[32m${s}\x1b[0m`, y: (s) => `\x1b[33m${s}\x1b[0m`, r: (s) => `\x1b[31m${s}\x1b[0m`, d: (s) => `\x1b[2m${s}\x1b[0m` }
+const c = {
+  b: (s) => `\x1b[1m${s}\x1b[0m`,
+  g: (s) => `\x1b[32m${s}\x1b[0m`,
+  y: (s) => `\x1b[33m${s}\x1b[0m`,
+  r: (s) => `\x1b[31m${s}\x1b[0m`,
+  d: (s) => `\x1b[2m${s}\x1b[0m`,
+}
 
 function banner() {
-  console.log(c.b(`
+  console.log(
+    c.b(`
   FocusGateway lock agent ${VERSION}
   Blocks your distractions in every browser and app on this computer.
-`))
+`),
+  )
 }
 
 function needAdmin() {
@@ -45,11 +53,18 @@ function health(timeout = 2000) {
       let b = ''
       res.on('data', (d) => (b += d))
       res.on('end', () => {
-        try { resolve(JSON.parse(b)) } catch { resolve(null) }
+        try {
+          resolve(JSON.parse(b))
+        } catch {
+          resolve(null)
+        }
       })
     })
     req.on('error', () => resolve(null))
-    req.on('timeout', () => { req.destroy(); resolve(null) })
+    req.on('timeout', () => {
+      req.destroy()
+      resolve(null)
+    })
   })
 }
 
@@ -57,10 +72,14 @@ function health(timeout = 2000) {
 function lockDownDataDir() {
   if (process.platform === 'win32') {
     try {
-      execFileSync('icacls', [dataDir(), '/inheritance:r', '/grant:r', '*S-1-5-18:(OI)(CI)F', '*S-1-5-32-544:(OI)(CI)F'], { stdio: 'ignore' })
+      execFileSync('icacls', [dataDir(), '/inheritance:r', '/grant:r', '*S-1-5-18:(OI)(CI)F', '*S-1-5-32-544:(OI)(CI)F'], {
+        stdio: 'ignore',
+      })
     } catch {}
   } else {
-    try { fs.chmodSync(dataDir(), 0o700) } catch {}
+    try {
+      fs.chmodSync(dataDir(), 0o700)
+    } catch {}
   }
 }
 
@@ -82,7 +101,11 @@ function copyNode() {
 function pairingCode() {
   // 5 groups of 4 from an unambiguous alphabet (~100 bits)
   const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  return [...crypto.randomBytes(20)].map((b) => A[b % A.length]).join('').match(/.{4}/g).join('-')
+  return [...crypto.randomBytes(20)]
+    .map((b) => A[b % A.length])
+    .join('')
+    .match(/.{4}/g)
+    .join('-')
 }
 
 async function install() {
@@ -103,7 +126,9 @@ async function install() {
   }
   writeJson('config.json', config)
   lockDownDataDir()
-  try { uninstallService() } catch {} // reinstall: stop the old copy cleanly first
+  try {
+    uninstallService()
+  } catch {} // reinstall: stop the old copy cleanly first
   console.log('1/4 Copying program files to', programDir())
   copyProgram(repoRoot)
   const nodePath = copyNode()
@@ -119,12 +144,18 @@ async function install() {
     await new Promise((r) => setTimeout(r, 700))
     h = await health()
   }
-  console.log(h ? c.g('    Agent is running.') : c.y('    The agent did not answer yet. It may need a moment, check `focusgateway-agent status`.'))
+  console.log(
+    h ? c.g('    Agent is running.') : c.y('    The agent did not answer yet. It may need a moment, check `focusgateway-agent status`.'),
+  )
   console.log(`
-${config.pairCode ? `${c.b('Pairing code:')}  ${c.g(c.b(config.pairCode))}
+${
+  config.pairCode
+    ? `${c.b('Pairing code:')}  ${c.g(c.b(config.pairCode))}
 
 Open FocusGateway, Settings, Lock agent. Paste this code and click Connect.
-It works once. After pairing, only the extension holds the connection secret.` : 'Already paired with your extension. Run `focusgateway-agent pair` for a new code.'}
+It works once. After pairing, only the extension holds the connection secret.`
+    : 'Already paired with your extension. Run `focusgateway-agent pair` for a new code.'
+}
 Restart your browsers so the new policies apply.
 
 Emergency recovery if the agent ever breaks: ${c.b(process.platform === 'win32' ? 'Start Menu → FocusGateway Emergency Recovery' : process.platform === 'darwin' ? 'Applications → FocusGateway Emergency Recovery' : 'sudo focusgateway-agent recover')}
@@ -178,9 +209,19 @@ async function recover() {
 
 async function status() {
   const h = await health()
-  console.log(h ? c.g(`Agent running (v${h.version}), ${h.blocking} domain(s) blocked${h.failOpen ? ', FAIL-OPEN after crashes' : ''}`) : c.r('Agent not reachable on 127.0.0.1:' + PORT))
+  console.log(
+    h
+      ? c.g(`Agent running (v${h.version}), ${h.blocking} domain(s) blocked${h.failOpen ? ', FAIL-OPEN after crashes' : ''}`)
+      : c.r('Agent not reachable on 127.0.0.1:' + PORT),
+  )
   const config = readJson('config.json')
-  if (config) console.log(config.pairCode ? `Pairing code: ${c.b(config.pairCode)}` : `Paired with the extension${config.pairedAt ? ' on ' + new Date(config.pairedAt).toLocaleString() : ''}`, config.strict ? c.d('(strict mode)') : '')
+  if (config)
+    console.log(
+      config.pairCode
+        ? `Pairing code: ${c.b(config.pairCode)}`
+        : `Paired with the extension${config.pairedAt ? ' on ' + new Date(config.pairedAt).toLocaleString() : ''}`,
+      config.strict ? c.d('(strict mode)') : '',
+    )
   else if (!isAdmin()) console.log(c.d('Run with admin rights to see the pairing code.'))
   const snap = readJson('snapshot.json')
   if (snap) console.log(`Last sync: ${snap.sentAt ? new Date(snap.sentAt).toLocaleString() : 'unknown'}, ${snap.rules.length} rule(s)`)
@@ -204,14 +245,26 @@ Usage: focusgateway-agent <command>
 `
 
 switch (cmd) {
-  case 'install': await install(); break
-  case 'uninstall': await uninstall(); break
-  case 'recover': await recover(); break
-  case 'status': await status(); break
+  case 'install':
+    await install()
+    break
+  case 'uninstall':
+    await uninstall()
+    break
+  case 'recover':
+    await recover()
+    break
+  case 'status':
+    await status()
+    break
   case 'policies': {
     needAdmin()
     const cfg = readJson('config.json') || {}
-    const n = applyPolicies({ strict: cfg.strict, forceInstall: cfg.chromeExtensionId ? [`${cfg.chromeExtensionId};https://clients2.google.com/service/update2/crx`] : [], firefoxXpiUrl: cfg.firefoxXpiUrl }).length
+    const n = applyPolicies({
+      strict: cfg.strict,
+      forceInstall: cfg.chromeExtensionId ? [`${cfg.chromeExtensionId};https://clients2.google.com/service/update2/crx`] : [],
+      firefoxXpiUrl: cfg.firefoxXpiUrl,
+    }).length
     console.log(`${n} policy entries written.`)
     break
   }
@@ -223,6 +276,9 @@ switch (cmd) {
     console.log(`New pairing code: ${c.b(c.g(cfg.pairCode))}\nPaste it in FocusGateway, Settings, Lock agent.`)
     break
   }
-  case 'run': startDaemon(); break
-  default: console.log(HELP)
+  case 'run':
+    startDaemon()
+    break
+  default:
+    console.log(HELP)
 }

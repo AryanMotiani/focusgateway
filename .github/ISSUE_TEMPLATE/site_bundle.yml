@@ -1,0 +1,25 @@
+name: Add or fix a site in the block list
+description: A distracting site is missing from the built-in list, or a bundle misses some of its domains
+labels: [site-bundle, good first issue]
+body:
+  - type: input
+    id: site
+    attributes:
+      label: Site name
+      placeholder: Letterboxd
+    validations: { required: true }
+  - type: textarea
+    id: domains
+    attributes:
+      label: Domains
+      description: All domains the site needs (main site, CDN, API, video). Tip - open the browser's Network tab while using the site.
+      placeholder: |
+        letterboxd.com
+        ltrbxd.com
+    validations: { required: true }
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options: [social, video, chat, music, shopping, games, news, sports, entertainment, dating, other]
+    validations: { required: true }

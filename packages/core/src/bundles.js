@@ -1,491 +1,325 @@
 // Curated distracting-site bundles. Picking a bundle blocks all of its domains
 // (subdomains included). Edit freely and send a PR to add more.
 export default {
- "version": "2026.09.1",
- "bundles": [
-  {
-   "id": "youtube",
-   "name": "YouTube",
-   "category": "video",
-   "domains": [
-    "youtube.com",
-    "m.youtube.com",
-    "youtu.be",
-    "ytimg.com",
-    "i.ytimg.com",
-    "googlevideo.com",
-    "youtube-nocookie.com",
-    "youtubei.googleapis.com"
-   ]
-  },
-  {
-   "id": "netflix",
-   "name": "Netflix",
-   "category": "video",
-   "domains": [
-    "netflix.com",
-    "nflxvideo.net",
-    "nflximg.net",
-    "nflxext.com",
-    "nflxso.net"
-   ]
-  },
-  {
-   "id": "prime-video",
-   "name": "Prime Video",
-   "category": "video",
-   "domains": [
-    "primevideo.com",
-    "aiv-cdn.net",
-    "aiv-delivery.net"
-   ]
-  },
-  {
-   "id": "disneyplus-hotstar",
-   "name": "Disney+ Hotstar",
-   "category": "video",
-   "domains": [
-    "hotstar.com",
-    "disneyplus.com",
-    "bamgrid.com",
-    "dssott.com"
-   ]
-  },
-  {
-   "id": "twitch",
-   "name": "Twitch",
-   "category": "video",
-   "domains": [
-    "twitch.tv",
-    "m.twitch.tv",
-    "ttvnw.net",
-    "jtvnw.net",
-    "twitchcdn.net"
-   ]
-  },
-  {
-   "id": "tiktok",
-   "name": "TikTok",
-   "category": "social",
-   "domains": [
-    "tiktok.com",
-    "m.tiktok.com",
-    "tiktokcdn.com",
-    "tiktokv.com",
-    "byteoversea.com",
-    "ibytedtos.com"
-   ]
-  },
-  {
-   "id": "instagram",
-   "name": "Instagram",
-   "category": "social",
-   "domains": [
-    "instagram.com",
-    "cdninstagram.com",
-    "l.instagram.com"
-   ]
-  },
-  {
-   "id": "facebook",
-   "name": "Facebook",
-   "category": "social",
-   "domains": [
-    "facebook.com",
-    "m.facebook.com",
-    "fb.com",
-    "fbcdn.net",
-    "facebook.net",
-    "messenger.com"
-   ]
-  },
-  {
-   "id": "x-twitter",
-   "name": "X / Twitter",
-   "category": "social",
-   "domains": [
-    "x.com",
-    "twitter.com",
-    "mobile.twitter.com",
-    "t.co",
-    "twimg.com",
-    "abs.twimg.com"
-   ]
-  },
-  {
-   "id": "reddit",
-   "name": "Reddit",
-   "category": "social",
-   "domains": [
-    "reddit.com",
-    "old.reddit.com",
-    "new.reddit.com",
-    "redd.it",
-    "redditstatic.com",
-    "redditmedia.com",
-    "i.redd.it",
-    "v.redd.it"
-   ]
-  },
-  {
-   "id": "snapchat",
-   "name": "Snapchat",
-   "category": "social",
-   "domains": [
-    "snapchat.com",
-    "web.snapchat.com",
-    "sc-cdn.net",
-    "snap.com"
-   ]
-  },
-  {
-   "id": "pinterest",
-   "name": "Pinterest",
-   "category": "social",
-   "domains": [
-    "pinterest.com",
-    "in.pinterest.com",
-    "pinimg.com"
-   ]
-  },
-  {
-   "id": "linkedin",
-   "name": "LinkedIn",
-   "category": "social",
-   "domains": [
-    "linkedin.com",
-    "licdn.com"
-   ]
-  },
-  {
-   "id": "threads",
-   "name": "Threads",
-   "category": "social",
-   "domains": [
-    "threads.net",
-    "threads.com"
-   ]
-  },
-  {
-   "id": "tumblr",
-   "name": "Tumblr",
-   "category": "social",
-   "domains": [
-    "tumblr.com"
-   ]
-  },
-  {
-   "id": "bluesky",
-   "name": "Bluesky",
-   "category": "social",
-   "domains": [
-    "bsky.app",
-    "bsky.social"
-   ]
-  },
-  {
-   "id": "mastodon-social",
-   "name": "Mastodon (social)",
-   "category": "social",
-   "domains": [
-    "mastodon.social"
-   ]
-  },
-  {
-   "id": "quora",
-   "name": "Quora",
-   "category": "social",
-   "domains": [
-    "quora.com",
-    "quoracdn.net"
-   ]
-  },
-  {
-   "id": "9gag",
-   "name": "9GAG",
-   "category": "social",
-   "domains": [
-    "9gag.com"
-   ]
-  },
-  {
-   "id": "discord",
-   "name": "Discord",
-   "category": "chat",
-   "domains": [
-    "discord.com",
-    "discordapp.com",
-    "discord.gg",
-    "discordapp.net",
-    "discord.media"
-   ]
-  },
-  {
-   "id": "whatsapp-web",
-   "name": "WhatsApp Web",
-   "category": "chat",
-   "domains": [
-    "web.whatsapp.com",
-    "whatsapp.com",
-    "whatsapp.net"
-   ]
-  },
-  {
-   "id": "telegram-web",
-   "name": "Telegram Web",
-   "category": "chat",
-   "domains": [
-    "web.telegram.org",
-    "telegram.org",
-    "t.me"
-   ]
-  },
-  {
-   "id": "spotify",
-   "name": "Spotify",
-   "category": "music",
-   "domains": [
-    "spotify.com",
-    "open.spotify.com",
-    "scdn.co",
-    "spotifycdn.com"
-   ]
-  },
-  {
-   "id": "soundcloud",
-   "name": "SoundCloud",
-   "category": "music",
-   "domains": [
-    "soundcloud.com",
-    "sndcdn.com"
-   ]
-  },
-  {
-   "id": "amazon",
-   "name": "Amazon",
-   "category": "shopping",
-   "domains": [
-    "amazon.com",
-    "amazon.in",
-    "amazon.co.uk",
-    "amazon.de"
-   ]
-  },
-  {
-   "id": "flipkart",
-   "name": "Flipkart",
-   "category": "shopping",
-   "domains": [
-    "flipkart.com",
-    "flixcart.com"
-   ]
-  },
-  {
-   "id": "myntra",
-   "name": "Myntra",
-   "category": "shopping",
-   "domains": [
-    "myntra.com",
-    "myntassets.com"
-   ]
-  },
-  {
-   "id": "ebay",
-   "name": "eBay",
-   "category": "shopping",
-   "domains": [
-    "ebay.com",
-    "ebay.co.uk"
-   ]
-  },
-  {
-   "id": "aliexpress",
-   "name": "AliExpress",
-   "category": "shopping",
-   "domains": [
-    "aliexpress.com",
-    "aliexpress.us"
-   ]
-  },
-  {
-   "id": "steam",
-   "name": "Steam",
-   "category": "games",
-   "domains": [
-    "steampowered.com",
-    "store.steampowered.com",
-    "steamcommunity.com"
-   ]
-  },
-  {
-   "id": "epic-games",
-   "name": "Epic Games",
-   "category": "games",
-   "domains": [
-    "epicgames.com"
-   ]
-  },
-  {
-   "id": "roblox",
-   "name": "Roblox",
-   "category": "games",
-   "domains": [
-    "roblox.com",
-    "rbxcdn.com"
-   ]
-  },
-  {
-   "id": "chesscom",
-   "name": "Chess.com",
-   "category": "games",
-   "domains": [
-    "chess.com",
-    "chesscomfiles.com"
-   ]
-  },
-  {
-   "id": "lichess",
-   "name": "Lichess",
-   "category": "games",
-   "domains": [
-    "lichess.org",
-    "lichess1.org"
-   ]
-  },
-  {
-   "id": "poki",
-   "name": "Poki",
-   "category": "games",
-   "domains": [
-    "poki.com",
-    "poki-cdn.com"
-   ]
-  },
-  {
-   "id": "crazygames",
-   "name": "CrazyGames",
-   "category": "games",
-   "domains": [
-    "crazygames.com"
-   ]
-  },
-  {
-   "id": "miniclip",
-   "name": "Miniclip",
-   "category": "games",
-   "domains": [
-    "miniclip.com"
-   ]
-  },
-  {
-   "id": "google-news",
-   "name": "Google News",
-   "category": "news",
-   "domains": [
-    "news.google.com"
-   ]
-  },
-  {
-   "id": "cnn",
-   "name": "CNN",
-   "category": "news",
-   "domains": [
-    "cnn.com",
-    "edition.cnn.com"
-   ]
-  },
-  {
-   "id": "bbc",
-   "name": "BBC",
-   "category": "news",
-   "domains": [
-    "bbc.com",
-    "bbc.co.uk"
-   ]
-  },
-  {
-   "id": "times-of-india",
-   "name": "Times of India",
-   "category": "news",
-   "domains": [
-    "timesofindia.indiatimes.com",
-    "indiatimes.com"
-   ]
-  },
-  {
-   "id": "ndtv",
-   "name": "NDTV",
-   "category": "news",
-   "domains": [
-    "ndtv.com"
-   ]
-  },
-  {
-   "id": "the-guardian",
-   "name": "The Guardian",
-   "category": "news",
-   "domains": [
-    "theguardian.com"
-   ]
-  },
-  {
-   "id": "hacker-news",
-   "name": "Hacker News",
-   "category": "news",
-   "domains": [
-    "news.ycombinator.com"
-   ]
-  },
-  {
-   "id": "espn",
-   "name": "ESPN",
-   "category": "sports",
-   "domains": [
-    "espn.com",
-    "espncricinfo.com"
-   ]
-  },
-  {
-   "id": "cricbuzz",
-   "name": "Cricbuzz",
-   "category": "sports",
-   "domains": [
-    "cricbuzz.com"
-   ]
-  },
-  {
-   "id": "imdb",
-   "name": "IMDb",
-   "category": "entertainment",
-   "domains": [
-    "imdb.com",
-    "m.imdb.com"
-   ]
-  },
-  {
-   "id": "crunchyroll",
-   "name": "Crunchyroll",
-   "category": "video",
-   "domains": [
-    "crunchyroll.com"
-   ]
-  },
-  {
-   "id": "tinder",
-   "name": "Tinder",
-   "category": "dating",
-   "domains": [
-    "tinder.com",
-    "gotinder.com"
-   ]
-  },
-  {
-   "id": "bumble",
-   "name": "Bumble",
-   "category": "dating",
-   "domains": [
-    "bumble.com"
-   ]
-  }
- ]
+  version: '2026.09.1',
+  bundles: [
+    {
+      id: 'youtube',
+      name: 'YouTube',
+      category: 'video',
+      domains: [
+        'youtube.com',
+        'm.youtube.com',
+        'youtu.be',
+        'ytimg.com',
+        'i.ytimg.com',
+        'googlevideo.com',
+        'youtube-nocookie.com',
+        'youtubei.googleapis.com',
+      ],
+    },
+    {
+      id: 'netflix',
+      name: 'Netflix',
+      category: 'video',
+      domains: ['netflix.com', 'nflxvideo.net', 'nflximg.net', 'nflxext.com', 'nflxso.net'],
+    },
+    {
+      id: 'prime-video',
+      name: 'Prime Video',
+      category: 'video',
+      domains: ['primevideo.com', 'aiv-cdn.net', 'aiv-delivery.net'],
+    },
+    {
+      id: 'disneyplus-hotstar',
+      name: 'Disney+ Hotstar',
+      category: 'video',
+      domains: ['hotstar.com', 'disneyplus.com', 'bamgrid.com', 'dssott.com'],
+    },
+    {
+      id: 'twitch',
+      name: 'Twitch',
+      category: 'video',
+      domains: ['twitch.tv', 'm.twitch.tv', 'ttvnw.net', 'jtvnw.net', 'twitchcdn.net'],
+    },
+    {
+      id: 'tiktok',
+      name: 'TikTok',
+      category: 'social',
+      domains: ['tiktok.com', 'm.tiktok.com', 'tiktokcdn.com', 'tiktokv.com', 'byteoversea.com', 'ibytedtos.com'],
+    },
+    {
+      id: 'instagram',
+      name: 'Instagram',
+      category: 'social',
+      domains: ['instagram.com', 'cdninstagram.com', 'l.instagram.com'],
+    },
+    {
+      id: 'facebook',
+      name: 'Facebook',
+      category: 'social',
+      domains: ['facebook.com', 'm.facebook.com', 'fb.com', 'fbcdn.net', 'facebook.net', 'messenger.com'],
+    },
+    {
+      id: 'x-twitter',
+      name: 'X / Twitter',
+      category: 'social',
+      domains: ['x.com', 'twitter.com', 'mobile.twitter.com', 't.co', 'twimg.com', 'abs.twimg.com'],
+    },
+    {
+      id: 'reddit',
+      name: 'Reddit',
+      category: 'social',
+      domains: [
+        'reddit.com',
+        'old.reddit.com',
+        'new.reddit.com',
+        'redd.it',
+        'redditstatic.com',
+        'redditmedia.com',
+        'i.redd.it',
+        'v.redd.it',
+      ],
+    },
+    {
+      id: 'snapchat',
+      name: 'Snapchat',
+      category: 'social',
+      domains: ['snapchat.com', 'web.snapchat.com', 'sc-cdn.net', 'snap.com'],
+    },
+    {
+      id: 'pinterest',
+      name: 'Pinterest',
+      category: 'social',
+      domains: ['pinterest.com', 'in.pinterest.com', 'pinimg.com'],
+    },
+    {
+      id: 'linkedin',
+      name: 'LinkedIn',
+      category: 'social',
+      domains: ['linkedin.com', 'licdn.com'],
+    },
+    {
+      id: 'threads',
+      name: 'Threads',
+      category: 'social',
+      domains: ['threads.net', 'threads.com'],
+    },
+    {
+      id: 'tumblr',
+      name: 'Tumblr',
+      category: 'social',
+      domains: ['tumblr.com'],
+    },
+    {
+      id: 'bluesky',
+      name: 'Bluesky',
+      category: 'social',
+      domains: ['bsky.app', 'bsky.social'],
+    },
+    {
+      id: 'mastodon-social',
+      name: 'Mastodon (social)',
+      category: 'social',
+      domains: ['mastodon.social'],
+    },
+    {
+      id: 'quora',
+      name: 'Quora',
+      category: 'social',
+      domains: ['quora.com', 'quoracdn.net'],
+    },
+    {
+      id: '9gag',
+      name: '9GAG',
+      category: 'social',
+      domains: ['9gag.com'],
+    },
+    {
+      id: 'discord',
+      name: 'Discord',
+      category: 'chat',
+      domains: ['discord.com', 'discordapp.com', 'discord.gg', 'discordapp.net', 'discord.media'],
+    },
+    {
+      id: 'whatsapp-web',
+      name: 'WhatsApp Web',
+      category: 'chat',
+      domains: ['web.whatsapp.com', 'whatsapp.com', 'whatsapp.net'],
+    },
+    {
+      id: 'telegram-web',
+      name: 'Telegram Web',
+      category: 'chat',
+      domains: ['web.telegram.org', 'telegram.org', 't.me'],
+    },
+    {
+      id: 'spotify',
+      name: 'Spotify',
+      category: 'music',
+      domains: ['spotify.com', 'open.spotify.com', 'scdn.co', 'spotifycdn.com'],
+    },
+    {
+      id: 'soundcloud',
+      name: 'SoundCloud',
+      category: 'music',
+      domains: ['soundcloud.com', 'sndcdn.com'],
+    },
+    {
+      id: 'amazon',
+      name: 'Amazon',
+      category: 'shopping',
+      domains: ['amazon.com', 'amazon.in', 'amazon.co.uk', 'amazon.de'],
+    },
+    {
+      id: 'flipkart',
+      name: 'Flipkart',
+      category: 'shopping',
+      domains: ['flipkart.com', 'flixcart.com'],
+    },
+    {
+      id: 'myntra',
+      name: 'Myntra',
+      category: 'shopping',
+      domains: ['myntra.com', 'myntassets.com'],
+    },
+    {
+      id: 'ebay',
+      name: 'eBay',
+      category: 'shopping',
+      domains: ['ebay.com', 'ebay.co.uk'],
+    },
+    {
+      id: 'aliexpress',
+      name: 'AliExpress',
+      category: 'shopping',
+      domains: ['aliexpress.com', 'aliexpress.us'],
+    },
+    {
+      id: 'steam',
+      name: 'Steam',
+      category: 'games',
+      domains: ['steampowered.com', 'store.steampowered.com', 'steamcommunity.com'],
+    },
+    {
+      id: 'epic-games',
+      name: 'Epic Games',
+      category: 'games',
+      domains: ['epicgames.com'],
+    },
+    {
+      id: 'roblox',
+      name: 'Roblox',
+      category: 'games',
+      domains: ['roblox.com', 'rbxcdn.com'],
+    },
+    {
+      id: 'chesscom',
+      name: 'Chess.com',
+      category: 'games',
+      domains: ['chess.com', 'chesscomfiles.com'],
+    },
+    {
+      id: 'lichess',
+      name: 'Lichess',
+      category: 'games',
+      domains: ['lichess.org', 'lichess1.org'],
+    },
+    {
+      id: 'poki',
+      name: 'Poki',
+      category: 'games',
+      domains: ['poki.com', 'poki-cdn.com'],
+    },
+    {
+      id: 'crazygames',
+      name: 'CrazyGames',
+      category: 'games',
+      domains: ['crazygames.com'],
+    },
+    {
+      id: 'miniclip',
+      name: 'Miniclip',
+      category: 'games',
+      domains: ['miniclip.com'],
+    },
+    {
+      id: 'google-news',
+      name: 'Google News',
+      category: 'news',
+      domains: ['news.google.com'],
+    },
+    {
+      id: 'cnn',
+      name: 'CNN',
+      category: 'news',
+      domains: ['cnn.com', 'edition.cnn.com'],
+    },
+    {
+      id: 'bbc',
+      name: 'BBC',
+      category: 'news',
+      domains: ['bbc.com', 'bbc.co.uk'],
+    },
+    {
+      id: 'times-of-india',
+      name: 'Times of India',
+      category: 'news',
+      domains: ['timesofindia.indiatimes.com', 'indiatimes.com'],
+    },
+    {
+      id: 'ndtv',
+      name: 'NDTV',
+      category: 'news',
+      domains: ['ndtv.com'],
+    },
+    {
+      id: 'the-guardian',
+      name: 'The Guardian',
+      category: 'news',
+      domains: ['theguardian.com'],
+    },
+    {
+      id: 'hacker-news',
+      name: 'Hacker News',
+      category: 'news',
+      domains: ['news.ycombinator.com'],
+    },
+    {
+      id: 'espn',
+      name: 'ESPN',
+      category: 'sports',
+      domains: ['espn.com', 'espncricinfo.com'],
+    },
+    {
+      id: 'cricbuzz',
+      name: 'Cricbuzz',
+      category: 'sports',
+      domains: ['cricbuzz.com'],
+    },
+    {
+      id: 'imdb',
+      name: 'IMDb',
+      category: 'entertainment',
+      domains: ['imdb.com', 'm.imdb.com'],
+    },
+    {
+      id: 'crunchyroll',
+      name: 'Crunchyroll',
+      category: 'video',
+      domains: ['crunchyroll.com'],
+    },
+    {
+      id: 'tinder',
+      name: 'Tinder',
+      category: 'dating',
+      domains: ['tinder.com', 'gotinder.com'],
+    },
+    {
+      id: 'bumble',
+      name: 'Bumble',
+      category: 'dating',
+      domains: ['bumble.com'],
+    },
+  ],
 }

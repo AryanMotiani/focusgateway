@@ -11,11 +11,13 @@ async function render() {
   const warn = document.getElementById('warn')
   if (perms?.ok && !perms.data.hostAccess) {
     warn.hidden = false
-    warn.innerHTML = 'FocusGateway needs access to all sites to block them. <button class="btn" id="grant" style="margin-top:6px;padding:6px 10px">Grant access</button>'
+    warn.innerHTML =
+      'FocusGateway needs access to all sites to block them. <button class="btn" id="grant" style="margin-top:6px;padding:6px 10px">Grant access</button>'
     document.getElementById('grant').onclick = () => ext.permissions.request({ origins: ['<all_urls>'] }).then(render)
   } else if (perms?.ok && perms.data.incognito === false) {
     warn.hidden = false
-    warn.textContent = 'Tip: allow FocusGateway in private/incognito windows (extension settings), or install the lock agent which disables them.'
+    warn.textContent =
+      'Tip: allow FocusGateway in private/incognito windows (extension settings), or install the lock agent which disables them.'
   }
   const pending = await ext.runtime.sendMessage({ type: 'fg-meta', action: 'pending' })
   const box = document.getElementById('pending')
@@ -26,7 +28,11 @@ async function render() {
       card.style.cssText = 'padding:12px;margin-bottom:10px;font-size:13px'
       const p = document.createElement('p')
       p.style.margin = '0 0 8px'
-      p.append('Connect ', Object.assign(document.createElement('b'), { textContent: origin }), '? Only allow your own or the official FocusGateway site.')
+      p.append(
+        'Connect ',
+        Object.assign(document.createElement('b'), { textContent: origin }),
+        '? Only allow your own or the official FocusGateway site.',
+      )
       const allow = Object.assign(document.createElement('button'), { className: 'btn primary', textContent: 'Allow' })
       const deny = Object.assign(document.createElement('button'), { className: 'btn', textContent: 'Ignore' })
       deny.style.marginLeft = '6px'
@@ -43,7 +49,9 @@ async function render() {
     return
   }
   const { blocks } = computeBlocks(state, Date.now())
-  document.getElementById('status').textContent = blocks.length ? `Blocking ${blocks.length === 1 ? '1 rule' : blocks.length + ' rules'} right now` : 'Nothing is blocked right now.'
+  document.getElementById('status').textContent = blocks.length
+    ? `Blocking ${blocks.length === 1 ? '1 rule' : blocks.length + ' rules'} right now`
+    : 'Nothing is blocked right now.'
   const list = document.getElementById('list')
   list.replaceChildren(
     ...blocks.map((b) => {
@@ -53,13 +61,16 @@ async function render() {
       left.textContent = b.name
       const right = document.createElement('span')
       right.className = 'muted'
-      right.textContent = b.kind === 'gated' ? (b.pendingTaskIds.length ? `${b.pendingTaskIds.length} task(s) left` : 'add a task') : `until ${fmt(b.until)}`
+      right.textContent =
+        b.kind === 'gated' ? (b.pendingTaskIds.length ? `${b.pendingTaskIds.length} task(s) left` : 'add a task') : `until ${fmt(b.until)}`
       row.append(left, right)
       return row
     }),
   )
   document.getElementById('agent').textContent = state.agent.paired
-    ? state.agent.lastError ? `Lock agent: ${state.agent.lastError}` : 'Lock agent connected. Blocks apply to every browser.'
+    ? state.agent.lastError
+      ? `Lock agent: ${state.agent.lastError}`
+      : 'Lock agent connected. Blocks apply to every browser.'
     : 'Lock agent not installed. Blocks apply to this browser only.'
 }
 render()

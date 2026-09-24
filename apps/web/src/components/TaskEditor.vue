@@ -1,7 +1,7 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { store, call, attempt } from '../lib/store.js'
-import { toLocalInput, fromLocalInput, endOfToday, DAY_NAMES } from '../lib/format.js'
+import { toLocalInput, fromLocalInput, endOfToday } from '../lib/format.js'
 import { updateTask } from '../lib/actions.js'
 import Modal from './Modal.vue'
 import DayPicker from './DayPicker.vue'
@@ -27,7 +27,11 @@ const f = reactive({
 const newTag = ref('')
 const gatedRules = computed(() => store.state.rules.filter((r) => r.mode === 'gated'))
 const isSub = computed(() => !!parent.value)
-const PRIS = [['low', 'Low', '5 forwards'], ['medium', 'Medium', '3 forwards'], ['high', 'High', '1 forward']]
+const PRIS = [
+  ['low', 'Low', '5 forwards'],
+  ['medium', 'Medium', '3 forwards'],
+  ['high', 'High', '1 forward'],
+]
 
 function toggleTag(t) {
   f.tags = f.tags.includes(t) ? f.tags.filter((x) => x !== t) : [...f.tags, t]
@@ -46,8 +50,12 @@ function recurrence() {
 
 async function save() {
   const data = {
-    title: f.title, notes: f.notes, priority: f.priority, deadline: fromLocalInput(f.deadline),
-    startAt: fromLocalInput(f.startAt), tags: f.tags,
+    title: f.title,
+    notes: f.notes,
+    priority: f.priority,
+    deadline: fromLocalInput(f.deadline),
+    startAt: fromLocalInput(f.startAt),
+    tags: f.tags,
   }
   if (!isSub.value) Object.assign(data, { ruleId: f.ruleId || null, recurrence: recurrence(), recurrenceReset: f.recurrenceReset })
   if (!editing) {
@@ -70,7 +78,14 @@ async function save() {
     <form class="space-y-4" @submit.prevent="save">
       <div>
         <label class="label" for="t-title">Title</label>
-        <input id="t-title" v-model="f.title" class="input text-base" placeholder="e.g. Finish physics problem set 3" maxlength="200" required />
+        <input
+          id="t-title"
+          v-model="f.title"
+          class="input text-base"
+          placeholder="e.g. Finish physics problem set 3"
+          maxlength="200"
+          required
+        />
       </div>
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
@@ -81,9 +96,17 @@ async function save() {
         <div>
           <span class="label">Priority</span>
           <div class="grid grid-cols-3 gap-1.5">
-            <button v-for="[v, l, hint] in PRIS" :key="v" type="button" class="rounded-xl border px-2 py-1.5 text-sm transition"
+            <button
+              v-for="[v, l, hint] in PRIS"
+              :key="v"
+              type="button"
+              class="rounded-xl border px-2 py-1.5 text-sm transition"
               :class="f.priority === v ? 'border-accent bg-accent-soft font-semibold text-accent' : 'border-line hover:border-accent'"
-              :title="hint" @click="f.priority = v">{{ l }}</button>
+              :title="hint"
+              @click="f.priority = v"
+            >
+              {{ l }}
+            </button>
           </div>
           <p class="mt-1 text-xs text-muted">Higher priority = fewer chances to push it to a later window.</p>
         </div>
@@ -101,9 +124,23 @@ async function save() {
       <div>
         <span class="label">Tags</span>
         <div class="flex flex-wrap gap-1.5">
-          <button v-for="t in [...new Set([...store.state.tags, ...f.tags])]" :key="t" type="button" class="rounded-full border px-3 py-1 text-xs transition"
-            :class="f.tags.includes(t) ? 'border-accent bg-accent-soft font-semibold text-accent' : 'border-line hover:border-accent'" @click="toggleTag(t)">{{ t }}</button>
-          <input v-model="newTag" class="w-28 rounded-full border border-dashed border-line bg-transparent px-3 py-1 text-xs outline-none focus:border-accent" placeholder="+ new tag" @keydown.enter.prevent="addTag" @blur="addTag" />
+          <button
+            v-for="t in [...new Set([...store.state.tags, ...f.tags])]"
+            :key="t"
+            type="button"
+            class="rounded-full border px-3 py-1 text-xs transition"
+            :class="f.tags.includes(t) ? 'border-accent bg-accent-soft font-semibold text-accent' : 'border-line hover:border-accent'"
+            @click="toggleTag(t)"
+          >
+            {{ t }}
+          </button>
+          <input
+            v-model="newTag"
+            class="w-28 rounded-full border border-dashed border-line bg-transparent px-3 py-1 text-xs outline-none focus:border-accent"
+            placeholder="+ new tag"
+            @keydown.enter.prevent="addTag"
+            @blur="addTag"
+          />
         </div>
       </div>
 
@@ -127,11 +164,22 @@ async function save() {
               <option value="interval">Every few days</option>
             </select>
             <div v-if="f.repeat === 'weekly'" class="mt-2"><DayPicker v-model="f.repeatDays" /></div>
-            <div v-if="f.repeat === 'interval'" class="mt-2 flex items-center gap-2 text-sm">Every <input v-model="f.repeatEvery" type="number" min="1" max="365" class="input w-20" /> days</div>
+            <div v-if="f.repeat === 'interval'" class="mt-2 flex items-center gap-2 text-sm">
+              Every <input v-model="f.repeatEvery" type="number" min="1" max="365" class="input w-20" /> days
+            </div>
             <div v-if="f.repeat !== 'none'" class="mt-3">
               <span class="label">Forward count between repeats</span>
-              <label class="flex items-start gap-2 text-sm"><input v-model="f.recurrenceReset" type="radio" value="accumulate" class="mt-1" /><span><b>Keep adding up</b> (default). If you pushed Monday's reading back once, Tuesday's starts with 1 used. Keeps you honest over time.</span></label>
-              <label class="mt-1 flex items-start gap-2 text-sm"><input v-model="f.recurrenceReset" type="radio" value="cycle" class="mt-1" /><span><b>Fresh each time.</b> Every repeat starts with all its forwards available.</span></label>
+              <label class="flex items-start gap-2 text-sm"
+                ><input v-model="f.recurrenceReset" type="radio" value="accumulate" class="mt-1" /><span
+                  ><b>Keep adding up</b> (default). If you pushed Monday's reading back once, Tuesday's starts with 1 used. Keeps you honest
+                  over time.</span
+                ></label
+              >
+              <label class="mt-1 flex items-start gap-2 text-sm"
+                ><input v-model="f.recurrenceReset" type="radio" value="cycle" class="mt-1" /><span
+                  ><b>Fresh each time.</b> Every repeat starts with all its forwards available.</span
+                ></label
+              >
             </div>
           </div>
         </div>
