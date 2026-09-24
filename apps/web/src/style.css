@@ -1,0 +1,95 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource/instrument-serif';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Instrument Serif', Georgia, serif;
+
+  --color-paper: var(--fg-paper);
+  --color-card: var(--fg-card);
+  --color-sunk: var(--fg-sunk);
+  --color-ink: var(--fg-ink);
+  --color-muted: var(--fg-muted);
+  --color-line: var(--fg-line);
+  --color-accent: var(--fg-accent);
+  --color-accent-soft: var(--fg-accent-soft);
+  --color-warm: var(--fg-warm);
+  --color-warm-soft: var(--fg-warm-soft);
+  --color-good: var(--fg-good);
+  --color-good-soft: var(--fg-good-soft);
+  --color-caution: var(--fg-caution);
+  --color-caution-soft: var(--fg-caution-soft);
+  --color-bad: var(--fg-bad);
+  --color-bad-soft: var(--fg-bad-soft);
+}
+
+:root {
+  --fg-paper: #f6f3ee;
+  --fg-card: #ffffff;
+  --fg-sunk: #efeae2;
+  --fg-ink: #1d1a2e;
+  --fg-muted: #6b6780;
+  --fg-line: #e4dfd6;
+  --fg-accent: #6152e8;
+  --fg-accent-soft: #ebe8ff;
+  --fg-warm: #d98a2b;
+  --fg-warm-soft: #fbeedc;
+  --fg-good: #1f9d6a;
+  --fg-good-soft: #dcf5ea;
+  --fg-caution: #b7791f;
+  --fg-caution-soft: #fdf1d8;
+  --fg-bad: #d23f58;
+  --fg-bad-soft: #fde4e8;
+  color-scheme: light;
+}
+
+.dark {
+  --fg-paper: #110e22;
+  --fg-card: #1a1631;
+  --fg-sunk: #151129;
+  --fg-ink: #f3efe7;
+  --fg-muted: #a29db9;
+  --fg-line: #2c2750;
+  --fg-accent: #9d92ff;
+  --fg-accent-soft: #2a2456;
+  --fg-warm: #f6b25e;
+  --fg-warm-soft: #3a2a17;
+  --fg-good: #4fd19a;
+  --fg-good-soft: #133528;
+  --fg-caution: #f2c14e;
+  --fg-caution-soft: #3a2f12;
+  --fg-bad: #ff7189;
+  --fg-bad-soft: #3d1621;
+  color-scheme: dark;
+}
+
+html, body { background: var(--fg-paper); color: var(--fg-ink); }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-card px-4 py-2.5 text-sm font-semibold text-ink transition
+      hover:-translate-y-px hover:shadow-sm active:translate-y-0 disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary { @apply border-accent bg-accent text-white dark:text-[#120f24]; }
+  .btn-ghost { @apply border-transparent bg-transparent hover:bg-sunk hover:shadow-none; }
+  .btn-danger { @apply border-bad bg-bad text-white; }
+  .btn-sm { @apply rounded-lg px-3 py-1.5 text-xs; }
+  .card { @apply rounded-2xl border border-line bg-card; }
+  .input {
+    @apply w-full rounded-xl border border-line bg-card px-3 py-2.5 text-sm text-ink outline-none transition placeholder:text-muted
+      focus:border-accent focus:ring-4 focus:ring-accent/15;
+  }
+  .label { @apply mb-1.5 block text-xs font-semibold tracking-wide text-muted uppercase; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full bg-sunk px-2.5 py-0.5 text-xs font-medium text-muted; }
+  .h-display { @apply font-display tracking-tight; }
+}
+
+:focus-visible { outline: 2px solid var(--fg-accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

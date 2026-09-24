@@ -1,0 +1,21 @@
+{
+  "name": "focusgateway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Free, open-source focus system: hard-to-bypass site blocker, tasks, habits and a lofi study room.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": ["packages/*", "apps/*", "extension", "agent"],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "build": "npm run build -w apps/web && npm run build -w extension",
+    "build:web": "npm run build -w apps/web",
+    "build:ext": "npm run build -w extension",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.0"
+  },
+  "engines": { "node": ">=18.17" }
+}
