@@ -16,7 +16,15 @@ const SYSTEMD = '/etc/systemd/system/focusgateway-agent.service'
 export function copyProgram(repoRoot) {
   const dest = programDir()
   fs.rmSync(dest, { recursive: true, force: true })
-  for (const part of ['agent/bin', 'agent/src', 'agent/package.json', 'packages/core/src', 'packages/core/package.json', 'TROUBLESHOOTING.md', 'LICENSE']) {
+  for (const part of [
+    'agent/bin',
+    'agent/src',
+    'agent/package.json',
+    'packages/core/src',
+    'packages/core/package.json',
+    'TROUBLESHOOTING.md',
+    'LICENSE',
+  ]) {
     const from = path.join(repoRoot, part)
     if (fs.existsSync(from)) fs.cpSync(from, path.join(dest, part), { recursive: true })
   }
@@ -50,10 +58,14 @@ export function installService(nodePath = process.execPath) {
     fs.writeFileSync(tmp, '\ufeff' + xml, 'utf16le')
     run('schtasks', ['/Create', '/TN', SERVICE_NAME, '/XML', tmp, '/F'])
     fs.rmSync(tmp, { force: true })
-    try { run('schtasks', ['/Run', '/TN', SERVICE_NAME]) } catch {}
+    try {
+      run('schtasks', ['/Run', '/TN', SERVICE_NAME])
+    } catch {}
     createWindowsShortcut(nodePath, js)
   } else if (process.platform === 'darwin') {
-    fs.writeFileSync(LAUNCHD, `<?xml version="1.0" encoding="UTF-8"?>
+    fs.writeFileSync(
+      LAUNCHD,
+      `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>Label</key><string>app.focusgateway.agent</string>
@@ -64,8 +76,11 @@ export function installService(nodePath = process.execPath) {
   <key>StandardOutPath</key><string>${xmlEscape(path.join(dataDir(), 'stdout.log'))}</string>
   <key>StandardErrorPath</key><string>${xmlEscape(path.join(dataDir(), 'stderr.log'))}</string>
 </dict></plist>
-`)
-    try { run('launchctl', ['bootout', 'system', LAUNCHD]) } catch {}
+`,
+    )
+    try {
+      run('launchctl', ['bootout', 'system', LAUNCHD])
+    } catch {}
     // bootout is asynchronous: retry bootstrap for a few seconds
     for (let i = 0; ; i++) {
       try {
@@ -77,9 +92,15 @@ export function installService(nodePath = process.execPath) {
       }
     }
     const cmd = '/Applications/FocusGateway Emergency Recovery.command'
-    fs.writeFileSync(cmd, `#!/bin/sh\necho "FocusGateway emergency recovery (asks for your password)"\nsudo "${nodePath}" "${js}" recover\nread -p "Press Enter to close" _\n`, { mode: 0o755 })
+    fs.writeFileSync(
+      cmd,
+      `#!/bin/sh\necho "FocusGateway emergency recovery (asks for your password)"\nsudo "${nodePath}" "${js}" recover\nread -p "Press Enter to close" _\n`,
+      { mode: 0o755 },
+    )
   } else {
-    fs.writeFileSync(SYSTEMD, `[Unit]
+    fs.writeFileSync(
+      SYSTEMD,
+      `[Unit]
 Description=FocusGateway lock agent
 After=network.target
 
@@ -90,13 +111,17 @@ RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
-`)
+`,
+    )
     run('systemctl', ['daemon-reload'])
     run('systemctl', ['enable', '--now', 'focusgateway-agent.service'])
     fs.writeFileSync('/usr/local/bin/focusgateway-agent', `#!/bin/sh\nexec "${nodePath}" "${js}" "$@"\n`, { mode: 0o755 })
     try {
       fs.mkdirSync('/usr/share/applications', { recursive: true })
-      fs.writeFileSync('/usr/share/applications/focusgateway-recovery.desktop', `[Desktop Entry]\nType=Application\nName=FocusGateway Emergency Recovery\nExec=pkexec /usr/local/bin/focusgateway-agent recover\nTerminal=true\nCategories=Utility;\n`)
+      fs.writeFileSync(
+        '/usr/share/applications/focusgateway-recovery.desktop',
+        `[Desktop Entry]\nType=Application\nName=FocusGateway Emergency Recovery\nExec=pkexec /usr/local/bin/focusgateway-agent recover\nTerminal=true\nCategories=Utility;\n`,
+      )
     } catch {}
   }
 }
@@ -105,27 +130,52 @@ function createWindowsShortcut(nodePath, js) {
   const dir = path.join(process.env.ProgramData || 'C:\\ProgramData', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'FocusGateway')
   fs.mkdirSync(dir, { recursive: true })
   const cmd = path.join(programDir(), 'recover.cmd')
-  fs.writeFileSync(cmd, `@echo off\r\nnet session >nul 2>&1 || (powershell -NoProfile -Command "Start-Process -Verb RunAs -FilePath '%~f0'" & exit /b)\r\n"${nodePath}" "${js}" recover\r\npause\r\n`)
+  fs.writeFileSync(
+    cmd,
+    `@echo off\r\nnet session >nul 2>&1 || (powershell -NoProfile -Command "Start-Process -Verb RunAs -FilePath '%~f0'" & exit /b)\r\n"${nodePath}" "${js}" recover\r\npause\r\n`,
+  )
   const lnk = path.join(dir, 'FocusGateway Emergency Recovery.lnk')
   const ps = `$s=(New-Object -ComObject WScript.Shell).CreateShortcut('${lnk.replace(/'/g, "''")}');$s.TargetPath='${cmd.replace(/'/g, "''")}';$s.Save()`
-  try { run('powershell', ['-NoProfile', '-Command', ps]) } catch {}
+  try {
+    run('powershell', ['-NoProfile', '-Command', ps])
+  } catch {}
 }
 
 export function uninstallService() {
   if (process.platform === 'win32') {
-    try { run('schtasks', ['/End', '/TN', SERVICE_NAME]) } catch {}
-    try { run('schtasks', ['/Delete', '/TN', SERVICE_NAME, '/F']) } catch {}
-    try { fs.rmSync(path.join(process.env.ProgramData || 'C:\\ProgramData', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'FocusGateway'), { recursive: true, force: true }) } catch {}
+    try {
+      run('schtasks', ['/End', '/TN', SERVICE_NAME])
+    } catch {}
+    try {
+      run('schtasks', ['/Delete', '/TN', SERVICE_NAME, '/F'])
+    } catch {}
+    try {
+      fs.rmSync(path.join(process.env.ProgramData || 'C:\\ProgramData', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'FocusGateway'), {
+        recursive: true,
+        force: true,
+      })
+    } catch {}
     // stop any leftover process listening on our port
-    try { execSync('powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 47621 -State Listen | % { Stop-Process -Id $_.OwningProcess -Force }"', { stdio: 'ignore' }) } catch {}
+    try {
+      execSync(
+        'powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 47621 -State Listen | % { Stop-Process -Id $_.OwningProcess -Force }"',
+        { stdio: 'ignore' },
+      )
+    } catch {}
   } else if (process.platform === 'darwin') {
-    try { run('launchctl', ['bootout', 'system', LAUNCHD]) } catch {}
+    try {
+      run('launchctl', ['bootout', 'system', LAUNCHD])
+    } catch {}
     fs.rmSync(LAUNCHD, { force: true })
     fs.rmSync('/Applications/FocusGateway Emergency Recovery.command', { force: true })
   } else {
-    try { run('systemctl', ['disable', '--now', 'focusgateway-agent.service']) } catch {}
+    try {
+      run('systemctl', ['disable', '--now', 'focusgateway-agent.service'])
+    } catch {}
     fs.rmSync(SYSTEMD, { force: true })
-    try { run('systemctl', ['daemon-reload']) } catch {}
+    try {
+      run('systemctl', ['daemon-reload'])
+    } catch {}
     fs.rmSync('/usr/local/bin/focusgateway-agent', { force: true })
     fs.rmSync('/usr/share/applications/focusgateway-recovery.desktop', { force: true })
   }

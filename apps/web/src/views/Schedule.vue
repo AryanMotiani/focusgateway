@@ -22,7 +22,9 @@ const days = computed(() =>
       wd,
       isToday: d === startOfDay(store.now),
       rules: store.state.rules.filter((r) => r.days.includes(wd)).sort((a, b) => a.start - b.start),
-      tasks: store.state.tasks.filter((t) => !t.parentId && t.deadline >= d && t.deadline < addDays(d, 1)).sort((a, b) => a.deadline - b.deadline),
+      tasks: store.state.tasks
+        .filter((t) => !t.parentId && t.deadline >= d && t.deadline < addDays(d, 1))
+        .sort((a, b) => a.deadline - b.deadline),
     }
   }),
 )
@@ -62,21 +64,42 @@ async function drop(day, e) {
     <p class="text-sm font-medium">{{ range }}</p>
 
     <div class="grid gap-2 md:grid-cols-7">
-      <section v-for="(day, i) in days" :key="day.d"
+      <section
+        v-for="(day, i) in days"
+        :key="day.d"
         class="min-h-40 rounded-2xl border p-2.5 transition"
         :class="[day.isToday ? 'border-accent bg-card' : 'border-line bg-card/60', over === i && '!border-accent !bg-accent-soft/50']"
-        @dragover.prevent="over = i" @dragleave="over = -1" @drop.prevent="drop(day, $event)">
+        @dragover.prevent="over = i"
+        @dragleave="over = -1"
+        @drop.prevent="drop(day, $event)"
+      >
         <p class="mb-2 flex items-baseline justify-between text-xs font-semibold" :class="day.isToday ? 'text-accent' : 'text-muted'">
-          <span>{{ DAY_NAMES[day.wd - 1] }}</span><span class="text-base">{{ new Date(day.d).getDate() }}</span>
+          <span>{{ DAY_NAMES[day.wd - 1] }}</span
+          ><span class="text-base">{{ new Date(day.d).getDate() }}</span>
         </p>
         <div class="space-y-1.5">
-          <button v-for="r in day.rules" :key="r.id" class="block w-full rounded-lg px-2 py-1 text-left text-[11px] leading-tight"
-            :class="r.mode === 'hard' ? 'bg-bad-soft text-bad' : 'bg-accent-soft text-accent'" @click="editingRule = r">
-            <span class="font-semibold">{{ formatMinutes(r.start) }}–{{ formatMinutes(r.end) }}</span><br />{{ r.name }}
+          <button
+            v-for="r in day.rules"
+            :key="r.id"
+            class="block w-full rounded-lg px-2 py-1 text-left text-[11px] leading-tight"
+            :class="r.mode === 'hard' ? 'bg-bad-soft text-bad' : 'bg-accent-soft text-accent'"
+            @click="editingRule = r"
+          >
+            <span class="font-semibold">{{ formatMinutes(r.start) }}–{{ formatMinutes(r.end) }}</span
+            ><br />{{ r.name }}
           </button>
-          <div v-for="t in day.tasks" :key="t.id" draggable="true" class="cursor-grab rounded-lg border border-line bg-paper px-2 py-1.5 text-xs active:cursor-grabbing"
-            :class="t.status === 'done' && 'opacity-50'" @dragstart="$event.dataTransfer.setData('text/fg-task', t.id)" @click="editing = t">
-            <p class="flex items-center gap-1.5 font-medium" :class="t.status === 'done' && 'line-through'"><span class="h-1.5 w-1.5 shrink-0 rounded-full" :class="DOT[taskColor(t)]" />{{ t.title }}</p>
+          <div
+            v-for="t in day.tasks"
+            :key="t.id"
+            draggable="true"
+            class="cursor-grab rounded-lg border border-line bg-paper px-2 py-1.5 text-xs active:cursor-grabbing"
+            :class="t.status === 'done' && 'opacity-50'"
+            @dragstart="$event.dataTransfer.setData('text/fg-task', t.id)"
+            @click="editing = t"
+          >
+            <p class="flex items-center gap-1.5 font-medium" :class="t.status === 'done' && 'line-through'">
+              <span class="h-1.5 w-1.5 shrink-0 rounded-full" :class="DOT[taskColor(t)]" />{{ t.title }}
+            </p>
             <p class="mt-0.5 text-muted">{{ time(t.deadline) }}</p>
           </div>
         </div>

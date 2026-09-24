@@ -1,6 +1,9 @@
 node_modules
 dist
+dist-ext
 *.zip
 .DS_Store
 test-results
 playwright-report
+*.tar.gz
+.env

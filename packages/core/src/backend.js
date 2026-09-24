@@ -9,8 +9,14 @@ import { findSite, parseDomainList, normalizeDomain } from './sites.js'
 import { hashSecret, verifySecret, generateRecoveryCode, normalizeRecoveryCode, randomId } from './crypto.js'
 import { checkConfirmation } from './confirm.js'
 import {
-  PRIORITIES, PRIORITY_RANK, FORWARD_LIMITS, classifyTaskChange, subtaskProblem,
-  validateRecurrence, nextDeadline, taskColor,
+  PRIORITIES,
+  PRIORITY_RANK,
+  FORWARD_LIMITS,
+  classifyTaskChange,
+  subtaskProblem,
+  validateRecurrence,
+  nextDeadline,
+  taskColor,
 } from './tasks.js'
 import { dateKey, fromDateKey, startOfDay, addDays } from './time.js'
 
@@ -59,7 +65,9 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     const sec = state.security
     if (!sec.pin) fail('NO_PIN', 'Set up a PIN first.')
     if (sec.lockedUntil > now()) {
-      fail('PIN_LOCKED', `Too many wrong PINs. Try again in ${Math.ceil((sec.lockedUntil - now()) / 60000)} min.`, { lockedUntil: sec.lockedUntil })
+      fail('PIN_LOCKED', `Too many wrong PINs. Try again in ${Math.ceil((sec.lockedUntil - now()) / 60000)} min.`, {
+        lockedUntil: sec.lockedUntil,
+      })
     }
     if (typeof pin !== 'string' || !pin) fail('PIN_REQUIRED', 'Enter your PIN.')
     const ok = await verifySecret(pin, sec.pin)
@@ -94,7 +102,9 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
 
   function cleanRuleInput(s, input) {
     const r = {
-      name: String(input.name || '').trim().slice(0, 80),
+      name: String(input.name || '')
+        .trim()
+        .slice(0, 80),
       siteIds: [...new Set(input.siteIds || [])],
       days: [...new Set((input.days || []).map(Number))].sort(),
       start: Number(input.start),
@@ -113,7 +123,11 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       if (other.id === excludeId || other.mode === mode) continue
       if (!other.siteIds.some((id) => rule.siteIds.includes(id))) continue
       if (rulesOverlap(other, rule)) {
-        fail('CONFLICT', `This overlaps your ${other.mode === 'hard' ? 'Hard Block' : 'Task-Gated'} rule "${other.name || 'Untitled'}" on the same site. Edit or remove that rule first.`, { conflictRuleId: other.id })
+        fail(
+          'CONFLICT',
+          `This overlaps your ${other.mode === 'hard' ? 'Hard Block' : 'Task-Gated'} rule "${other.name || 'Untitled'}" on the same site. Edit or remove that rule first.`,
+          { conflictRuleId: other.id },
+        )
       }
     }
   }
@@ -121,7 +135,9 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
   function cleanTaskInput(s, input, existing) {
     const t = {}
     if ('title' in input || !existing) {
-      t.title = String(input.title || '').trim().slice(0, 200)
+      t.title = String(input.title || '')
+        .trim()
+        .slice(0, 200)
       if (!t.title) fail('VALIDATION', 'Give the task a title.')
     }
     if ('notes' in input) t.notes = String(input.notes || '').slice(0, 5000)
@@ -164,10 +180,23 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     }
     const fields = cleanTaskInput(s, input, null)
     const task = {
-      id: randomId(), parentId: null, ruleId: null, notes: '', tags: [], startAt: null,
-      recurrence: null, recurrenceReset: 'accumulate', seriesId: null,
-      status: 'todo', completedAt: null, createdAt: now(), forwardCount: 0, forwardedUntil: null,
-      timeSpentSec: 0, missedLogged: false, spawnedNext: false,
+      id: randomId(),
+      parentId: null,
+      ruleId: null,
+      notes: '',
+      tags: [],
+      startAt: null,
+      recurrence: null,
+      recurrenceReset: 'accumulate',
+      seriesId: null,
+      status: 'todo',
+      completedAt: null,
+      createdAt: now(),
+      forwardCount: 0,
+      forwardedUntil: null,
+      timeSpentSec: 0,
+      missedLogged: false,
+      spawnedNext: false,
       ...fields,
     }
     if (input.parentId) {
@@ -196,15 +225,33 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     const deadline = nextDeadline(task.recurrence, task.deadline)
     const delta = deadline - task.deadline
     const next = {
-      ...task, id: randomId(), status: 'todo', completedAt: null, createdAt: now(),
-      startAt: nextStart(s, task), deadline, forwardedUntil: null, timeSpentSec: 0,
-      missedLogged: false, spawnedNext: false,
+      ...task,
+      id: randomId(),
+      status: 'todo',
+      completedAt: null,
+      createdAt: now(),
+      startAt: nextStart(s, task),
+      deadline,
+      forwardedUntil: null,
+      timeSpentSec: 0,
+      missedLogged: false,
+      spawnedNext: false,
       forwardCount: task.recurrenceReset === 'cycle' ? 0 : task.forwardCount,
     }
     task.spawnedNext = true
     s.tasks.push(next)
     for (const sub of subtasksOf(s, task.id)) {
-      s.tasks.push({ ...sub, id: randomId(), parentId: next.id, status: 'todo', completedAt: null, createdAt: now(), deadline: sub.deadline + delta, timeSpentSec: 0, missedLogged: false })
+      s.tasks.push({
+        ...sub,
+        id: randomId(),
+        parentId: next.id,
+        status: 'todo',
+        completedAt: null,
+        createdAt: now(),
+        deadline: sub.deadline + delta,
+        timeSpentSec: 0,
+        missedLogged: false,
+      })
     }
     return next
   }
@@ -223,14 +270,63 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     if (!f) return
     const end = status === 'completed' ? focusEndsAt(f) : now()
     s.focus.history.push({
-      id: f.id, startedAt: f.startedAt, endedAt: end, workMin: f.workMin, breakMin: f.breakMin,
-      iterations: f.iterations, siteIds: f.siteIds, status, reason: reason || null,
+      id: f.id,
+      startedAt: f.startedAt,
+      endedAt: end,
+      workMin: f.workMin,
+      breakMin: f.breakMin,
+      iterations: f.iterations,
+      siteIds: f.siteIds,
+      status,
+      reason: reason || null,
       focusedMin: focusedMinutes(f, end),
     })
     if (s.focus.history.length > 1000) s.focus.history.shift()
     s.focus.active = null
     log(s, status === 'completed' ? 'focus_completed' : 'focus_stopped_early', { focusId: f.id, reason })
   }
+
+  /**
+   * Turns an export / saved state from elsewhere into a safe state. Runtime state
+   * (overrides, a half-finished failsafe, rule statuses) is never trusted: it could
+   * skip a cooldown or unlock a window. Rules are re-validated like new ones.
+   */
+  function sanitizeIncoming(payload, keep) {
+    const { overrides, failsafe, runtime, security, agent, onboarding, ...rest } = payload
+    const next = migrate({ ...rest, ...keep })
+    next.customSites = next.customSites
+      .filter((x) => x && typeof x.id === 'string' && Array.isArray(x.domains))
+      .map((x) => ({ ...x, domains: x.domains.map(normalizeDomain).filter(Boolean) }))
+    const rules = []
+    for (const r of next.rules) {
+      if (!r || !['hard', 'gated'].includes(r.mode)) continue
+      const clean = cleanRuleInput(next, r)
+      try {
+        assertNoConflict({ rules }, clean, r.mode, null)
+      } catch {
+        continue
+      }
+      rules.push({
+        id: String(r.id || randomId()),
+        mode: r.mode,
+        createdAt: Number(r.createdAt) || now(),
+        ...clean,
+        failsafe: r.mode === 'gated' ? true : clean.failsafe,
+      })
+    }
+    next.rules = rules
+    next.tasks = next.tasks.filter((t) => t && typeof t.id === 'string' && typeof t.title === 'string' && Number.isFinite(t.deadline))
+    for (const t of next.tasks) if (t.ruleId && !rules.some((r) => r.id === t.ruleId)) t.ruleId = null
+    next.focus = { active: null, history: Array.isArray(next.focus?.history) ? next.focus.history : [] }
+    return next
+  }
+
+  const isHashRecord = (r) =>
+    !!r &&
+    typeof r === 'object' &&
+    /^[0-9a-f]{32}$/.test(r.salt) &&
+    /^[0-9a-f]{64}$/.test(r.hash) &&
+    (r.iterations == null || (Number.isInteger(r.iterations) && r.iterations >= 1000 && r.iterations <= 10_000_000))
 
   // ---- command handlers: (draft, payload) => result ----
   const handlers = {
@@ -246,8 +342,34 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       s.security.recoveryUsed = false
       return { recoveryCode: code }
     },
+    // The user finished setup on the website before installing the extension. A brand-new
+    // extension takes over that setup (PIN included) so nobody does the tutorial twice.
+    // Only allowed while the extension has nothing to protect yet.
+    'setup.adopt': (s, { state: incoming }) => {
+      if (s.security.pin || s.onboarding.completed || s.rules.length || s.tasks.length) {
+        fail('NOT_FRESH', 'FocusGateway is already set up here. Use Settings, Backup, Import to bring data over.')
+      }
+      if (!incoming || typeof incoming !== 'object' || !Array.isArray(incoming.tasks)) fail('VALIDATION', 'Nothing to move.')
+      const sec = incoming.security || {}
+      if (!isHashRecord(sec.pin) || (sec.recovery != null && !isHashRecord(sec.recovery)))
+        fail('VALIDATION', 'The saved PIN looks damaged. Set up again instead.')
+      const onboarding = { completed: !!incoming.onboarding?.completed, steps: { ...(incoming.onboarding?.steps || {}) } }
+      const next = sanitizeIncoming(incoming, {
+        security: { ...s.security, pin: sec.pin, recovery: sec.recovery || null, recoveryUsed: !!sec.recoveryUsed },
+        agent: s.agent,
+        onboarding,
+      })
+      next.createdAt = Number(incoming.createdAt) || now()
+      Object.keys(s).forEach((k) => delete s[k])
+      Object.assign(s, next)
+      log(s, 'setup_adopted')
+      return { onboardingCompleted: onboarding.completed, tasks: s.tasks.length, rules: s.rules.length }
+    },
     'setup.step': (s, { step }) => {
-      if (!['recoverySaved', 'pinExplained', 'failsafeDryRun', 'emergencyHelp', 'dohReviewed', 'firstRule', 'extensionChecked'].includes(step)) fail('VALIDATION', 'Unknown step.')
+      if (
+        !['recoverySaved', 'pinExplained', 'failsafeDryRun', 'emergencyHelp', 'dohReviewed', 'firstRule', 'extensionChecked'].includes(step)
+      )
+        fail('VALIDATION', 'Unknown step.')
       if (step === 'failsafeDryRun' && !s.onboarding.steps.failsafeDryRunDone) fail('VALIDATION', 'Finish the Failsafe practice run first.')
       s.onboarding.steps[step] = true
       return null
@@ -302,7 +424,14 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       const { good, bad } = parseDomainList(list)
       if (bad.length) fail('VALIDATION', `These don't look like websites: ${bad.join(', ')}`)
       if (!good.length) fail('VALIDATION', 'Add at least one website address.')
-      const site = { id: 'custom-' + randomId().slice(0, 8), name: String(name || good[0]).trim().slice(0, 60), domains: good, category: 'custom' }
+      const site = {
+        id: 'custom-' + randomId().slice(0, 8),
+        name: String(name || good[0])
+          .trim()
+          .slice(0, 60),
+        domains: good,
+        category: 'custom',
+      }
       s.customSites.push(site)
       return site
     },
@@ -345,7 +474,8 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     'rules.update': async (s, { id, patch = {}, pin }) => {
       const rule = getRule(s, id)
       const live = isRuleLive(s, rule, now())
-      if (live && isLocked(rule)) fail('LOCKED', 'This rule has no failsafe and is active right now. It can be changed after the window ends.')
+      if (live && isLocked(rule))
+        fail('LOCKED', 'This rule has no failsafe and is active right now. It can be changed after the window ends.')
       if (live) await checkPin(s, pin)
       const merged = cleanRuleInput(s, { ...rule, ...patch })
       if (rule.mode === 'gated') merged.failsafe = true
@@ -356,7 +486,8 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     },
     'rules.delete': async (s, { id, pin }) => {
       const rule = getRule(s, id)
-      if (isLocked(rule) && windowAt(rule, now())) fail('LOCKED', 'This rule has no failsafe and is active right now. It can be deleted after the window ends.')
+      if (isLocked(rule) && windowAt(rule, now()))
+        fail('LOCKED', 'This rule has no failsafe and is active right now. It can be deleted after the window ends.')
       await checkPin(s, pin)
       s.rules = s.rules.filter((r) => r.id !== id)
       for (const t of s.tasks) if (t.ruleId === id) t.ruleId = null
@@ -382,11 +513,18 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       if (easing.length) {
         const reason = checkConfirmation('ease_task', task.title, confirmation)
         for (const e of easing) {
-          log(s, { deadline: 'deadline_delayed', priority: 'priority_downgraded', rule: 'task_detached', start: 'deadline_delayed' }[e], { taskId: task.id, title: task.title, reason })
+          log(s, { deadline: 'deadline_delayed', priority: 'priority_downgraded', rule: 'task_detached', start: 'deadline_delayed' }[e], {
+            taskId: task.id,
+            title: task.title,
+            reason,
+          })
         }
       }
       for (const t of tightening) {
-        log(s, { deadline: 'deadline_tightened', priority: 'priority_raised', rule: 'task_attached' }[t], { taskId: task.id, title: task.title })
+        log(s, { deadline: 'deadline_tightened', priority: 'priority_raised', rule: 'task_attached' }[t], {
+          taskId: task.id,
+          title: task.title,
+        })
       }
       const next = { ...task, ...fields }
       if (task.parentId) {
@@ -431,12 +569,13 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       if (task.parentId) fail('VALIDATION', 'Forward the parent task instead.')
       if (!task.ruleId) fail('VALIDATION', 'Only tasks attached to a Task-Gated window can be sent to its next window.')
       if (task.status === 'done') fail('VALIDATION', 'This task is already done.')
-      if (task.forwardCount >= FORWARD_LIMITS[task.priority]) fail('FORWARD_LIMIT', `No forwards left for a ${task.priority}-priority task. Finish it or use Failsafe.`)
+      if (task.forwardCount >= FORWARD_LIMITS[task.priority])
+        fail('FORWARD_LIMIT', `No forwards left for a ${task.priority}-priority task. Finish it or use Failsafe.`)
       if (now() >= task.deadline) fail('DEADLINE_PASSED', 'The deadline has passed. Finish it or use Failsafe.')
       const rule = getRule(s, task.ruleId)
       const next = nextWindowStart(rule, now())
       if (!next) fail('VALIDATION', 'This rule has no upcoming window.')
-      if (next > task.deadline) fail('DEADLINE_PASSED', 'The next window is after this task\'s deadline. Finish it now.')
+      if (next > task.deadline) fail('DEADLINE_PASSED', "The next window is after this task's deadline. Finish it now.")
       task.forwardCount += 1
       task.forwardedUntil = next
       log(s, 'task_forwarded', { taskId: id, ruleId: rule.id, title: task.title })
@@ -464,10 +603,22 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
 
     // Habits
     'habits.create': (s, input) => {
-      const name = String(input.name || '').trim().slice(0, 60)
+      const name = String(input.name || '')
+        .trim()
+        .slice(0, 60)
       if (!name) fail('VALIDATION', 'Name your habit.')
-      const days = [...new Set((input.days?.length ? input.days : [1, 2, 3, 4, 5, 6, 7]).map(Number))].filter((d) => d >= 1 && d <= 7).sort()
-      const habit = { id: randomId(), name, emoji: String(input.emoji || '').slice(0, 8), color: input.color || 'violet', days, createdAt: startOfDay(now()), archived: false }
+      const days = [...new Set((input.days?.length ? input.days : [1, 2, 3, 4, 5, 6, 7]).map(Number))]
+        .filter((d) => d >= 1 && d <= 7)
+        .sort()
+      const habit = {
+        id: randomId(),
+        name,
+        emoji: String(input.emoji || '').slice(0, 8),
+        color: input.color || 'violet',
+        days,
+        createdAt: startOfDay(now()),
+        archived: false,
+      }
       s.habits.push(habit)
       return habit
     },
@@ -506,7 +657,9 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     'focus.start': (s, { workMin, breakMin, iterations, siteIds }) => {
       if (s.focus.active && now() < focusEndsAt(s.focus.active)) fail('FOCUS_RUNNING', 'A focus session is already running.')
       if (s.focus.active) endFocus(s, 'completed')
-      const w = Number(workMin), b = Number(breakMin), n = Number(iterations)
+      const w = Number(workMin),
+        b = Number(breakMin),
+        n = Number(iterations)
       if (!(w >= 1 && w <= 240)) fail('VALIDATION', 'Work length must be 1 to 240 minutes.')
       if (!(b >= 0 && b <= 60)) fail('VALIDATION', 'Break length must be 0 to 60 minutes.')
       if (!(Number.isInteger(n) && n >= 1 && n <= 12)) fail('VALIDATION', 'Rounds must be 1 to 12.')
@@ -603,7 +756,12 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         if (!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(url)) fail('VALIDATION', 'The agent address must be http://127.0.0.1:<port>.')
         s.agent.url = url
       }
-      const code = String(pairCode || '').toUpperCase().replace(/[^A-Z0-9]/g, '').match(/.{1,4}/g)?.join('-') || ''
+      const code =
+        String(pairCode || '')
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, '')
+          .match(/.{1,4}/g)
+          ?.join('-') || ''
       if (!code) fail('VALIDATION', 'Enter the pairing code the installer printed.')
       s.agent.pairCode = code
       s.agent.lastError = null
@@ -643,26 +801,9 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       if (s.security.pin) await checkPin(s, pin)
       if (anyLockedLive(s)) fail('LOCKED', 'A no-failsafe rule is active. Import after it ends.')
       const payload = data?.data || data
-      if (!payload || typeof payload !== 'object' || !Array.isArray(payload.tasks)) fail('VALIDATION', 'That file is not a FocusGateway export.')
-      // Never trust runtime/override state from a file: it could skip a cooldown or unlock a window.
-      const { overrides, failsafe, runtime, security, agent, onboarding, ...rest } = payload
-      const next = migrate({ ...rest, security: s.security, agent: s.agent, onboarding: s.onboarding })
-      next.customSites = next.customSites.filter((x) => x && typeof x.id === 'string' && Array.isArray(x.domains)).map((x) => ({ ...x, domains: x.domains.map(normalizeDomain).filter(Boolean) }))
-      const rules = []
-      for (const r of next.rules) {
-        if (!r || !['hard', 'gated'].includes(r.mode)) continue
-        const clean = cleanRuleInput(next, r)
-        try {
-          assertNoConflict({ rules }, clean, r.mode, null)
-        } catch {
-          continue
-        }
-        rules.push({ id: String(r.id || randomId()), mode: r.mode, createdAt: Number(r.createdAt) || now(), ...clean, failsafe: r.mode === 'gated' ? true : clean.failsafe })
-      }
-      next.rules = rules
-      next.tasks = next.tasks.filter((t) => t && typeof t.id === 'string' && typeof t.title === 'string' && Number.isFinite(t.deadline))
-      for (const t of next.tasks) if (t.ruleId && !rules.some((r) => r.id === t.ruleId)) t.ruleId = null
-      next.focus = { active: null, history: Array.isArray(next.focus?.history) ? next.focus.history : [] }
+      if (!payload || typeof payload !== 'object' || !Array.isArray(payload.tasks))
+        fail('VALIDATION', 'That file is not a FocusGateway export.')
+      const next = sanitizeIncoming(payload, { security: s.security, agent: s.agent, onboarding: s.onboarding })
       Object.keys(s).forEach((k) => delete s[k])
       Object.assign(s, next)
       log(s, 'data_imported')
@@ -701,7 +842,8 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         const prev = status[rule.id]
         if (prev && prev !== cur) {
           if (rule.mode === 'gated' && cur === 'unlocked') log(s, 'window_unlocked', { ruleId: rule.id, title: rule.name })
-          if (rule.mode === 'gated' && prev === 'extended' && cur === 'inactive') log(s, 'window_unlocked', { ruleId: rule.id, title: rule.name, late: true })
+          if (rule.mode === 'gated' && prev === 'extended' && cur === 'inactive')
+            log(s, 'window_unlocked', { ruleId: rule.id, title: rule.name, late: true })
           if (rule.mode === 'hard' && prev === 'active' && cur === 'inactive') {
             const used = s.log.some((e) => e.type === 'failsafe_used' && e.ruleId === rule.id && t - e.at < 24 * 3600_000)
             if (!used) log(s, 'window_respected', { ruleId: rule.id, title: rule.name })

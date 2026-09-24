@@ -17,7 +17,11 @@ const skipWeb = process.argv.includes('--skip-web')
 const webOut = path.join(root, 'apps/web/dist-ext')
 if (!skipWeb || !existsSync(webOut)) {
   console.log('> building web app for the extension')
-  execSync('npx vite build --base ./ --outDir dist-ext --emptyOutDir', { cwd: path.join(root, 'apps/web'), stdio: 'inherit', env: { ...process.env, FG_TARGET: 'extension' } })
+  execSync('npx vite build --base ./ --outDir dist-ext --emptyOutDir', {
+    cwd: path.join(root, 'apps/web'),
+    stdio: 'inherit',
+    env: { ...process.env, FG_TARGET: 'extension' },
+  })
 }
 
 const baseManifest = {
@@ -27,7 +31,11 @@ const baseManifest = {
   version: pkg.version,
   description: 'Block distracting sites until your work is done. Tasks, habits and a lofi study room. Free and open source.',
   icons: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png', 48: 'icons/icon-48.png', 128: 'icons/icon-128.png' },
-  action: { default_title: 'FocusGateway', default_popup: 'popup.html', default_icon: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' } },
+  action: {
+    default_title: 'FocusGateway',
+    default_popup: 'popup.html',
+    default_icon: { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' },
+  },
   permissions: ['declarativeNetRequest', 'storage', 'unlimitedStorage', 'alarms', 'tabs', 'notifications'],
   host_permissions: ['<all_urls>'],
   incognito: 'spanning',
@@ -63,7 +71,7 @@ for (const [name, manifest] of Object.entries(targets)) {
   await cp(webOut, path.join(out, 'app'), { recursive: true })
   await writeFile(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2))
   try {
-    await rm(path.join(here, "dist", `focusgateway-${name}-${pkg.version}.zip`), { force: true })
+    await rm(path.join(here, 'dist', `focusgateway-${name}-${pkg.version}.zip`), { force: true })
     execSync(`cd "${out}" && zip -qr "../focusgateway-${name}-${pkg.version}.zip" .`)
   } catch {
     console.warn('zip not available; skipping archive for', name)

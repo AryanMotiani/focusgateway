@@ -53,7 +53,9 @@ export function startDaemon() {
   writeJson('crashes.json', crashes)
   writeJson('run-state.json', { clean: false, startedAt: Date.now() })
   const markClean = () => {
-    try { writeJson('run-state.json', { clean: true }) } catch {}
+    try {
+      writeJson('run-state.json', { clean: true })
+    } catch {}
     process.exit(0)
   }
   process.on('SIGTERM', markClean)
@@ -63,8 +65,10 @@ export function startDaemon() {
   if (crashes.length >= CRASH_LIMIT && !lockedUntil(snapshot, Date.now())) {
     failOpenUntil = Date.now() + FAIL_OPEN_MS
     writeJson('failopen.json', { until: failOpenUntil })
-    log(`Agent restarted ${starts.length} times in 2 minutes. Clearing blocks for 10 minutes (fail-open). Check agent.log.`)
-    try { applyDomains([]) } catch {}
+    log(`Agent crashed ${crashes.length} times in 2 minutes. Clearing blocks for 10 minutes (fail-open). Check agent.log.`)
+    try {
+      applyDomains([])
+    } catch {}
   }
 
   let lastDomains = null
@@ -95,7 +99,12 @@ export function startDaemon() {
     const origin = req.headers.origin || ''
     if (origin && !/^(chrome|moz)-extension:\/\//.test(origin)) return send(403, { error: 'Forbidden origin' })
     if (req.method === 'GET' && req.url === '/health') {
-      return send(200, { ok: true, version: VERSION, blocking: lastDomains ? lastDomains.split(',').filter(Boolean).length : 0, failOpen: Date.now() < failOpenUntil })
+      return send(200, {
+        ok: true,
+        version: VERSION,
+        blocking: lastDomains ? lastDomains.split(',').filter(Boolean).length : 0,
+        failOpen: Date.now() < failOpenUntil,
+      })
     }
     if (req.method === 'POST' && req.url === '/v1/pair') {
       // One-time exchange: the pairing code the user saw becomes useless after this.
@@ -105,7 +114,15 @@ export function startDaemon() {
         if (err) return send(400, { error: err })
         const cfg = readJson('config.json') || {}
         if (!cfg.pairCode) return send(409, { error: 'Already paired. Run `focusgateway-agent pair` as admin for a new code.' })
-        if (!safeEqual(String(body.code || '').toUpperCase().trim(), cfg.pairCode)) return send(401, { error: 'Wrong pairing code' })
+        if (
+          !safeEqual(
+            String(body.code || '')
+              .toUpperCase()
+              .trim(),
+            cfg.pairCode,
+          )
+        )
+          return send(401, { error: 'Wrong pairing code' })
         const secret = crypto.randomBytes(32).toString('hex')
         writeJson('config.json', { ...cfg, pairCode: null, secretHash: sha256(secret), pairedAt: new Date().toISOString() })
         log('paired with extension', origin)
@@ -115,7 +132,8 @@ export function startDaemon() {
     if (req.method === 'POST' && req.url === '/v1/sync') {
       const auth = (req.headers.authorization || '').replace(/^Bearer\s+/i, '')
       const cfg = readJson('config.json') || {}
-      if (!cfg.secretHash || !safeEqual(sha256(auth), cfg.secretHash)) return send(401, { error: 'Not paired. Enter the pairing code again.' })
+      if (!cfg.secretHash || !safeEqual(sha256(auth), cfg.secretHash))
+        return send(401, { error: 'Not paired. Enter the pairing code again.' })
       let body = ''
       req.on('data', (c) => {
         body += c

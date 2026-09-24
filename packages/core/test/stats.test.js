@@ -6,16 +6,28 @@ import { normalizeDomain, parseDomainList } from '../src/sites.js'
 import { taskColor } from '../src/tasks.js'
 
 const at = (d, hh, mm = 0) => new Date(2026, 8, d, hh, mm).getTime()
-const t = (deadline, completedAt) => ({ id: String(Math.random()), parentId: null, deadline, status: completedAt ? 'done' : 'todo', completedAt: completedAt || null, tags: [] })
+const t = (deadline, completedAt) => ({
+  id: String(Math.random()),
+  parentId: null,
+  deadline,
+  status: completedAt ? 'done' : 'todo',
+  completedAt: completedAt || null,
+  tags: [],
+})
 
 describe('task streak', () => {
   it('counts days where every due task was finished, skipping empty days', () => {
-    const s = { ...defaultState(), createdAt: at(1, 0), tasks: [
-      t(at(18, 20), at(18, 19)),
-      // 19th: nothing due (skipped)
-      t(at(20, 20), at(20, 10)), t(at(20, 21), at(20, 12)),
-      t(at(21, 20)), // today, not done yet: doesn't break
-    ] }
+    const s = {
+      ...defaultState(),
+      createdAt: at(1, 0),
+      tasks: [
+        t(at(18, 20), at(18, 19)),
+        // 19th: nothing due (skipped)
+        t(at(20, 20), at(20, 10)),
+        t(at(20, 21), at(20, 12)),
+        t(at(21, 20)), // today, not done yet: doesn't break
+      ],
+    }
     expect(taskStreak(s, at(21, 9))).toBe(2)
   })
   it('breaks when a day had an unfinished task', () => {
@@ -36,7 +48,15 @@ describe('habit streak', () => {
 
 describe('computeStats', () => {
   it('summarises today and the accountability sections', () => {
-    const s = { ...defaultState(), createdAt: at(1, 0), tasks: [t(at(21, 20), at(21, 8))], log: [{ type: 'task_forwarded', at: at(20, 10) }, { type: 'failsafe_used', at: at(21, 7) }] }
+    const s = {
+      ...defaultState(),
+      createdAt: at(1, 0),
+      tasks: [t(at(21, 20), at(21, 8))],
+      log: [
+        { type: 'task_forwarded', at: at(20, 10) },
+        { type: 'failsafe_used', at: at(21, 7) },
+      ],
+    }
     const r = computeStats(s, at(21, 9))
     expect(r.today).toMatchObject({ tasksDue: 1, tasksDone: 1 })
     expect(r.sections.windows.bad['Tasks sent to a later window']).toBe(1)

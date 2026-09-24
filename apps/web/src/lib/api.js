@@ -87,6 +87,15 @@ export function hasLocalData() {
     return false
   }
 }
+/** The full state saved by standalone mode (PIN hash included), or null. */
+export function readLocalState() {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_KEY) || 'null')
+  } catch {
+    return null
+  }
+}
+
 export function clearLocalData() {
   try {
     localStorage.removeItem(LOCAL_KEY)

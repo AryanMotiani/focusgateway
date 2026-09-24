@@ -48,9 +48,7 @@ export function gatedStatus(state, rule, now) {
   const last = previousWindow(rule, now)
   if (last) {
     const before = previousWindow(rule, last.start)
-    const rel = relevantTasks(state, rule, last, before ? before.end : null, now).filter(
-      (t) => t.createdAt < last.end,
-    )
+    const rel = relevantTasks(state, rule, last, before ? before.end : null, now).filter((t) => t.createdAt < last.end)
     const pending = rel.filter((t) => t.status !== 'done')
     if (pending.length > 0) return { status: 'extended', window: last, pending, relevant: rel }
   }
@@ -95,25 +93,42 @@ export function computeBlocks(state, now) {
       if (!w) continue
       if (!isLocked(rule) && liveOverride(state, rule.id, now)) continue
       blocks.push({
-        kind: 'hard', ruleId: rule.id, name: rule.name, siteIds: rule.siteIds,
-        until: w.end, locked: isLocked(rule), extended: false, pendingTaskIds: [],
+        kind: 'hard',
+        ruleId: rule.id,
+        name: rule.name,
+        siteIds: rule.siteIds,
+        until: w.end,
+        locked: isLocked(rule),
+        extended: false,
+        pendingTaskIds: [],
       })
     } else if (rule.mode === 'gated') {
       const g = gatedStatus(state, rule, now)
       if (g.status !== 'blocked' && g.status !== 'extended') continue
       if (liveOverride(state, rule.id, now)) continue
       blocks.push({
-        kind: 'gated', ruleId: rule.id, name: rule.name, siteIds: rule.siteIds,
-        until: g.status === 'extended' ? null : g.window.end, locked: false,
-        extended: g.status === 'extended', pendingTaskIds: g.pending.map((t) => t.id),
+        kind: 'gated',
+        ruleId: rule.id,
+        name: rule.name,
+        siteIds: rule.siteIds,
+        until: g.status === 'extended' ? null : g.window.end,
+        locked: false,
+        extended: g.status === 'extended',
+        pendingTaskIds: g.pending.map((t) => t.id),
       })
     }
   }
   const f = state.focus?.active
   if (f && now >= f.startedAt && now < focusEndsAt(f)) {
     blocks.push({
-      kind: 'focus', focusId: f.id, name: 'Focus session', siteIds: f.siteIds,
-      until: focusEndsAt(f), locked: false, extended: false, pendingTaskIds: [],
+      kind: 'focus',
+      focusId: f.id,
+      name: 'Focus session',
+      siteIds: f.siteIds,
+      until: focusEndsAt(f),
+      locked: false,
+      extended: false,
+      pendingTaskIds: [],
     })
   }
   const all = new Set()

@@ -9,7 +9,13 @@ import Icon from './Icon.vue'
 const pin = ref('')
 const text = ref('')
 const confirmRef = ref(null)
-watch(() => dialogs.current, () => { pin.value = ''; text.value = '' })
+watch(
+  () => dialogs.current,
+  () => {
+    pin.value = ''
+    text.value = ''
+  },
+)
 const d = () => dialogs.current
 </script>
 
@@ -37,7 +43,9 @@ const d = () => dialogs.current
       <p class="text-sm text-muted whitespace-pre-line">{{ dialogs.current.message }}</p>
       <div class="mt-5 flex justify-end gap-2">
         <button class="btn" @click="d().resolve(false)">{{ dialogs.current.no }}</button>
-        <button class="btn" :class="dialogs.current.danger ? 'btn-danger' : 'btn-primary'" @click="d().resolve(true)">{{ dialogs.current.yes }}</button>
+        <button class="btn" :class="dialogs.current.danger ? 'btn-danger' : 'btn-primary'" @click="d().resolve(true)">
+          {{ dialogs.current.yes }}
+        </button>
       </div>
     </template>
 

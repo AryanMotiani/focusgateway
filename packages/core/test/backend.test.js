@@ -7,7 +7,13 @@ const PIN = '246810'
 
 function memoryStorage() {
   let saved = null
-  return { load: async () => (saved ? structuredClone(saved) : null), save: async (s) => { saved = structuredClone(s) }, peek: () => saved }
+  return {
+    load: async () => (saved ? structuredClone(saved) : null),
+    save: async (s) => {
+      saved = structuredClone(s)
+    },
+    peek: () => saved,
+  }
 }
 
 let clock, be, storage
@@ -71,7 +77,13 @@ describe('rules', () => {
       'CONFLICT',
     )
     try {
-      await be.dispatch('rules.create', { ...hardInput, mode: 'gated', start: 600, end: 800, newTasks: [{ title: 'x', deadline: at(22, 0) }] })
+      await be.dispatch('rules.create', {
+        ...hardInput,
+        mode: 'gated',
+        start: 600,
+        end: 800,
+        newTasks: [{ title: 'x', deadline: at(22, 0) }],
+      })
     } catch (e) {
       expect(e.details.conflictRuleId).toBe(h.data.id)
     }
@@ -107,8 +119,15 @@ describe('tasks', () => {
   it('easing edits need a typed reason, tightening edits get praise', async () => {
     const { data: t } = await be.dispatch('tasks.create', { title: 'Essay', deadline: at(22, 12), priority: 'medium' })
     await expectCode(be.dispatch('tasks.update', { id: t.id, patch: { deadline: at(23, 12) } }), 'CONFIRMATION_REQUIRED')
-    await expectCode(be.dispatch('tasks.update', { id: t.id, patch: { deadline: at(23, 12) }, confirmation: 'I want to make "Essay" easier because' }), 'CONFIRMATION_REQUIRED')
-    const eased = await be.dispatch('tasks.update', { id: t.id, patch: { deadline: at(23, 12) }, confirmation: `I want to make "Essay" easier because ${reason}` })
+    await expectCode(
+      be.dispatch('tasks.update', { id: t.id, patch: { deadline: at(23, 12) }, confirmation: 'I want to make "Essay" easier because' }),
+      'CONFIRMATION_REQUIRED',
+    )
+    const eased = await be.dispatch('tasks.update', {
+      id: t.id,
+      patch: { deadline: at(23, 12) },
+      confirmation: `I want to make "Essay" easier because ${reason}`,
+    })
     expect(eased.data.praise).toBe(false)
     expect(eased.state.log.at(-1)).toMatchObject({ type: 'deadline_delayed', reason })
     const tight = await be.dispatch('tasks.update', { id: t.id, patch: { priority: 'high' } })
@@ -135,7 +154,14 @@ describe('tasks', () => {
   })
 
   it('forward limits depend on priority', async () => {
-    const { data: rule } = await be.dispatch('rules.create', { mode: 'gated', siteIds: ['instagram'], days: [1, 2, 3, 4, 5], start: 840, end: 1020, newTasks: [{ title: 'Hard one', priority: 'high', deadline: at(25, 23) }] })
+    const { data: rule } = await be.dispatch('rules.create', {
+      mode: 'gated',
+      siteIds: ['instagram'],
+      days: [1, 2, 3, 4, 5],
+      start: 840,
+      end: 1020,
+      newTasks: [{ title: 'Hard one', priority: 'high', deadline: at(25, 23) }],
+    })
     const id = (await be.dispatch('state.get')).state.tasks[0].id
     clock = at(21, 15)
     const f = await be.dispatch('tasks.forward', { id })
@@ -146,7 +172,14 @@ describe('tasks', () => {
   })
 
   it('completing a recurring task spawns the next one that does not unlock today', async () => {
-    await be.dispatch('rules.create', { mode: 'gated', siteIds: ['instagram'], days: [1, 2, 3, 4, 5, 6, 7], start: 840, end: 1020, newTasks: [{ title: 'Anki', deadline: at(21, 23), recurrence: { type: 'daily' } }] })
+    await be.dispatch('rules.create', {
+      mode: 'gated',
+      siteIds: ['instagram'],
+      days: [1, 2, 3, 4, 5, 6, 7],
+      start: 840,
+      end: 1020,
+      newTasks: [{ title: 'Anki', deadline: at(21, 23), recurrence: { type: 'daily' } }],
+    })
     clock = at(21, 15)
     const id = (await be.dispatch('state.get')).state.tasks[0].id
     const r = await be.dispatch('tasks.complete', { id })
@@ -161,7 +194,8 @@ describe('failsafe', () => {
   let ruleId
   beforeEach(async () => {
     await fresh()
-    ruleId = (await be.dispatch('rules.create', { name: 'YT', mode: 'hard', siteIds: ['youtube'], days: [1], start: 540, end: 720 })).data.id
+    ruleId = (await be.dispatch('rules.create', { name: 'YT', mode: 'hard', siteIds: ['youtube'], days: [1], start: 540, end: 720 })).data
+      .id
     clock = at(21, 10)
   })
 
@@ -182,7 +216,14 @@ describe('failsafe', () => {
 
   it('is refused for rules without failsafe', async () => {
     clock = at(21, 8)
-    const { data } = await be.dispatch('rules.create', { mode: 'hard', siteIds: ['reddit'], days: [1], start: 540, end: 720, failsafe: false })
+    const { data } = await be.dispatch('rules.create', {
+      mode: 'hard',
+      siteIds: ['reddit'],
+      days: [1],
+      start: 540,
+      end: 720,
+      failsafe: false,
+    })
     clock = at(21, 10)
     await expectCode(be.dispatch('failsafe.start', { target: { type: 'rule', id: data.id } }), 'NO_FAILSAFE')
   })
@@ -261,7 +302,12 @@ describe('loophole regressions', () => {
   })
 
   it('finishing a recurring gated task unlocks the window and does not extend it', async () => {
-    await be.dispatch('rules.create', { ...win, start: 900, end: 1080, newTasks: [{ title: 'Daily', deadline: at(21, 17), recurrence: { type: 'daily' } }] })
+    await be.dispatch('rules.create', {
+      ...win,
+      start: 900,
+      end: 1080,
+      newTasks: [{ title: 'Daily', deadline: at(21, 17), recurrence: { type: 'daily' } }],
+    })
     clock = at(21, 16)
     const t = (await be.dispatch('state.get')).state.tasks[0]
     await be.dispatch('tasks.complete', { id: t.id })
@@ -272,12 +318,80 @@ describe('loophole regressions', () => {
   })
 
   it('import drops overrides and failsafe state and skips broken rules', async () => {
-    const dump = { data: { tasks: [], rules: [{ id: 'x', mode: 'hard', siteIds: ['youtube'] }, { id: 'y', mode: 'hard', siteIds: ['youtube'], days: [1], start: 60, end: 120 }], overrides: [{ ruleId: 'y', until: 9e15 }], failsafe: { step: 'cooldown', cooldownEndsAt: 0 } } }
+    const dump = {
+      data: {
+        tasks: [],
+        rules: [
+          { id: 'x', mode: 'hard', siteIds: ['youtube'] },
+          { id: 'y', mode: 'hard', siteIds: ['youtube'], days: [1], start: 60, end: 120 },
+        ],
+        overrides: [{ ruleId: 'y', until: 9e15 }],
+        failsafe: { step: 'cooldown', cooldownEndsAt: 0 },
+      },
+    }
     await expectCode(be.dispatch('data.import', { data: dump, pin: PIN }), 'VALIDATION')
     dump.data.rules.shift()
     const r = await be.dispatch('data.import', { data: dump, pin: PIN })
     expect(r.state.overrides).toEqual([])
     expect(r.state.failsafe).toBeNull()
     expect(r.state.rules).toHaveLength(1)
+  })
+})
+
+describe('adopting a setup made before the extension was installed', () => {
+  async function standaloneSetup() {
+    const s = memoryStorage()
+    const local = createBackend({ storage: s, now: () => clock, hashIterations: 1000 })
+    await local.dispatch('setup.pin', { pin: PIN })
+    await local.dispatch('setup.step', { step: 'recoverySaved' })
+    await local.dispatch('failsafe.start', { target: { type: 'practice' } })
+    await local.dispatch('failsafe.continue')
+    await local.dispatch('failsafe.pin', { pin: PIN })
+    clock += 11_000
+    await local.dispatch('failsafe.confirm', { confirmation: `I want to break my own rule because ${reason}` })
+    await local.dispatch('rules.create', {
+      name: 'Study',
+      mode: 'gated',
+      siteIds: ['instagram'],
+      days: [1],
+      start: 840,
+      end: 1020,
+      newTasks: [{ title: 'Essay', deadline: at(25, 12) }],
+    })
+    await local.dispatch('setup.complete')
+    return s.peek()
+  }
+
+  it('moves PIN, onboarding and data into a fresh extension, no second tutorial', async () => {
+    clock = at(21, 8)
+    const saved = await standaloneSetup()
+    const ext = createBackend({ storage: memoryStorage(), now: () => clock, hashIterations: 1000 })
+    const r = await ext.dispatch('setup.adopt', { state: saved })
+    expect(r.state.onboarding.completed).toBe(true)
+    expect(r.state.security.hasPin).toBe(true)
+    expect(r.state.rules).toHaveLength(1)
+    expect(r.state.tasks[0].title).toBe('Essay')
+    // the same PIN works in the extension
+    await ext.dispatch('security.changePin', { oldPin: PIN, newPin: '135791' })
+  })
+
+  it('refuses to overwrite an extension that is already set up', async () => {
+    clock = at(21, 8)
+    const saved = await standaloneSetup()
+    await fresh()
+    await expectCode(be.dispatch('setup.adopt', { state: saved }), 'NOT_FRESH')
+  })
+
+  it('never carries over overrides, a half-finished failsafe or a malformed PIN record', async () => {
+    clock = at(21, 8)
+    const saved = await standaloneSetup()
+    const ext = createBackend({ storage: memoryStorage(), now: () => clock, hashIterations: 1000 })
+    const r = await ext.dispatch('setup.adopt', {
+      state: { ...saved, overrides: [{ ruleId: saved.rules[0].id, until: 9e15 }], failsafe: { step: 'cooldown', cooldownEndsAt: 0 } },
+    })
+    expect(r.state.overrides).toEqual([])
+    expect(r.state.failsafe).toBeNull()
+    const ext2 = createBackend({ storage: memoryStorage(), now: () => clock, hashIterations: 1000 })
+    await expectCode(ext2.dispatch('setup.adopt', { state: { ...saved, security: { pin: { salt: 'zz', hash: 1 } } } }), 'VALIDATION')
   })
 })

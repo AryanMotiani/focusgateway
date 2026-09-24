@@ -73,22 +73,48 @@ export function computeStats(state, now, { range = 'week' } = {}) {
     byTag,
     sections: {
       windows: {
-        good: { 'Windows unlocked by finishing tasks': count(log, ['window_unlocked'], since), 'Tasks finished on time': log.filter((e) => e.type === 'task_completed' && e.onTime && e.at >= since).length },
-        bad: { 'Tasks sent to a later window': count(log, ['task_forwarded'], since), 'Deadlines missed': count(log, ['missed_deadline'], since) },
+        good: {
+          'Windows unlocked by finishing tasks': count(log, ['window_unlocked'], since),
+          'Tasks finished on time': log.filter((e) => e.type === 'task_completed' && e.onTime && e.at >= since).length,
+        },
+        bad: {
+          'Tasks sent to a later window': count(log, ['task_forwarded'], since),
+          'Deadlines missed': count(log, ['missed_deadline'], since),
+        },
       },
       hard: {
-        good: { 'Hard-block windows fully respected': count(log, ['window_respected'], since), 'Times you walked away from Failsafe': count(log, ['failsafe_resisted'], since) },
-        bad: { 'Failsafe overrides used': count(log, ['failsafe_used'], since), 'Active rules edited or deleted': count(log, ['rule_edited_active', 'rule_deleted'], since) },
+        good: {
+          'Hard-block windows fully respected': count(log, ['window_respected'], since),
+          'Times you walked away from Failsafe': count(log, ['failsafe_resisted'], since),
+        },
+        bad: {
+          'Failsafe overrides used': count(log, ['failsafe_used'], since),
+          'Active rules edited or deleted': count(log, ['rule_edited_active', 'rule_deleted'], since),
+        },
       },
       tasks: {
-        good: { 'Tasks completed': count(log, ['task_completed'], since), 'Deadlines or priorities tightened': count(log, ['deadline_tightened', 'priority_raised'], since), 'Current streak (days)': taskStreak(state, now) },
-        bad: { 'Tasks or subtasks deleted': count(log, ['task_deleted', 'subtask_deleted'], since), 'Deadlines delayed': count(log, ['deadline_delayed'], since), 'Priorities lowered': count(log, ['priority_downgraded'], since) },
+        good: {
+          'Tasks completed': count(log, ['task_completed'], since),
+          'Deadlines or priorities tightened': count(log, ['deadline_tightened', 'priority_raised'], since),
+          'Current streak (days)': taskStreak(state, now),
+        },
+        bad: {
+          'Tasks or subtasks deleted': count(log, ['task_deleted', 'subtask_deleted'], since),
+          'Deadlines delayed': count(log, ['deadline_delayed'], since),
+          'Priorities lowered': count(log, ['priority_downgraded'], since),
+        },
       },
       focus: {
-        good: { 'Minutes focused': focusMin(since), 'Sessions completed': history.filter((h) => h.status === 'completed' && h.startedAt >= since).length },
+        good: {
+          'Minutes focused': focusMin(since),
+          'Sessions completed': history.filter((h) => h.status === 'completed' && h.startedAt >= since).length,
+        },
         bad: { 'Sessions stopped early': history.filter((h) => h.status === 'stopped_early' && h.startedAt >= since).length },
       },
     },
-    history: log.filter((e) => e.at >= since).slice(-200).reverse(),
+    history: log
+      .filter((e) => e.at >= since)
+      .slice(-200)
+      .reverse(),
   }
 }

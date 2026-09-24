@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "FocusGateway lock agent: hosts-file + browser-policy enforcement. Zero runtime dependencies.",
   "type": "module",
-  "bin": { "focusgateway-agent": "bin/focusgateway-agent.js" },
-  "engines": { "node": ">=18.17" },
+  "bin": {
+    "focusgateway-agent": "bin/focusgateway-agent.js"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
   "license": "MIT"
 }

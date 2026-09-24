@@ -23,3 +23,8 @@ v1 implemented. 64 tests pass (`npm test`). Web app, extension (Chromium + Firef
 - Fill apps/web/src/config.js with the real repo and store URLs after publishing.
 - Firefox build lints clean (web-ext, 0 errors) but has not been run in a real Firefox yet.
 - Agent install paths for Windows and macOS are written but only exercised on Linux.
+
+## 2026-09-24 (later)
+- Fixed: website-first setup is adopted by a fresh extension (`setup.adopt` in backend, `adoptLocalSetup` in apps/web/src/lib/store.js, install-time tab reload in background.js). No second tutorial.
+- Fixed: agent crash-loop log referenced an undefined variable.
+- Added OSS setup: ESLint + Prettier, Playwright e2e (`tests/e2e`), CI matrix, Pages after CI, tag release with optional store publishing, CodeQL, Dependabot, community files, `docs/MAINTAINER_SETUP.md`, `npm run set-repo`.

@@ -4,13 +4,16 @@
 // until that window ends.
 import { windowAt, isLocked } from '../../packages/core/src/index.js'
 
-const SAME = (a, b) => JSON.stringify([a.days, a.start, a.end, [...a.siteIds].sort(), a.failsafe, a.mode]) === JSON.stringify([b.days, b.start, b.end, [...b.siteIds].sort(), b.failsafe, b.mode])
+const SAME = (a, b) =>
+  JSON.stringify([a.days, a.start, a.end, [...a.siteIds].sort(), a.failsafe, a.mode]) ===
+  JSON.stringify([b.days, b.start, b.end, [...b.siteIds].sort(), b.failsafe, b.mode])
 
 export function validateSnapshot(s) {
   if (!s || typeof s !== 'object') return 'Snapshot must be an object.'
   for (const k of ['rules', 'tasks', 'overrides', 'customSites']) if (!Array.isArray(s[k])) return `Snapshot.${k} must be an array.`
   for (const r of s.rules) {
-    if (!r.id || !['hard', 'gated'].includes(r.mode) || !Array.isArray(r.days) || !Array.isArray(r.siteIds)) return 'Invalid rule in snapshot.'
+    if (!r.id || !['hard', 'gated'].includes(r.mode) || !Array.isArray(r.days) || !Array.isArray(r.siteIds))
+      return 'Invalid rule in snapshot.'
     if (!Number.isInteger(r.start) || !Number.isInteger(r.end)) return 'Invalid rule times.'
   }
   return null

@@ -1,34 +1,69 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>FocusGateway</title>
-  <link rel="stylesheet" href="page.css" />
-  <style>
-    body { width: 340px; padding: 16px; }
-    header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-    header img { width: 28px; height: 28px; }
-    header strong { font-size: 16px; }
-    .list { display: grid; gap: 8px; margin: 10px 0 14px; }
-    .item { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 10px 12px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .warn { font-size: 12px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--warm) 22%, transparent); margin-bottom: 10px; }
-    .status { font-size: 13px; }
-  </style>
-</head>
-<body>
-  <header><img src="icons/icon-128.png" alt="" /><strong>FocusGateway</strong></header>
-  <div id="warn" class="warn" hidden></div>
-  <div id="pending"></div>
-  <div class="status" id="status">Loading…</div>
-  <div class="list" id="list"></div>
-  <div class="grid">
-    <a class="btn primary" href="app/index.html#/" target="_blank">Dashboard</a>
-    <a class="btn" href="app/index.html#/room" target="_blank">Study room</a>
-    <a class="btn" href="app/index.html#/tasks" target="_blank">Tasks</a>
-    <a class="btn" href="app/index.html#/habits" target="_blank">Habits</a>
-  </div>
-  <p class="muted" id="agent" style="font-size:12px;margin:12px 0 0"></p>
-  <script src="popup.js"></script>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>FocusGateway</title>
+    <link rel="stylesheet" href="page.css" />
+    <style>
+      body {
+        width: 340px;
+        padding: 16px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      header img {
+        width: 28px;
+        height: 28px;
+      }
+      header strong {
+        font-size: 16px;
+      }
+      .list {
+        display: grid;
+        gap: 8px;
+        margin: 10px 0 14px;
+      }
+      .item {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 13px;
+        padding: 10px 12px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .warn {
+        font-size: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--warm) 22%, transparent);
+        margin-bottom: 10px;
+      }
+      .status {
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <header><img src="icons/icon-128.png" alt="" /><strong>FocusGateway</strong></header>
+    <div id="warn" class="warn" hidden></div>
+    <div id="pending"></div>
+    <div class="status" id="status">Loading…</div>
+    <div class="list" id="list"></div>
+    <div class="grid">
+      <a class="btn primary" href="app/index.html#/" target="_blank">Dashboard</a>
+      <a class="btn" href="app/index.html#/room" target="_blank">Study room</a>
+      <a class="btn" href="app/index.html#/tasks" target="_blank">Tasks</a>
+      <a class="btn" href="app/index.html#/habits" target="_blank">Habits</a>
+    </div>
+    <p class="muted" id="agent" style="font-size: 12px; margin: 12px 0 0"></p>
+    <script src="popup.js"></script>
+  </body>
 </html>

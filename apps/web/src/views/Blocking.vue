@@ -28,12 +28,21 @@ function status(r) {
   if (!blocking) return { label: 'Unlocked with Failsafe', tone: 'caution' }
   return { label: g.status === 'extended' ? 'Still blocked, tasks open' : 'Blocking now', tone: 'accent' }
 }
-const TONE = { muted: 'bg-sunk text-muted', accent: 'bg-accent-soft text-accent', good: 'bg-good-soft text-good', caution: 'bg-caution-soft text-caution' }
+const TONE = {
+  muted: 'bg-sunk text-muted',
+  accent: 'bg-accent-soft text-accent',
+  good: 'bg-good-soft text-good',
+  caution: 'bg-caution-soft text-caution',
+}
 const siteNames = (r) => r.siteIds.map((id) => findSite(store.state, id)?.name || id)
 const open = (r) => tasksForRule(store.state, r.id).filter((t) => t.status !== 'done').length
 
 async function remove(r) {
-  await withPin('rules.delete', { id: r.id }, { always: true, title: `Delete “${r.name}”?`, message: 'Deleting a rule always needs your PIN. Attached tasks are kept.' })
+  await withPin(
+    'rules.delete',
+    { id: r.id },
+    { always: true, title: `Delete “${r.name}”?`, message: 'Deleting a rule always needs your PIN. Attached tasks are kept.' },
+  )
 }
 function editRuleById(id) {
   editor.value = { rule: store.state.rules.find((r) => r.id === id) }
@@ -45,13 +54,16 @@ function editRuleById(id) {
     <header class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h1 class="h-display text-4xl">Blocking</h1>
-        <p class="text-sm text-muted">Everything that keeps you off distracting sites. Blocks stack: a site is blocked if any rule says so.</p>
+        <p class="text-sm text-muted">
+          Everything that keeps you off distracting sites. Blocks stack: a site is blocked if any rule says so.
+        </p>
       </div>
       <button class="btn btn-primary" @click="editor = { mode: 'gated' }"><Icon name="plus" :size="16" /> New rule</button>
     </header>
 
     <RouterLink v-if="!canBlock" to="/install" class="flex items-center gap-3 rounded-2xl bg-warm-soft p-4 text-sm">
-      <Icon name="alert" class="text-warm" /> <span class="flex-1">Rules are saved, but nothing is enforced until you install the extension.</span><Icon name="chevronRight" />
+      <Icon name="alert" class="text-warm" />
+      <span class="flex-1">Rules are saved, but nothing is enforced until you install the extension.</span><Icon name="chevronRight" />
     </RouterLink>
 
     <section>
@@ -59,7 +71,10 @@ function editRuleById(id) {
         <h2 class="text-lg font-semibold">Task-Gated windows</h2>
         <button class="btn btn-sm" @click="editor = { mode: 'gated' }"><Icon name="plus" :size="14" /> Add</button>
       </div>
-      <p class="mb-3 text-sm text-muted">Blocked during the window until the tasks attached to it are done. If the window ends with tasks still open, the block continues until you finish them.</p>
+      <p class="mb-3 text-sm text-muted">
+        Blocked during the window until the tasks attached to it are done. If the window ends with tasks still open, the block continues
+        until you finish them.
+      </p>
       <div class="grid gap-3 md:grid-cols-2">
         <article v-for="r in gated" :key="r.id" class="card p-4">
           <div class="flex items-start justify-between gap-2">
@@ -76,10 +91,20 @@ function editRuleById(id) {
             <RouterLink :to="{ path: '/tasks' }" class="btn btn-sm">Tasks</RouterLink>
             <button class="btn btn-sm" @click="editor = { rule: r }"><Icon name="edit" :size="13" /> Edit</button>
             <button class="btn btn-sm" @click="remove(r)"><Icon name="trash" :size="13" /></button>
-            <button v-if="blocks.blocks.some((b) => b.ruleId === r.id)" class="btn btn-sm btn-ghost ml-auto text-muted" @click="failsafe = { type: 'rule', id: r.id }">Failsafe</button>
+            <button
+              v-if="blocks.blocks.some((b) => b.ruleId === r.id)"
+              class="btn btn-sm btn-ghost ml-auto text-muted"
+              @click="failsafe = { type: 'rule', id: r.id }"
+            >
+              Failsafe
+            </button>
           </div>
         </article>
-        <button v-if="!gated.length" class="card flex flex-col items-center gap-1 border-dashed p-6 text-sm text-muted hover:border-accent md:col-span-2" @click="editor = { mode: 'gated' }">
+        <button
+          v-if="!gated.length"
+          class="card flex flex-col items-center gap-1 border-dashed p-6 text-sm text-muted hover:border-accent md:col-span-2"
+          @click="editor = { mode: 'gated' }"
+        >
           <Icon name="unlock" :size="22" /> e.g. “Weekdays 4 to 7 pm, Instagram and YouTube stay blocked until homework is done.”
         </button>
       </div>
@@ -95,20 +120,34 @@ function editRuleById(id) {
         <article v-for="r in hard" :key="r.id" class="card p-4">
           <div class="flex items-start justify-between gap-2">
             <div>
-              <h3 class="flex items-center gap-1.5 font-semibold">{{ r.name }} <Icon v-if="isLocked(r)" name="lock" :size="14" class="text-bad" /></h3>
+              <h3 class="flex items-center gap-1.5 font-semibold">
+                {{ r.name }} <Icon v-if="isLocked(r)" name="lock" :size="14" class="text-bad" />
+              </h3>
               <p class="text-sm text-muted">{{ daysLabel(r.days) }} · {{ formatMinutes(r.start) }}–{{ formatMinutes(r.end) }}</p>
             </div>
             <span class="chip shrink-0" :class="TONE[status(r).tone]">{{ status(r).label }}</span>
           </div>
           <p class="mt-2 text-sm">{{ siteNames(r).join(', ') }}</p>
-          <p class="mt-1 text-xs" :class="isLocked(r) ? 'text-bad' : 'text-muted'">{{ isLocked(r) ? 'No failsafe: fully locked while running' : 'Failsafe allowed' }}</p>
+          <p class="mt-1 text-xs" :class="isLocked(r) ? 'text-bad' : 'text-muted'">
+            {{ isLocked(r) ? 'No failsafe: fully locked while running' : 'Failsafe allowed' }}
+          </p>
           <div class="mt-3 flex flex-wrap gap-1.5">
             <button class="btn btn-sm" @click="editor = { rule: r }"><Icon name="edit" :size="13" /> Edit</button>
             <button class="btn btn-sm" @click="remove(r)"><Icon name="trash" :size="13" /></button>
-            <button v-if="!isLocked(r) && blocks.blocks.some((b) => b.ruleId === r.id)" class="btn btn-sm btn-ghost ml-auto text-muted" @click="failsafe = { type: 'rule', id: r.id }">Failsafe</button>
+            <button
+              v-if="!isLocked(r) && blocks.blocks.some((b) => b.ruleId === r.id)"
+              class="btn btn-sm btn-ghost ml-auto text-muted"
+              @click="failsafe = { type: 'rule', id: r.id }"
+            >
+              Failsafe
+            </button>
           </div>
         </article>
-        <button v-if="!hard.length" class="card flex flex-col items-center gap-1 border-dashed p-6 text-sm text-muted hover:border-accent md:col-span-2" @click="editor = { mode: 'hard' }">
+        <button
+          v-if="!hard.length"
+          class="card flex flex-col items-center gap-1 border-dashed p-6 text-sm text-muted hover:border-accent md:col-span-2"
+          @click="editor = { mode: 'hard' }"
+        >
           <Icon name="moon" :size="22" /> e.g. “Every night 11 pm to 7 am, no Reddit, no YouTube.”
         </button>
       </div>
@@ -120,7 +159,14 @@ function editRuleById(id) {
       <FocusCard />
     </section>
 
-    <RuleEditor v-if="editor" :key="editor.rule?.id || editor.mode" :rule="editor.rule" :mode="editor.mode" @close="editor = null" @edit-rule="editRuleById" />
+    <RuleEditor
+      v-if="editor"
+      :key="editor.rule?.id || editor.mode"
+      :rule="editor.rule"
+      :mode="editor.mode"
+      @close="editor = null"
+      @edit-rule="editRuleById"
+    />
     <TaskEditor v-if="taskFor" :defaults="{ ruleId: taskFor.id }" @close="taskFor = null" />
     <FailsafeFlow v-if="failsafe" :target="failsafe" @close="failsafe = null" />
   </div>

@@ -95,11 +95,12 @@ export function applyDomains(domains, file = hostsPath()) {
 }
 
 export function flushDns() {
-  const cmds = {
-    win32: ['ipconfig /flushdns'],
-    darwin: ['dscacheutil -flushcache', 'killall -HUP mDNSResponder'],
-    linux: ['resolvectl flush-caches', 'systemd-resolve --flush-caches', 'nscd -i hosts'],
-  }[process.platform] || []
+  const cmds =
+    {
+      win32: ['ipconfig /flushdns'],
+      darwin: ['dscacheutil -flushcache', 'killall -HUP mDNSResponder'],
+      linux: ['resolvectl flush-caches', 'systemd-resolve --flush-caches', 'nscd -i hosts'],
+    }[process.platform] || []
   for (const c of cmds) {
     try {
       execSync(c, { stdio: 'ignore', timeout: 5000 })

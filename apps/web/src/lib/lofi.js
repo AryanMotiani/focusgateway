@@ -7,13 +7,33 @@ const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12) // MIDI -> Hz
 // Jazzy 7th/9th chord progressions (MIDI notes, voiced around middle C)
 const PROGRESSIONS = [
   // Fmaj7 - Em7 - Dm7 - Cmaj7
-  [[53, 57, 60, 64], [52, 55, 59, 62], [50, 53, 57, 60], [48, 52, 55, 59]],
+  [
+    [53, 57, 60, 64],
+    [52, 55, 59, 62],
+    [50, 53, 57, 60],
+    [48, 52, 55, 59],
+  ],
   // Dm9 - G13 - Cmaj9 - Am9
-  [[50, 53, 57, 60, 64], [43, 53, 57, 59, 64], [48, 52, 55, 59, 62], [45, 48, 52, 55, 59]],
+  [
+    [50, 53, 57, 60, 64],
+    [43, 53, 57, 59, 64],
+    [48, 52, 55, 59, 62],
+    [45, 48, 52, 55, 59],
+  ],
   // Ebmaj7 - Dm7 - Cm7 - Bb7
-  [[51, 55, 58, 62], [50, 53, 57, 60], [48, 51, 55, 58], [46, 50, 53, 56]],
+  [
+    [51, 55, 58, 62],
+    [50, 53, 57, 60],
+    [48, 51, 55, 58],
+    [46, 50, 53, 56],
+  ],
   // Am7 - D9 - Gmaj7 - Cmaj7
-  [[45, 48, 52, 55], [50, 54, 57, 60, 64], [43, 47, 50, 54], [48, 52, 55, 59]],
+  [
+    [45, 48, 52, 55],
+    [50, 54, 57, 60, 64],
+    [43, 47, 50, 54],
+    [48, 52, 55, 59],
+  ],
 ]
 const PENTA = [0, 2, 4, 7, 9]
 
@@ -22,7 +42,14 @@ function makeNoise(ctx, kind, seconds = 3) {
   const buf = ctx.createBuffer(2, len, ctx.sampleRate)
   for (let c = 0; c < 2; c++) {
     const d = buf.getChannelData(c)
-    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, last = 0
+    let b0 = 0,
+      b1 = 0,
+      b2 = 0,
+      b3 = 0,
+      b4 = 0,
+      b5 = 0,
+      b6 = 0,
+      last = 0
     for (let i = 0; i < len; i++) {
       const w = Math.random() * 2 - 1
       if (kind === 'white') d[i] = w * 0.5
@@ -30,9 +57,12 @@ function makeNoise(ctx, kind, seconds = 3) {
         last = (last + 0.02 * w) / 1.02
         d[i] = last * 3.5
       } else {
-        b0 = 0.99886 * b0 + w * 0.0555179; b1 = 0.99332 * b1 + w * 0.0750759
-        b2 = 0.969 * b2 + w * 0.153852; b3 = 0.8665 * b3 + w * 0.3104856
-        b4 = 0.55 * b4 + w * 0.5329522; b5 = -0.7616 * b5 - w * 0.016898
+        b0 = 0.99886 * b0 + w * 0.0555179
+        b1 = 0.99332 * b1 + w * 0.0750759
+        b2 = 0.969 * b2 + w * 0.153852
+        b3 = 0.8665 * b3 + w * 0.3104856
+        b4 = 0.55 * b4 + w * 0.5329522
+        b5 = -0.7616 * b5 - w * 0.016898
         d[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.11
         b6 = w * 0.115926
       }
@@ -184,7 +214,11 @@ export function createLofi() {
     f.type = 'lowpass'
     f.frequency.setValueAtTime(1800, time)
     f.frequency.exponentialRampToValueAtTime(700, time + dur)
-    for (const [type, detune, g] of [['sine', 0, 1], ['triangle', 6, 0.35], ['sine', 1200, 0.08]]) {
+    for (const [type, detune, g] of [
+      ['sine', 0, 1],
+      ['triangle', 6, 0.35],
+      ['sine', 1200, 0.08],
+    ]) {
       const o = ctx.createOscillator()
       o.type = type
       o.frequency.value = NOTE(midi)

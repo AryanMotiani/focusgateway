@@ -16,7 +16,10 @@ async function recover() {
   try {
     const r = await call('security.recover', { code: code.value, newPin: pin.value })
     fresh.value = r.recoveryCode
-    download('focusgateway-recovery-code.txt', `FocusGateway recovery code\n\n${r.recoveryCode}\n\nIt works once. Keep it somewhere safe, away from this computer.\n`)
+    download(
+      'focusgateway-recovery-code.txt',
+      `FocusGateway recovery code\n\n${r.recoveryCode}\n\nIt works once. Keep it somewhere safe, away from this computer.\n`,
+    )
     toast('New PIN set', 'success')
   } catch (e) {
     err.value = e.message
@@ -32,13 +35,22 @@ async function recover() {
         <h1 class="mt-4 text-xl font-semibold">Forgot your PIN?</h1>
         <p class="mt-1 text-sm text-muted">Enter the recovery code you saved during setup. It works once, then you get a new one.</p>
         <form class="mt-5 space-y-3" @submit.prevent="recover">
-          <input v-model="code" class="input font-mono tracking-widest uppercase" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off" aria-label="Recovery code" />
+          <input
+            v-model="code"
+            class="input font-mono tracking-widest uppercase"
+            placeholder="XXXX-XXXX-XXXX-XXXX"
+            autocomplete="off"
+            aria-label="Recovery code"
+          />
           <PinField v-model="pin" placeholder="New PIN (6+ characters)" autocomplete="new-password" />
           <PinField v-model="again" placeholder="New PIN again" autocomplete="new-password" />
           <p v-if="err" class="rounded-xl bg-bad-soft p-3 text-sm text-bad">{{ err }}</p>
           <button class="btn btn-primary w-full" :disabled="!code || pin.length < 6">Reset PIN</button>
         </form>
-        <p class="mt-4 text-xs text-muted">Lost both? Your PIN only guards Failsafe and changes to running rules. Blocks still end on schedule, and task-gated windows still open when you finish your tasks.</p>
+        <p class="mt-4 text-xs text-muted">
+          Lost both? Your PIN only guards Failsafe and changes to running rules. Blocks still end on schedule, and task-gated windows still
+          open when you finish your tasks.
+        </p>
       </template>
       <template v-else>
         <h1 class="mt-4 text-xl font-semibold">New PIN set</h1>

@@ -49,7 +49,13 @@ export function generateRecoveryCode() {
 }
 
 export function normalizeRecoveryCode(code) {
-  return String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').match(/.{1,4}/g)?.join('-') || ''
+  return (
+    String(code || '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .match(/.{1,4}/g)
+      ?.join('-') || ''
+  )
 }
 
 export function randomToken() {

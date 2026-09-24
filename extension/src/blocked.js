@@ -41,11 +41,25 @@ async function render() {
   for (const b of mine) {
     const card = el('div', { className: 'card' })
     const label = b.kind === 'hard' ? 'Hard block' : b.kind === 'gated' ? 'Task-gated window' : 'Focus session'
-    const head = el('div', { className: 'row' }, el('strong', { textContent: b.name }), el('span', { className: 'pill' + (b.locked ? ' lock' : ''), textContent: b.locked ? label + ' · no failsafe' : label }))
+    const head = el(
+      'div',
+      { className: 'row' },
+      el('strong', { textContent: b.name }),
+      el('span', { className: 'pill' + (b.locked ? ' lock' : ''), textContent: b.locked ? label + ' · no failsafe' : label }),
+    )
     card.append(head)
     if (b.kind === 'gated') {
       const pending = state.tasks.filter((t) => b.pendingTaskIds.includes(t.id))
-      card.append(el('p', { className: 'muted', textContent: b.extended ? 'The window ended but these are still open. Finish them to unlock:' : pending.length ? 'Finish these to unlock the rest of the window:' : 'No tasks are attached to this window, so it stays blocked. Add a task and finish it.' }))
+      card.append(
+        el('p', {
+          className: 'muted',
+          textContent: b.extended
+            ? 'The window ended but these are still open. Finish them to unlock:'
+            : pending.length
+              ? 'Finish these to unlock the rest of the window:'
+              : 'No tasks are attached to this window, so it stays blocked. Add a task and finish it.',
+        }),
+      )
       if (pending.length) card.append(el('ul', {}, ...pending.map((t) => el('li', { textContent: t.title }))))
     } else {
       card.append(el('p', { className: 'muted', textContent: `Opens again at ${fmt(b.until)}.` }))

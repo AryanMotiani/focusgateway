@@ -15,7 +15,18 @@ const storage = {
 const backend = createBackend({ storage })
 
 // Commands that never change what is blocked
-const PASSIVE = new Set(['state.get', 'data.export', 'agent.report', 'agent.paired', 'habits.toggle', 'habits.create', 'habits.update', 'habits.delete', 'tasks.logTime', 'settings.update'])
+const PASSIVE = new Set([
+  'state.get',
+  'data.export',
+  'agent.report',
+  'agent.paired',
+  'habits.toggle',
+  'habits.create',
+  'habits.update',
+  'habits.delete',
+  'tasks.logTime',
+  'settings.update',
+])
 
 // ---------------------------------------------------------------- blocking
 let applying = Promise.resolve()
@@ -88,7 +99,9 @@ function describeBlock(b) {
 }
 
 function notify(title, message) {
-  ext.notifications?.create({ type: 'basic', iconUrl: ext.runtime.getURL('icons/icon-128.png'), title: 'FocusGateway: ' + title, message }).catch?.(() => {})
+  ext.notifications
+    ?.create({ type: 'basic', iconUrl: ext.runtime.getURL('icons/icon-128.png'), title: 'FocusGateway: ' + title, message })
+    .catch?.(() => {})
 }
 
 // ---------------------------------------------------------------- lock agent
@@ -102,7 +115,17 @@ function agentSnapshot(state, empty = false) {
   return {
     sentAt: lastAgentSentAt,
     rules: state.rules,
-    tasks: state.tasks.map(({ id, ruleId, parentId, status, completedAt, createdAt, startAt, forwardedUntil, deadline }) => ({ id, ruleId, parentId, status, completedAt, createdAt, startAt, forwardedUntil, deadline })),
+    tasks: state.tasks.map(({ id, ruleId, parentId, status, completedAt, createdAt, startAt, forwardedUntil, deadline }) => ({
+      id,
+      ruleId,
+      parentId,
+      status,
+      completedAt,
+      createdAt,
+      startAt,
+      forwardedUntil,
+      deadline,
+    })),
     overrides: state.overrides,
     focus: { active: state.focus.active },
     customSites: state.customSites,
@@ -128,9 +151,14 @@ async function syncAgent(state) {
         await backend.dispatch('agent.paired', { token: r.data.secret })
         return syncAgent(await backend.rawState())
       }
-      await backend.dispatch('agent.report', { ok: false, error: r.data.error || `HTTP ${r.status}`, dropPairCode: r.status === 401 || r.status === 409 })
+      await backend.dispatch('agent.report', {
+        ok: false,
+        error: r.data.error || `HTTP ${r.status}`,
+        dropPairCode: r.status === 401 || r.status === 409,
+      })
     } catch {
-      if (state.agent.lastError !== 'Agent not reachable') await backend.dispatch('agent.report', { ok: false, error: 'Agent not reachable' })
+      if (state.agent.lastError !== 'Agent not reachable')
+        await backend.dispatch('agent.report', { ok: false, error: 'Agent not reachable' })
     }
     return
   }
@@ -201,7 +229,8 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return { ok: true }
       }
       if (msg.action === 'origins') return { ok: true, data: await approvedOrigins() }
-      if (msg.action === 'pending') return { ok: true, data: (await ext.storage.session.get('fg_pending_origins')).fg_pending_origins || [] }
+      if (msg.action === 'pending')
+        return { ok: true, data: (await ext.storage.session.get('fg_pending_origins')).fg_pending_origins || [] }
       if (msg.action === 'bundles') return { ok: true, data: BUNDLES }
       if (msg.action === 'permissions') {
         const has = await ext.permissions.contains({ origins: ['<all_urls>'] })
@@ -215,7 +244,8 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         if (!approved) await requestApproval(origin)
         return { ok: true, data: { approved, version: ext.runtime.getManifest().version } }
       }
-      if (!approved) return { ok: false, error: { code: 'NOT_APPROVED', message: 'Approve this site in the FocusGateway extension first.' } }
+      if (!approved)
+        return { ok: false, error: { code: 'NOT_APPROVED', message: 'Approve this site in the FocusGateway extension first.' } }
       return runCommand(msg.cmd, msg.payload)
     }
     return { ok: false, error: { code: 'FORBIDDEN', message: 'Unknown sender.' } }
@@ -238,7 +268,22 @@ ext.alarms.onAlarm.addListener((a) => a.name === 'fg-tick' && tick())
 ext.runtime.onStartup.addListener(tick)
 ext.runtime.onInstalled.addListener(async (details) => {
   await tick()
-  if (details.reason === 'install') ext.tabs.create({ url: ext.runtime.getURL('app/index.html#/welcome') })
+  if (details.reason === 'install') {
+    // Came from a FocusGateway website tab? Reload it (content scripts are not injected
+    // into pages that were open before install) and send the user back there, so a setup
+    // done on the website carries over instead of starting the tutorial again.
+    const tabs = await ext.tabs.query({ url: ['http://*/*', 'https://*/*'] }).catch(() => [])
+    const appTab = tabs.find(
+      (t) => /(^| · )FocusGateway($|:)/.test(t.title || '') || /FocusGateway: study without the scroll/.test(t.title || ''),
+    )
+    if (appTab) {
+      await ext.tabs.reload(appTab.id).catch(() => {})
+      await ext.tabs.update(appTab.id, { active: true }).catch(() => {})
+      if (appTab.windowId != null) ext.windows?.update(appTab.windowId, { focused: true }).catch(() => {})
+    } else {
+      ext.tabs.create({ url: ext.runtime.getURL('app/index.html#/welcome') })
+    }
+  }
 })
 ext.action.onClicked?.addListener?.(() => {})
 tick()

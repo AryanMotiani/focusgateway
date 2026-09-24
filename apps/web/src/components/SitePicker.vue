@@ -9,7 +9,19 @@ const adding = ref(false)
 const customName = ref('')
 const customDomains = ref('')
 
-const CATS = { social: 'Social', video: 'Video', chat: 'Chat', music: 'Music', shopping: 'Shopping', games: 'Games', news: 'News', sports: 'Sports', entertainment: 'Entertainment', dating: 'Dating', custom: 'Your sites' }
+const CATS = {
+  social: 'Social',
+  video: 'Video',
+  chat: 'Chat',
+  music: 'Music',
+  shopping: 'Shopping',
+  games: 'Games',
+  news: 'News',
+  sports: 'Sports',
+  entertainment: 'Entertainment',
+  dating: 'Dating',
+  custom: 'Your sites',
+}
 const filtered = computed(() => {
   const s = q.value.trim().toLowerCase()
   return sites.value.filter((x) => !s || x.name.toLowerCase().includes(s) || x.domains.some((d) => d.includes(s)))
@@ -49,18 +61,30 @@ function quickAdd() {
       <div v-for="[cat, list] in grouped" :key="cat">
         <p class="label">{{ CATS[cat] || cat }}</p>
         <div class="flex flex-wrap gap-1.5">
-          <button v-for="s in list" :key="s.id" type="button" :title="s.domains.join(', ')"
+          <button
+            v-for="s in list"
+            :key="s.id"
+            type="button"
+            :title="s.domains.join(', ')"
             class="rounded-full border px-3 py-1 text-sm transition"
-            :class="model.includes(s.id) ? 'border-accent bg-accent text-white dark:text-[#120f24]' : 'border-line bg-card hover:border-accent'"
-            @click="toggle(s.id)">{{ s.name }}</button>
+            :class="
+              model.includes(s.id) ? 'border-accent bg-accent text-white dark:text-[#120f24]' : 'border-line bg-card hover:border-accent'
+            "
+            @click="toggle(s.id)"
+          >
+            {{ s.name }}
+          </button>
         </div>
       </div>
       <p v-if="!filtered.length" class="text-sm text-muted">
-        Not in the list. <button type="button" class="font-semibold text-accent underline" @click="quickAdd">Add "{{ q }}" as a custom site</button>
+        Not in the list.
+        <button type="button" class="font-semibold text-accent underline" @click="quickAdd">Add "{{ q }}" as a custom site</button>
       </p>
     </div>
     <div class="mt-3">
-      <button v-if="!adding" type="button" class="btn btn-sm" @click="adding = true"><Icon name="plus" :size="14" /> Any other website</button>
+      <button v-if="!adding" type="button" class="btn btn-sm" @click="adding = true">
+        <Icon name="plus" :size="14" /> Any other website
+      </button>
       <div v-else class="card space-y-2 bg-sunk p-3">
         <input v-model="customName" class="input" placeholder="Name (optional), e.g. Chess" />
         <textarea v-model="customDomains" class="input min-h-16" placeholder="Website addresses, e.g. chess.com lichess.org" />

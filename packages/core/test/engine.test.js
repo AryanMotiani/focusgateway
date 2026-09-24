@@ -9,9 +9,43 @@ function stateWith(partial) {
   return { ...defaultState(), ...partial }
 }
 
-const hard = { id: 'r1', name: 'Mornings', mode: 'hard', siteIds: ['youtube'], days: [1, 2, 3, 4, 5], start: 540, end: 720, failsafe: true, createdAt: at(1, 0) }
-const gated = { id: 'r2', name: 'Study', mode: 'gated', siteIds: ['instagram'], days: [1, 2, 3, 4, 5], start: 840, end: 1020, failsafe: true, createdAt: at(1, 0) }
-const task = (over) => ({ id: 't' + Math.random(), parentId: null, ruleId: 'r2', title: 'x', priority: 'medium', deadline: at(MON, 23), startAt: null, status: 'todo', completedAt: null, createdAt: at(MON, 8), forwardCount: 0, forwardedUntil: null, ...over })
+const hard = {
+  id: 'r1',
+  name: 'Mornings',
+  mode: 'hard',
+  siteIds: ['youtube'],
+  days: [1, 2, 3, 4, 5],
+  start: 540,
+  end: 720,
+  failsafe: true,
+  createdAt: at(1, 0),
+}
+const gated = {
+  id: 'r2',
+  name: 'Study',
+  mode: 'gated',
+  siteIds: ['instagram'],
+  days: [1, 2, 3, 4, 5],
+  start: 840,
+  end: 1020,
+  failsafe: true,
+  createdAt: at(1, 0),
+}
+const task = (over) => ({
+  id: 't' + Math.random(),
+  parentId: null,
+  ruleId: 'r2',
+  title: 'x',
+  priority: 'medium',
+  deadline: at(MON, 23),
+  startAt: null,
+  status: 'todo',
+  completedAt: null,
+  createdAt: at(MON, 8),
+  forwardCount: 0,
+  forwardedUntil: null,
+  ...over,
+})
 
 describe('hard blocks', () => {
   it('blocks all bundle domains inside the window, not outside', () => {
@@ -85,7 +119,10 @@ describe('task-gated windows', () => {
   })
 
   it('forwarded tasks are excluded until the next window', () => {
-    const s = stateWith({ rules: [gated], tasks: [task({ status: 'done', completedAt: at(MON, 14, 10) }), task({ forwardedUntil: at(22, 14) })] })
+    const s = stateWith({
+      rules: [gated],
+      tasks: [task({ status: 'done', completedAt: at(MON, 14, 10) }), task({ forwardedUntil: at(22, 14) })],
+    })
     expect(computeBlocks(s, at(MON, 15)).domains).toEqual([])
     expect(computeBlocks(s, at(22, 15)).domains).toContain('instagram.com')
   })
@@ -99,7 +136,10 @@ describe('focus sessions', () => {
   })
 
   it('unions with rule blocks without duplicates', () => {
-    const s = stateWith({ rules: [hard], focus: { active: { id: 'f1', siteIds: ['youtube', 'reddit'], startedAt: at(MON, 9), endsAt: at(MON, 11) }, history: [] } })
+    const s = stateWith({
+      rules: [hard],
+      focus: { active: { id: 'f1', siteIds: ['youtube', 'reddit'], startedAt: at(MON, 9), endsAt: at(MON, 11) }, history: [] },
+    })
     const r = computeBlocks(s, at(MON, 10))
     expect(r.domains.filter((d) => d === 'youtube.com')).toHaveLength(1)
     expect(r.domains).toContain('reddit.com')
