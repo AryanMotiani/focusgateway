@@ -31,12 +31,24 @@ export const test = base.extend({
         `--disable-extensions-except=${EXT}`,
         `--load-extension=${EXT}`,
         `--host-resolver-rules=${FAKE_SITES.map((h) => `MAP ${h} 127.0.0.1`).join(', ')}`,
-        // Newer Chromium auto-upgrades HSTS-preloaded domains (instagram.com,
-        // youtube.com, …) from http to https. Our local fake server speaks
-        // plain HTTP, so the upgrade causes ERR_SSL_PROTOCOL_ERROR.
-        '--disable-features=HttpsUpgrades',
+        // instagram.com, youtube.com etc. are in Chromium's static HSTS preload
+        // list, so the browser silently upgrades http:// to https:// even when
+        // the hostname resolves to 127.0.0.1. Our fake server speaks plain HTTP,
+        // causing ERR_SSL_PROTOCOL_ERROR for unblocked pages. The route()
+        // handler below rewrites https back to http for these hosts so the real
+        // server response is always returned.
+        '--ignore-certificate-errors',
       ],
+      ignoreHTTPSErrors: true,
     })
+    // Re-route any https:// navigation to a fake site back to plain HTTP so our
+    // local server (which speaks HTTP only) can respond. Chromium's built-in
+    // HSTS preload list silently upgrades http://instagram.com → https://; this
+    // interception undoes that for test traffic only.
+    await context.route(
+      (url) => FAKE_SITES.includes(url.hostname) && url.protocol === 'https:',
+      (route) => route.continue({ url: route.request().url().replace('https://', 'http://') }),
+    )
     await use(context)
     await context.close()
   },
