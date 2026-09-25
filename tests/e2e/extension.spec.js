@@ -21,17 +21,17 @@ test('task-gated window opens once its tasks are done', async ({ context, send, 
   await send('rules.create', {
     name: 'Study',
     mode: 'gated',
-    siteIds: ['instagram'],
+    siteIds: ['hacker-news'],
     ...windowAroundNow(),
     newTasks: [{ title: 'Essay', deadline: Date.now() + 3600e3 }],
   })
   const page = await context.newPage()
-  await page.goto(fakeSite.replace('%s', 'instagram.com')).catch(() => {})
+  await page.goto(fakeSite.replace('%s', 'news.ycombinator.com')).catch(() => {})
   await expect(page).toHaveURL(/blocked\.html/)
   await expect(page.getByText('Essay')).toBeVisible()
   const { state } = await send('state.get')
   await send('tasks.complete', { id: state.tasks[0].id })
-  await page.goto(fakeSite.replace('%s', 'instagram.com'))
+  await page.goto(fakeSite.replace('%s', 'news.ycombinator.com'))
   await expect(page.getByText('REAL SITE')).toBeVisible()
 })
 
