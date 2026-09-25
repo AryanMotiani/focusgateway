@@ -202,7 +202,24 @@ const PAIRS = [
   ['rar-low', 'card', 3],
   ['rar-medium', 'card', 3],
   ['rar-high', 'card', 3],
+  // the study room windows: text on the window colour (before its transparency) and the active tab
+  ['room-ink', 'room-base', 7],
+  ['room-muted', 'room-base', 4.5],
+  ['accent', 'room-base', 4.5],
+  ['room-on-tab', 'room-tab', 4.5],
 ]
+
+describe('theme shapes', () => {
+  // every theme sets its own shape language and room glass, so no two feel alike
+  const block = (id) => css.match(new RegExp(`\\[data-theme-id='${id}'\\]\\s*\\{([^}]*)\\}`))[1]
+  const shape = (id) =>
+    ['radius', 'btn-radius', 'room-radius', 'shadow', 'border-w'].map((k) => block(id).match(new RegExp(`--fg-${k}:\\s*([^;]+);`))?.[1])
+  it('gives each theme its own radius, button radius, room radius, shadow and border', () => {
+    const all = [...APPEARANCE.game.themes, ...APPEARANCE.minimal.themes]
+    for (const t of all) expect(shape(t.id).every(Boolean)).toBe(true)
+    expect(new Set(all.map((t) => shape(t.id).join('|'))).size).toBe(all.length)
+  })
+})
 
 describe('theme contrast', () => {
   for (const t of [...APPEARANCE.game.themes, ...APPEARANCE.minimal.themes]) {

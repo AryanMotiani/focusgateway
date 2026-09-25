@@ -45,19 +45,19 @@ const shown = computed(() => props.windowed || open.value)
 
 <template>
   <aside
-    class="flex flex-col overflow-hidden text-white"
-    :class="windowed ? 'h-full' : 'rounded-3xl border border-white/10 bg-[#15121f]/85 backdrop-blur-xl transition-all'"
+    class="flex flex-col overflow-hidden"
+    :class="windowed ? 'h-full' : 'room-ui room-glass rounded-(--fg-room-radius) transition-all'"
     aria-label="Room drawer"
   >
-    <div class="flex items-center gap-1" :class="windowed ? 'border-b border-white/8 px-2 py-1.5' : 'p-1.5'" role="tablist">
+    <div class="flex items-center gap-1" :class="windowed ? 'border-b border-line px-2 py-1.5' : 'p-1.5'" role="tablist">
       <button
         v-for="t in TABS"
         :key="t.id"
         role="tab"
         class="flex flex-1 items-center justify-center gap-1.5 px-2 py-2 text-xs font-bold transition"
         :class="[
-          windowed ? 'rounded-lg' : 'rounded-2xl',
-          shown && tab === t.id ? 'bg-white text-[#120f24]' : 'text-white/70 hover:bg-white/10 hover:text-white',
+          'rounded-(--fg-room-btn-radius) font-(family-name:--fg-font-btn)',
+          shown && tab === t.id ? 'room-on' : 'room-hover text-muted',
         ]"
         :title="
           windowed
@@ -72,7 +72,7 @@ const shown = computed(() => props.windowed || open.value)
       </button>
       <button
         v-if="open && !windowed"
-        class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+        class="room-hover grid h-8 w-8 shrink-0 place-items-center rounded-(--fg-room-btn-radius) text-muted"
         aria-label="Fold the drawer (Esc)"
         title="Fold the drawer (Esc)"
         @click="open = false"
@@ -81,11 +81,11 @@ const shown = computed(() => props.windowed || open.value)
       </button>
     </div>
     <div v-if="shown" class="overflow-y-auto" :class="windowed ? 'min-h-0 flex-1 px-3.5 pt-3 pb-4' : 'max-h-[min(50vh,520px)] p-4 pt-2'">
-      <TasksPanel v-if="tab === 'tasks'" dark />
-      <HabitsPanel v-else-if="tab === 'habits'" dark />
-      <BlocksPanel v-else-if="tab === 'blocks'" dark />
-      <StatsPanel v-else dark />
+      <TasksPanel v-if="tab === 'tasks'" />
+      <HabitsPanel v-else-if="tab === 'habits'" />
+      <BlocksPanel v-else-if="tab === 'blocks'" />
+      <StatsPanel v-else />
     </div>
-    <p v-else class="px-4 pb-3 text-[11px] text-white/45 sm:hidden">Tap a tab to peek at tasks, habits, blocks or progress.</p>
+    <p v-else class="px-4 pb-3 text-[11px] text-muted sm:hidden">Tap a tab to peek at tasks, habits, blocks or progress.</p>
   </aside>
 </template>

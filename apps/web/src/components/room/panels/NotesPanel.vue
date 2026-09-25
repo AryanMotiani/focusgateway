@@ -16,7 +16,7 @@ watch(note, (v) => {
 <template>
   <textarea
     v-model="note"
-    class="block h-full min-h-28 w-full resize-none rounded-lg border border-white/8 bg-white/4 p-3 text-sm leading-relaxed text-white outline-none placeholder:text-white/40 focus:border-white/25"
+    class="room-well block h-full min-h-28 w-full resize-none p-3 text-sm leading-relaxed text-ink outline-none placeholder:text-muted focus:border-accent"
     placeholder="Park stray thoughts here so they stop nagging you."
     aria-label="Scratchpad"
   />

@@ -26,10 +26,7 @@ const label = computed(() => (phase.value ? (phase.value.phase === 'work' ? `Foc
   </span>
   <div v-else>
     <p v-if="label" class="hud-label text-xs" :class="phase.phase === 'work' ? 'text-accent' : 'text-warm'">{{ label }}</p>
-    <p
-      class="font-display text-5xl leading-none tracking-tight whitespace-nowrap"
-      :style="{ textShadow: '0 4px 30px rgba(0, 0, 0, 0.35)', fontSize: size ? size + 'px' : null }"
-    >
+    <p class="room-clock font-display text-5xl leading-none whitespace-nowrap" :style="{ fontSize: size ? size + 'px' : null }">
       {{ text }}
     </p>
   </div>

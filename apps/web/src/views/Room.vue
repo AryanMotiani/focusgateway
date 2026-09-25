@@ -113,8 +113,8 @@ function layout(vw, vh) {
     const x0 = 444
     const x1 = vw - 356
     const w = Math.min(660, x1 - x0)
-    status = { x: Math.round(x0 + (x1 - x0 - w) / 2), y: 12, w, h: 90 }
-  } else status = { x: M, y: 76, w: Math.min(760, vw - 2 * M), h: 90 }
+    status = { x: Math.round(x0 + (x1 - x0 - w) / 2), y: 12, w, h: 96 }
+  } else status = { x: M, y: 76, w: Math.min(760, vw - 2 * M), h: 96 }
   const top = wide ? 80 : status.y + status.h + GAP
   const fH = Math.max(200, Math.min(onboarded.value ? 380 : 190, player.y - GAP - top))
   const focus = { x: M, y: player.y - GAP - fH, w: lw, h: fH }
@@ -271,12 +271,13 @@ onBeforeUnmount(() => {
 const panels = computed(() => !hidden.value && !decorating.value)
 const HINT = 'Space play · F full screen · C scene · D decorate · N scratchpad · Z hide panels · T H B S planner · Esc restore'
 const track = computed(() => trackById(lofiState.track))
-const pill = 'rounded-full bg-[#15121f]/75 backdrop-blur hover:bg-[#120f24]/75'
-const chipOn = 'rounded-full bg-white text-[#120f24]'
+// the header's glass buttons, drawn by the theme (style.css, --fg-room-*)
+const pill = 'room-glass room-pill'
+const chipOn = 'room-glass room-pill room-on'
 </script>
 
 <template>
-  <div class="relative bg-[#0b0918] text-white" :class="narrow ? 'min-h-[100dvh]' : 'h-[100dvh] overflow-hidden'">
+  <div class="room-ui relative bg-(--fg-room-page)" :class="narrow ? 'min-h-[100dvh]' : 'h-[100dvh] overflow-hidden'">
     <!-- the room: full screen on desktop, a sideways scrolling picture on phones -->
     <StudyRoom
       v-if="!narrow"
@@ -310,7 +311,7 @@ const chipOn = 'rounded-full bg-white text-[#120f24]'
             v-for="n in NAV"
             :key="n.to"
             :to="n.to"
-            class="grid h-8 w-8 place-items-center rounded-full text-white/75 hover:bg-white/15 hover:text-white"
+            class="room-hover grid h-8 w-8 place-items-center rounded-(--fg-room-btn-radius) text-muted"
             :title="n.label"
             :aria-label="n.label"
           >
@@ -361,12 +362,10 @@ const chipOn = 'rounded-full bg-white text-[#120f24]'
       </RoomWindow>
       <RoomWindow v-if="!onboarded" id="welcome" title="Welcome" icon="home" :ctl="ctl" :stacked="narrow">
         <p class="font-bold">This is the study room.</p>
-        <p class="mt-1 text-sm text-white/70">
+        <p class="mt-1 text-sm text-muted">
           Set up FocusGateway to keep tasks, habits and blocks right here, and to unlock new scenes and decor as you level up.
         </p>
-        <RouterLink to="/welcome" class="mt-3 inline-block rounded-full bg-white px-4 py-2 text-sm font-bold text-[#120f24]"
-          >Set up, it is free</RouterLink
-        >
+        <RouterLink to="/welcome" class="btn btn-primary btn-sm mt-3">Set up, it is free</RouterLink>
       </RoomWindow>
       <RoomWindow id="focus" title="Focus" icon="clock" :ctl="ctl" :stacked="narrow">
         <template #default="s"><FocusPanel :w="s.w" :h="s.h" :max="s.max" /></template>
@@ -427,24 +426,21 @@ const chipOn = 'rounded-full bg-white text-[#120f24]'
     <!-- panels hidden: only a small timer and the player -->
     <div
       v-if="hidden"
-      class="fixed bottom-4 left-1/2 z-20 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 rounded-full border border-white/10 bg-[#120f24]/60 py-1.5 pr-1.5 pl-4 text-sm font-bold backdrop-blur-xl"
+      class="room-glass room-pill fixed bottom-4 left-1/2 z-20 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 py-1.5 pr-1.5 pl-4 text-sm font-bold"
     >
       <RoomClock compact />
-      <span
-        v-if="track"
-        class="max-w-44 truncate text-xs font-semibold text-white/60 max-sm:hidden"
-        :title="`Now playing: ${track.name}`"
-        >{{ track.name }}</span
-      >
+      <span v-if="track" class="max-w-44 truncate text-xs font-semibold text-muted max-sm:hidden" :title="`Now playing: ${track.name}`">{{
+        track.name
+      }}</span>
       <button
-        class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#120f24]"
+        class="room-on grid h-9 w-9 shrink-0 place-items-center rounded-(--fg-room-btn-radius)"
         :aria-label="lofiState.playing ? 'Pause (space)' : 'Play (space)'"
         @click="toggle"
       >
         <Icon :name="lofiState.playing ? 'pause' : 'play'" :size="15" />
       </button>
       <button
-        class="grid h-9 w-9 shrink-0 place-items-center rounded-full hover:bg-white/15"
+        class="room-hover grid h-9 w-9 shrink-0 place-items-center rounded-(--fg-room-btn-radius)"
         aria-label="Show panels (Z)"
         title="Show panels (Z)"
         @click="hidden = false"

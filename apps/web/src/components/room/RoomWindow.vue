@@ -54,7 +54,7 @@ function onBarKey(e) {
     v-if="win"
     v-show="!win.min"
     :data-window="id"
-    class="rw"
+    class="rw room-glass"
     :class="{ 'rw-free': !stacked, 'rw-stacked': stacked, 'rw-max': win.max, 'rw-top': isTop, 'rw-moving': moving }"
     :style="style"
     :aria-label="title"
@@ -71,7 +71,7 @@ function onBarKey(e) {
       @keydown="onBarKey"
     >
       <RoomIcon :name="icon" :size="14" class="rw-icon" />
-      <span class="rw-title">{{ title }}</span>
+      <span class="rw-title room-title">{{ title }}</span>
       <span class="rw-extra"><slot name="bar" v-bind="size" /></span>
       <button
         class="rw-btn"
@@ -133,21 +133,14 @@ html[data-wm-cursor='se-resize'] * {
 </style>
 
 <style scoped>
-/* The glass: one look for every window, readable over any scene. */
+/* The glass: each theme draws it its own way through the --fg-room-* tokens in style.css.
+   Always opaque enough to read over any scene. */
 .rw {
-  --rw-radius: 14px;
   display: flex;
   flex-direction: column;
-  color: #fff;
-  background: rgb(19 16 30 / 0.8);
-  border: 1px solid rgb(255 255 255 / 0.11);
-  border-radius: var(--rw-radius);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.06),
-    0 1px 2px rgb(0 0 0 / 0.3),
-    0 16px 40px -14px rgb(0 0 0 / 0.6);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-radius: var(--fg-room-radius);
+  border-bottom-width: calc(var(--fg-room-border-w) + var(--fg-room-edge));
+  border-bottom-color: var(--fg-room-edge-color);
 }
 .rw-free {
   position: absolute;
@@ -161,14 +154,8 @@ html[data-wm-cursor='se-resize'] * {
 }
 .rw-free.rw-moving {
   transition: none;
-  border-color: rgb(255 255 255 / 0.28);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.08),
-    0 2px 4px rgb(0 0 0 / 0.3),
-    0 26px 60px -16px rgb(0 0 0 / 0.75);
-}
-.rw-top {
-  border-color: rgb(255 255 255 / 0.18);
+  outline: 2px solid color-mix(in srgb, var(--fg-accent) 55%, transparent);
+  outline-offset: 2px;
 }
 .rw-stacked {
   position: relative;
@@ -179,7 +166,7 @@ html[data-wm-cursor='se-resize'] * {
   z-index: 60;
   border-radius: 0;
   border: 0;
-  background: rgb(15 12 26 / 0.96);
+  background-color: var(--fg-room-base);
   padding-bottom: env(safe-area-inset-bottom);
 }
 .rw-bar {
@@ -189,13 +176,19 @@ html[data-wm-cursor='se-resize'] * {
   height: 34px;
   flex: none;
   padding: 0 5px 0 12px;
-  border-bottom: 1px solid rgb(255 255 255 / 0.07);
-  border-radius: var(--rw-radius) var(--rw-radius) 0 0;
+  background: var(--fg-room-bar);
+  border-bottom: var(--fg-room-bar-w) var(--fg-room-bar-style) var(--fg-room-bar-line);
+  /* the inner corner (a wobbly Storybook radius makes this invalid, then the bar is square
+     and see-through anyway) */
+  border-radius: calc(var(--fg-room-radius) - var(--fg-room-border-w)) calc(var(--fg-room-radius) - var(--fg-room-border-w)) 0 0;
   cursor: grab;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   outline: none;
+}
+.rw-stacked.rw-max .rw-bar {
+  border-radius: 0;
 }
 .rw-stacked .rw-bar {
   cursor: default;
@@ -204,19 +197,17 @@ html[data-wm-cursor='se-resize'] * {
   box-shadow: inset 0 0 0 2px var(--fg-accent);
 }
 .rw-icon {
-  color: rgb(255 255 255 / 0.55);
+  color: var(--fg-room-muted);
 }
 .rw-title {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: rgb(255 255 255 / 0.72);
+  line-height: 1;
+  color: var(--fg-room-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .rw-top .rw-title {
-  color: #fff;
+  color: var(--fg-room-ink);
 }
 .rw-top .rw-icon {
   color: var(--fg-accent);
@@ -234,13 +225,13 @@ html[data-wm-cursor='se-resize'] * {
   place-items: center;
   width: 26px;
   height: 26px;
-  border-radius: 8px;
-  color: rgb(255 255 255 / 0.6);
+  border-radius: var(--fg-room-btn-radius);
+  color: var(--fg-room-muted);
   cursor: pointer;
 }
 .rw-btn:hover {
-  color: #fff;
-  background: rgb(255 255 255 / 0.1);
+  color: var(--fg-room-ink);
+  background: var(--fg-room-hover);
 }
 .rw-btn:focus-visible,
 .rw :deep(:focus-visible) {
@@ -253,7 +244,7 @@ html[data-wm-cursor='se-resize'] * {
   flex: 1;
   overflow: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgb(255 255 255 / 0.2) transparent;
+  scrollbar-color: color-mix(in srgb, var(--fg-room-ink) 25%, transparent) transparent;
 }
 .rw-pad {
   padding: 12px 14px 14px;
@@ -328,8 +319,8 @@ html[data-wm-cursor='se-resize'] * {
   bottom: 8px;
   width: 7px;
   height: 7px;
-  border-right: 1.5px solid rgb(255 255 255 / 0.28);
-  border-bottom: 1.5px solid rgb(255 255 255 / 0.28);
+  border-right: 1.5px solid color-mix(in srgb, var(--fg-room-ink) 30%, transparent);
+  border-bottom: 1.5px solid color-mix(in srgb, var(--fg-room-ink) 30%, transparent);
   border-bottom-right-radius: 3px;
 }
 .rw-h:hover::before {

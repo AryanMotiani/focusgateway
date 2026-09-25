@@ -1,34 +1,41 @@
 @import 'tailwindcss';
-/* One heading and one body typeface per theme (see packages/core/src/appearance.js).
-   Each @font-face only downloads when the page uses that family. */
+/* One heading and one body typeface per theme (see packages/core/src/appearance.js), a few
+   themes add a label face. Each @font-face only downloads when the page uses that family. */
 @import '@fontsource-variable/fredoka';
 @import '@fontsource-variable/nunito';
 @import '@fontsource/patrick-hand/400.css';
 @import '@fontsource-variable/atkinson-hyperlegible-next';
 @import '@fontsource-variable/pixelify-sans';
-@import '@fontsource/silkscreen/400.css';
+@import '@fontsource/press-start-2p/400.css';
 @import '@fontsource/chakra-petch/400.css';
 @import '@fontsource/chakra-petch/500.css';
 @import '@fontsource/chakra-petch/600.css';
 @import '@fontsource/chakra-petch/700.css';
-@import '@fontsource-variable/baloo-2';
-@import '@fontsource-variable/lexend';
-@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/comfortaa';
+@import '@fontsource-variable/figtree';
+@import '@fontsource/young-serif/400.css';
 @import '@fontsource-variable/source-serif-4';
 @import '@fontsource-variable/manrope';
 @import '@fontsource-variable/inter';
 @import '@fontsource-variable/cormorant-garamond';
-@import '@fontsource-variable/lora';
-@import '@fontsource-variable/syne';
+@import '@fontsource/spectral/400.css';
+@import '@fontsource/spectral/400-italic.css';
+@import '@fontsource/spectral/500.css';
+@import '@fontsource/spectral/600.css';
+@import '@fontsource/spectral/700.css';
+@import '@fontsource-variable/bricolage-grotesque';
 @import '@fontsource-variable/ibm-plex-sans';
 @import '@fontsource-variable/geist-mono';
+/* the landing page headline serif */
+@import '@fontsource-variable/fraunces';
 
 /*
   Two modes, eight themes, one set of components.
     html[data-mode='game']     XP, levels, pressable controls
     html[data-mode='minimal']  the same features, quiet (shown as Calm)
-  html[data-theme-id] picks a complete theme: fixed tone, typefaces, palette, radii,
-  borders, shadows and background texture. `.dark` is set on <html> when the theme is dark.
+  html[data-theme-id] picks a complete theme: fixed tone, typefaces, palette, shape language
+  (radii, border widths, shadows), background texture and the study room glass.
+  `.dark` is set on <html> when the theme is dark.
   A theme block also works on any element (the theme picker cards use that), because
   the utilities read the --fg-* tokens directly (@theme inline).
   Components only use these tokens, never raw colours.
@@ -88,7 +95,16 @@
   --color-rar-high: var(--fg-rar-high);
 }
 
-/* ---------- Shared shape defaults, each theme overrides what it needs ---------- */
+/*
+  ---------- Shape language: shared defaults, each theme overrides what it needs ----------
+  The main shape tokens every surface uses:
+    --fg-radius         cards and panels        --fg-radius-sm   tiles, inputs, small boxes
+    --fg-shadow         card shadow             --fg-border-w    card and input border width
+    --fg-border-style   solid, or double rules  --fg-btn-radius  buttons (--fg-btn-radius-sm small ones)
+    --fg-input-radius   text fields
+  --fg-r-md ... --fg-r-3xl are what Tailwind's rounded-md ... rounded-3xl mean in this theme.
+  --fg-room-* is the study room glass: windows, dock and header over the illustrated room.
+*/
 :root,
 [data-theme-id] {
   --fg-display-weight: 700;
@@ -98,6 +114,8 @@
   --fg-body-weight: 400;
   --fg-label-weight: 600;
   --fg-label-size: 12px;
+  --fg-hud-label-size: 11px;
+  --fg-label-adjust: none;
   --fg-label-tracking: 0.08em;
   --fg-num-weight: 600;
   --fg-r-md: 6px;
@@ -106,9 +124,14 @@
   --fg-r-2xl: 16px;
   --fg-r-3xl: 24px;
   --fg-radius: 14px;
-  --fg-card-border: 1px;
+  --fg-radius-sm: 10px;
+  --fg-shadow: none;
+  --fg-border-w: 1px;
+  --fg-border-style: solid;
+  --fg-input-radius: var(--fg-radius-sm);
+  --fg-card-border: var(--fg-border-w);
   --fg-card-edge: 0px;
-  --fg-card-shadow: none;
+  --fg-card-shadow: var(--fg-shadow);
   --fg-btn-radius: 12px;
   --fg-btn-radius-sm: 9px;
   --fg-btn-border: 1px;
@@ -124,7 +147,7 @@
   --fg-card-edge-color: var(--fg-edge);
   --fg-press-x: 0px;
   --fg-press-y: 0px;
-  --fg-input-border: 1px;
+  --fg-input-border: var(--fg-border-w);
   --fg-chip-radius: 999px;
   --fg-chip-weight: 500;
   --fg-xp-height: 8px;
@@ -133,24 +156,50 @@
   --fg-xp-inset: 0;
   --fg-texture: none;
   --fg-texture-size: auto;
+
+  /* study room glass */
+  --fg-room-radius: 14px;
+  --fg-room-border-w: 1px;
+  --fg-room-border-style: solid;
+  --fg-room-edge: 0px;
+  --fg-room-edge-color: var(--fg-room-border);
+  --fg-room-blur: 18px;
+  --fg-room-sat: 140%;
+  --fg-room-bar: transparent;
+  --fg-room-bar-w: 1px;
+  --fg-room-bar-style: solid;
+  --fg-room-texture: none;
+  --fg-room-texture-size: auto;
+  --fg-room-title-font: var(--fg-font-display);
+  --fg-room-title-size: 13px;
+  --fg-room-title-weight: 600;
+  --fg-room-title-case: none;
+  --fg-room-title-tracking: 0.01em;
+  --fg-room-title-variant: normal;
+  --fg-room-pill-radius: 999px;
+  --fg-room-btn-radius: 8px;
+  --fg-room-clock-shadow: none;
 }
 
 /*
   ---------- Themes ----------
   Every block sets every colour, so nothing leaks between themes. The --fg-hud-* colours
   are what the game HUD (always dark) uses for the same roles, see the .bg-hud rule below.
+  --fg-room-base is the study room window colour without its transparency, the contrast
+  test reads it together with --fg-room-ink, --fg-room-muted and the active tab colours.
   packages/core/test/appearance.test.js checks these hex values for WCAG contrast.
 */
 
-/* Sunny Quest: bright cream and sky, coral, teal, sunflower, grass. Chunky and round. */
+/* Sunny Quest: fresh cream and sky, coral, teal, sunflower, grass.
+   Shape: very round and bubbly. Pill buttons, chunky pressable bottom edges, soft dot texture. */
 [data-theme-id='sunny'] {
-  --fg-paper: #fff6e3;
+  --fg-paper: #fff8ea;
   --fg-card: #ffffff;
-  --fg-sunk: #fcecca;
+  --fg-sunk: #fdf0d5;
   --fg-ink: #1f2a44;
-  --fg-muted: #555e72;
-  --fg-line: #f0dcb4;
-  --fg-edge: #dfc088;
+  --fg-muted: #535c70;
+  --fg-line: #f2e0bd;
+  --fg-edge: #e4c78f;
   --fg-accent: #bb3a23;
   --fg-accent-deep: #8f2a18;
   --fg-accent-soft: #feebe4;
@@ -195,57 +244,87 @@
   --fg-font-num: 'Fredoka Variable', system-ui, sans-serif;
   --fg-font-btn: 'Fredoka Variable', system-ui, sans-serif;
   --fg-display-weight: 600;
-  --fg-display-tracking: -0.01em;
+  --fg-display-tracking: -0.005em;
   --fg-body-weight: 600;
-  --fg-label-tracking: 0.08em;
+  --fg-label-tracking: 0.07em;
   --fg-num-weight: 600;
-  --fg-r-md: 10px;
-  --fg-r-lg: 12px;
-  --fg-r-xl: 16px;
-  --fg-r-2xl: 22px;
-  --fg-r-3xl: 28px;
-  --fg-radius: 24px;
-  --fg-card-border: 2px;
-  --fg-card-edge: 3px;
-  --fg-btn-radius: 18px;
-  --fg-btn-radius-sm: 13px;
+  --fg-r-md: 12px;
+  --fg-r-lg: 14px;
+  --fg-r-xl: 18px;
+  --fg-r-2xl: 24px;
+  --fg-r-3xl: 32px;
+  --fg-radius: 28px;
+  --fg-radius-sm: 18px;
+  --fg-shadow: 0 10px 24px -18px rgba(143, 90, 10, 0.45);
+  --fg-border-w: 2px;
+  --fg-input-radius: 16px;
+  --fg-card-edge: 4px;
+  --fg-btn-radius: 999px;
+  --fg-btn-radius-sm: 999px;
   --fg-btn-border: 2px;
-  --fg-btn-edge: 3px;
+  --fg-btn-edge: 4px;
   --fg-btn-weight: 600;
-  --fg-press-y: 3px;
-  --fg-input-border: 2px;
+  --fg-press-y: 4px;
   --fg-chip-weight: 700;
   --fg-xp-height: 14px;
   --fg-xp-overlay: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%);
   --fg-xp-inset: 0.22;
-  --fg-texture: radial-gradient(rgba(198, 63, 40, 0.09) 2px, transparent 2.5px);
+  --fg-texture: radial-gradient(rgba(198, 63, 40, 0.075) 2px, transparent 2.5px);
   --fg-texture-size: 26px 26px;
+
+  --fg-room-base: #fffaf0;
+  --fg-room-bg: rgb(255 250 240 / 0.94);
+  --fg-room-border: #f0d8a8;
+  --fg-room-border-w: 2px;
+  --fg-room-edge: 4px;
+  --fg-room-edge-color: #dcbd83;
+  --fg-room-radius: 26px;
+  --fg-room-shadow: 0 22px 40px -22px rgb(40 20 0 / 0.7);
+  --fg-room-blur: 16px;
+  --fg-room-sat: 150%;
+  --fg-room-bar: rgb(253 238 206 / 0.9);
+  --fg-room-bar-line: #f0d8a8;
+  --fg-room-bar-w: 2px;
+  --fg-room-ink: #1f2a44;
+  --fg-room-muted: #535c70;
+  --fg-room-line: #efdcb6;
+  --fg-room-sunk: rgb(250 232 196 / 0.7);
+  --fg-room-field: #ffffff;
+  --fg-room-hover: rgb(187 58 35 / 0.09);
+  --fg-room-tab: #bb3a23;
+  --fg-room-on-tab: #ffffff;
+  --fg-room-dock: rgb(255 250 240 / 0.94);
+  --fg-room-page: var(--fg-paper);
+  --fg-room-title-size: 15px;
+  --fg-room-title-weight: 600;
+  --fg-room-btn-radius: 999px;
 }
 
-/* Storybook: parchment and ink brown, berry, forest, ochre. Hand drawn edges. */
+/* Storybook: parchment and ink brown, berry, forest, ochre.
+   Shape: wobbly hand drawn outlines, offset ink shadows, dashed rules. */
 [data-theme-id='storybook'] {
-  --fg-paper: #f3e7cc;
-  --fg-card: #fbf4e2;
-  --fg-sunk: #ecdcb9;
+  --fg-paper: #f6ecd6;
+  --fg-card: #fdf8ea;
+  --fg-sunk: #efe2c3;
   --fg-ink: #3a2a1c;
-  --fg-muted: #634e3b;
-  --fg-line: #d7c399;
+  --fg-muted: #624d3a;
+  --fg-line: #dac7a0;
   --fg-edge: #8a6f4a;
   --fg-accent: #962a49;
   --fg-accent-deep: #6e1d35;
-  --fg-accent-soft: #f5dde2;
+  --fg-accent-soft: #f6e0e4;
   --fg-on-accent: #fff8ec;
   --fg-warm: #8e5205;
   --fg-warm-deep: #6b3d05;
-  --fg-warm-soft: #f5e5bd;
+  --fg-warm-soft: #f6e7c2;
   --fg-good: #2d6638;
   --fg-good-deep: #204c29;
-  --fg-good-soft: #dfecd1;
+  --fg-good-soft: #e1edd4;
   --fg-on-good: #fff8ec;
   --fg-caution: #7c520b;
-  --fg-caution-soft: #f5e6c0;
+  --fg-caution-soft: #f6e8c4;
   --fg-bad: #a02f29;
-  --fg-bad-soft: #f7ddd6;
+  --fg-bad-soft: #f8e0d9;
   --fg-on-bad: #fff8ec;
   --fg-xp: #94600a;
   --fg-xpbar: #962a49;
@@ -261,7 +340,7 @@
   --fg-hud-bad: #f8a99e;
   --fg-hud-xp: #f2c46a;
   --fg-hud-xpbar: #f2c46a;
-  --fg-heat-0: #e8d7b2;
+  --fg-heat-0: #eadbb8;
   --fg-heat-1: #bdd2a3;
   --fg-heat-2: #6c9a5c;
   --fg-heat-3: #2d6638;
@@ -280,6 +359,7 @@
   --fg-body-weight: 400;
   --fg-label-weight: 400;
   --fg-label-size: 15px;
+  --fg-hud-label-size: 13px;
   --fg-label-tracking: 0.06em;
   --fg-num-weight: 400;
   --fg-r-md: 7px 4px 6px 5px / 5px 6px 4px 7px;
@@ -287,9 +367,10 @@
   --fg-r-xl: 14px 8px 12px 9px / 9px 12px 8px 14px;
   --fg-r-2xl: 18px 10px 16px 12px / 12px 16px 10px 18px;
   --fg-r-3xl: 26px 14px 22px 16px / 16px 22px 14px 26px;
-  --fg-radius: 18px 8px 16px 10px / 10px 16px 8px 18px;
-  --fg-card-border: 2px;
-  --fg-card-shadow: 3px 3px 0 rgba(58, 42, 28, 0.14);
+  --fg-radius: 20px 8px 16px 10px / 10px 18px 8px 20px;
+  --fg-radius-sm: 12px 6px 11px 7px / 7px 11px 6px 12px;
+  --fg-shadow: 3px 4px 0 rgba(58, 42, 28, 0.16);
+  --fg-border-w: 2px;
   --fg-card-line: #b69d72;
   --fg-card-edge-color: #b69d72;
   --fg-btn-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
@@ -302,17 +383,46 @@
   --fg-btn-shadow: 2px 3px 0 rgba(58, 42, 28, 0.35);
   --fg-press-x: 2px;
   --fg-press-y: 2px;
-  --fg-input-border: 2px;
   --fg-chip-radius: 12px 6px 11px 7px / 7px 11px 6px 12px;
   --fg-chip-weight: 700;
   --fg-xp-height: 12px;
   --fg-xp-radius: 8px 4px 8px 5px;
   --fg-xp-overlay: repeating-linear-gradient(-45deg, rgba(255, 248, 236, 0.28) 0 3px, transparent 3px 8px);
-  --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .12 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .12 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --fg-texture-size: 180px 180px;
+
+  --fg-room-base: #fcf6e6;
+  --fg-room-bg: rgb(252 246 230 / 0.96);
+  --fg-room-border: #6f5638;
+  --fg-room-border-w: 2px;
+  --fg-room-radius: 22px 9px 18px 11px / 11px 20px 9px 22px;
+  --fg-room-shadow: 4px 5px 0 rgb(40 26 14 / 0.55), 0 20px 34px -20px rgb(0 0 0 / 0.6);
+  --fg-room-blur: 4px;
+  --fg-room-sat: 110%;
+  --fg-room-bar-line: #b69d72;
+  --fg-room-bar-w: 2px;
+  --fg-room-bar-style: dashed;
+  --fg-room-texture: var(--fg-texture);
+  --fg-room-texture-size: 180px 180px;
+  --fg-room-ink: #3a2a1c;
+  --fg-room-muted: #5e4936;
+  --fg-room-line: #d9c59c;
+  --fg-room-sunk: rgb(236 219 182 / 0.6);
+  --fg-room-field: #fffbf0;
+  --fg-room-hover: rgb(58 42 28 / 0.08);
+  --fg-room-tab: #962a49;
+  --fg-room-on-tab: #fff8ec;
+  --fg-room-dock: rgb(252 246 230 / 0.96);
+  --fg-room-page: var(--fg-paper);
+  --fg-room-title-size: 19px;
+  --fg-room-title-weight: 400;
+  --fg-room-title-tracking: 0.02em;
+  --fg-room-pill-radius: 255px 16px 225px 16px / 16px 225px 16px 255px;
+  --fg-room-btn-radius: 10px 6px 9px 7px / 7px 9px 6px 10px;
 }
 
-/* Arcade: dark retro console, toned brick, amber, leaf and cobalt. Pixel type, square. */
+/* Arcade: dark retro console, toned brick, amber, leaf and cobalt.
+   Shape: fully square, hard pixel drop shadows, 2px outlines, scanlines. */
 [data-theme-id='arcade'] {
   --fg-paper: #17162b;
   --fg-card: #211f3b;
@@ -361,52 +471,84 @@
 
   --fg-font-sans: 'Chakra Petch', system-ui, sans-serif;
   --fg-font-display: 'Pixelify Sans Variable', ui-monospace, monospace;
-  --fg-font-label: 'Silkscreen', ui-monospace, monospace;
+  --fg-font-label: 'Press Start 2P', ui-monospace, monospace;
   --fg-font-num: 'Pixelify Sans Variable', ui-monospace, monospace;
   --fg-font-btn: 'Pixelify Sans Variable', ui-monospace, monospace;
   --fg-display-weight: 600;
   --fg-display-tracking: 0.01em;
   --fg-body-weight: 500;
   --fg-label-weight: 400;
-  --fg-label-size: 11px;
-  --fg-label-tracking: 0.04em;
+  --fg-label-size: 12px;
+  /* Press Start 2P caps fill the whole em: scale labels (and any text-[11px] on them) down */
+  --fg-label-adjust: 0.55;
+  --fg-label-tracking: 0.02em;
   --fg-num-weight: 600;
   --fg-r-md: 0px;
-  --fg-r-lg: 2px;
-  --fg-r-xl: 2px;
-  --fg-r-2xl: 3px;
-  --fg-r-3xl: 4px;
-  --fg-radius: 3px;
-  --fg-card-border: 2px;
-  --fg-card-shadow: 5px 5px 0 rgba(0, 0, 0, 0.45);
-  --fg-btn-radius: 2px;
-  --fg-btn-radius-sm: 2px;
+  --fg-r-lg: 0px;
+  --fg-r-xl: 0px;
+  --fg-r-2xl: 0px;
+  --fg-r-3xl: 0px;
+  --fg-radius: 0px;
+  --fg-radius-sm: 0px;
+  --fg-shadow: 5px 5px 0 rgba(0, 0, 0, 0.5);
+  --fg-border-w: 2px;
+  --fg-btn-radius: 0px;
+  --fg-btn-radius-sm: 0px;
   --fg-btn-border: 2px;
   --fg-btn-weight: 600;
   --fg-btn-case: uppercase;
   --fg-btn-tracking: 0.04em;
-  --fg-btn-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
-  --fg-press-x: 3px;
-  --fg-press-y: 3px;
-  --fg-input-border: 2px;
-  --fg-chip-radius: 2px;
+  --fg-btn-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6);
+  --fg-press-x: 4px;
+  --fg-press-y: 4px;
+  --fg-chip-radius: 0px;
   --fg-chip-weight: 600;
   --fg-xp-height: 14px;
   --fg-xp-radius: 0px;
   --fg-xp-overlay: repeating-linear-gradient(90deg, transparent 0 9px, rgba(9, 8, 26, 0.7) 9px 11px);
   --fg-texture: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 4px);
   --fg-texture-size: auto;
+
+  --fg-room-base: #211f3b;
+  --fg-room-bg: rgb(33 31 59 / 0.97);
+  --fg-room-border: #09081a;
+  --fg-room-border-w: 2px;
+  --fg-room-radius: 0px;
+  --fg-room-shadow: inset 2px 2px 0 #3d3a6b, inset -2px -2px 0 #15142a, 5px 5px 0 rgb(0 0 0 / 0.6);
+  --fg-room-blur: 0px;
+  --fg-room-sat: 100%;
+  --fg-room-bar: #2c2a52;
+  --fg-room-bar-line: #09081a;
+  --fg-room-bar-w: 2px;
+  --fg-room-texture: var(--fg-texture);
+  --fg-room-ink: #eeecf8;
+  --fg-room-muted: #b0aed2;
+  --fg-room-line: #3a3862;
+  --fg-room-sunk: #1b1a33;
+  --fg-room-field: #17162b;
+  --fg-room-hover: rgb(238 236 248 / 0.1);
+  --fg-room-tab: #ec6a52;
+  --fg-room-on-tab: #1a0c08;
+  --fg-room-dock: rgb(33 31 59 / 0.97);
+  --fg-room-page: #0e0d1f;
+  --fg-room-title-size: 14px;
+  --fg-room-title-case: uppercase;
+  --fg-room-title-tracking: 0.06em;
+  --fg-room-pill-radius: 0px;
+  --fg-room-btn-radius: 0px;
+  --fg-room-clock-shadow: 4px 4px 0 #09081a;
 }
 
-/* Night Owl: deep navy night sky, moon yellow, lilac, soft teal, peach. Soft glows. */
+/* Night Owl: deep navy night sky, moon yellow, lilac, soft teal, peach.
+   Shape: generously rounded, pill buttons, soft lilac and moonlight glows. */
 [data-theme-id='night-owl'] {
   --fg-paper: #0f1830;
-  --fg-card: #17233f;
+  --fg-card: #16223e;
   --fg-sunk: #131d38;
   --fg-ink: #e9edf8;
   --fg-muted: #a8b3d0;
-  --fg-line: #2a3960;
-  --fg-edge: #2a3960;
+  --fg-line: #28375d;
+  --fg-edge: #28375d;
   --fg-accent: #f3cf63;
   --fg-accent-deep: #c9a53d;
   --fg-accent-soft: #2f3144;
@@ -445,16 +587,16 @@
   --fg-rar-medium: #b8a2ff;
   --fg-rar-high: #f3cf63;
 
-  --fg-font-sans: 'Lexend Variable', system-ui, sans-serif;
-  --fg-font-display: 'Baloo 2 Variable', system-ui, sans-serif;
-  --fg-font-label: 'Baloo 2 Variable', system-ui, sans-serif;
-  --fg-font-num: 'Baloo 2 Variable', system-ui, sans-serif;
-  --fg-font-btn: 'Baloo 2 Variable', system-ui, sans-serif;
-  --fg-display-weight: 800;
-  --fg-display-tracking: -0.01em;
+  --fg-font-sans: 'Figtree Variable', system-ui, sans-serif;
+  --fg-font-display: 'Comfortaa Variable', system-ui, sans-serif;
+  --fg-font-label: 'Comfortaa Variable', system-ui, sans-serif;
+  --fg-font-num: 'Comfortaa Variable', system-ui, sans-serif;
+  --fg-font-btn: 'Figtree Variable', system-ui, sans-serif;
+  --fg-display-weight: 700;
+  --fg-display-tracking: -0.02em;
   --fg-body-weight: 400;
   --fg-label-weight: 700;
-  --fg-label-size: 12px;
+  --fg-label-size: 11px;
   --fg-label-tracking: 0.12em;
   --fg-num-weight: 700;
   --fg-r-md: 10px;
@@ -463,7 +605,9 @@
   --fg-r-2xl: 20px;
   --fg-r-3xl: 28px;
   --fg-radius: 22px;
-  --fg-card-shadow: 0 0 0 1px rgba(184, 162, 255, 0.05), 0 14px 36px -18px rgba(184, 162, 255, 0.35);
+  --fg-radius-sm: 14px;
+  --fg-shadow: 0 0 0 1px rgba(184, 162, 255, 0.05), 0 16px 40px -20px rgba(184, 162, 255, 0.4);
+  --fg-border-w: 1px;
   --fg-btn-radius: 999px;
   --fg-btn-radius-sm: 999px;
   --fg-btn-weight: 700;
@@ -477,39 +621,63 @@
     radial-gradient(1.6px 1.6px at 38% 76%, rgba(243, 207, 99, 0.45), transparent),
     radial-gradient(1px 1px at 88% 88%, rgba(184, 162, 255, 0.5), transparent);
   --fg-texture-size: 220px 220px;
+
+  --fg-room-base: #16223e;
+  --fg-room-bg: rgb(20 31 58 / 0.84);
+  --fg-room-border: rgb(184 162 255 / 0.24);
+  --fg-room-radius: 22px;
+  --fg-room-shadow: inset 0 1px 0 rgb(233 237 248 / 0.07), 0 0 0 1px rgb(184 162 255 / 0.05), 0 24px 54px -22px rgb(120 100 230 / 0.6);
+  --fg-room-blur: 22px;
+  --fg-room-sat: 150%;
+  --fg-room-bar-line: rgb(184 162 255 / 0.14);
+  --fg-room-ink: #e9edf8;
+  --fg-room-muted: #a8b3d0;
+  --fg-room-line: rgb(184 162 255 / 0.17);
+  --fg-room-sunk: rgb(233 237 248 / 0.06);
+  --fg-room-field: rgb(233 237 248 / 0.06);
+  --fg-room-hover: rgb(233 237 248 / 0.09);
+  --fg-room-tab: #f3cf63;
+  --fg-room-on-tab: #1a1a2e;
+  --fg-room-dock: rgb(20 31 58 / 0.84);
+  --fg-room-page: #0a1126;
+  --fg-room-title-size: 13px;
+  --fg-room-title-weight: 700;
+  --fg-room-btn-radius: 999px;
+  --fg-room-clock-shadow: 0 0 34px rgb(243 207 99 / 0.35);
 }
 
-/* Paper: warm ivory notebook, ink blue, rust, sage. Editorial serif, crisp corners. */
+/* Paper: fresh ivory notebook, ink blue, rust, sage. Editorial slab serif over a text serif.
+   Shape: crisp 2px corners, no shadows, hairline rules. */
 [data-theme-id='paper'] {
-  --fg-paper: #faf5ea;
-  --fg-card: #fffdf7;
-  --fg-sunk: #f1eadb;
+  --fg-paper: #fbf8f1;
+  --fg-card: #fffefa;
+  --fg-sunk: #f3eee2;
   --fg-ink: #1e2432;
-  --fg-muted: #585c6b;
-  --fg-line: #e3dbc7;
-  --fg-edge: #e3dbc7;
+  --fg-muted: #565a69;
+  --fg-line: #e4dccb;
+  --fg-edge: #e4dccb;
   --fg-accent: #1f4e8c;
   --fg-accent-deep: #173c6d;
-  --fg-accent-soft: #e4ebf5;
+  --fg-accent-soft: #e6edf6;
   --fg-on-accent: #ffffff;
   --fg-warm: #a0441d;
   --fg-warm-deep: #7e3413;
-  --fg-warm-soft: #f7e6dc;
+  --fg-warm-soft: #f8e8df;
   --fg-good: #3c6845;
   --fg-good-deep: #2d5035;
-  --fg-good-soft: #e3ede0;
+  --fg-good-soft: #e5eee2;
   --fg-on-good: #ffffff;
   --fg-caution: #85590e;
-  --fg-caution-soft: #f5ebd2;
+  --fg-caution-soft: #f6eed8;
   --fg-bad: #a5303a;
-  --fg-bad-soft: #f8e3e3;
+  --fg-bad-soft: #f9e5e5;
   --fg-on-bad: #ffffff;
   --fg-xp: #1f4e8c;
   --fg-xpbar: #1f4e8c;
-  --fg-hud: #fffdf7;
+  --fg-hud: #fffefa;
   --fg-hud-ink: #1e2432;
-  --fg-hud-muted: #585c6b;
-  --fg-hud-line: #e3dbc7;
+  --fg-hud-muted: #565a69;
+  --fg-hud-line: #e4dccb;
   --fg-hud-accent: #1f4e8c;
   --fg-hud-accent-deep: #173c6d;
   --fg-hud-on-accent: #ffffff;
@@ -518,7 +686,7 @@
   --fg-hud-bad: #a5303a;
   --fg-hud-xp: #1f4e8c;
   --fg-hud-xpbar: #1f4e8c;
-  --fg-heat-0: #ede5d3;
+  --fg-heat-0: #eee7d6;
   --fg-heat-1: #b9c9e0;
   --fg-heat-2: #6689bd;
   --fg-heat-3: #1f4e8c;
@@ -527,63 +695,91 @@
   --fg-rar-high: #a0441d;
 
   --fg-font-sans: 'Source Serif 4 Variable', Georgia, serif;
-  --fg-font-display: 'Fraunces Variable', Georgia, serif;
+  --fg-font-display: 'Young Serif', Georgia, serif;
   --fg-font-label: 'Source Serif 4 Variable', Georgia, serif;
-  --fg-font-num: 'Fraunces Variable', Georgia, serif;
+  --fg-font-num: 'Young Serif', Georgia, serif;
   --fg-font-btn: 'Source Serif 4 Variable', Georgia, serif;
-  --fg-display-weight: 500;
-  --fg-display-tracking: -0.015em;
+  --fg-display-weight: 400;
+  --fg-display-tracking: -0.01em;
   --fg-body-weight: 400;
   --fg-label-weight: 600;
-  --fg-label-tracking: 0.1em;
-  --fg-num-weight: 500;
-  --fg-r-md: 3px;
-  --fg-r-lg: 4px;
-  --fg-r-xl: 5px;
-  --fg-r-2xl: 6px;
-  --fg-r-3xl: 8px;
-  --fg-radius: 4px;
-  --fg-btn-radius: 3px;
-  --fg-btn-radius-sm: 3px;
+  --fg-label-tracking: 0.12em;
+  --fg-num-weight: 400;
+  --fg-r-md: 2px;
+  --fg-r-lg: 2px;
+  --fg-r-xl: 2px;
+  --fg-r-2xl: 2px;
+  --fg-r-3xl: 3px;
+  --fg-radius: 2px;
+  --fg-radius-sm: 2px;
+  --fg-shadow: none;
+  --fg-border-w: 1px;
+  --fg-btn-radius: 2px;
+  --fg-btn-radius-sm: 2px;
   --fg-btn-weight: 600;
-  --fg-chip-radius: 3px;
-  --fg-xp-height: 6px;
+  --fg-chip-radius: 2px;
+  --fg-xp-height: 4px;
   --fg-xp-radius: 0px;
-  --fg-texture: repeating-linear-gradient(180deg, transparent 0 31px, rgba(31, 78, 140, 0.06) 31px 32px);
+  --fg-texture: repeating-linear-gradient(180deg, transparent 0 31px, rgba(31, 78, 140, 0.05) 31px 32px);
   --fg-texture-size: auto;
+
+  --fg-room-base: #fffdf8;
+  --fg-room-bg: rgb(255 253 248 / 0.97);
+  --fg-room-border: #cfc4ab;
+  --fg-room-radius: 2px;
+  --fg-room-shadow: none;
+  --fg-room-blur: 6px;
+  --fg-room-sat: 100%;
+  --fg-room-bar-line: #e4dccb;
+  --fg-room-ink: #1e2432;
+  --fg-room-muted: #565a69;
+  --fg-room-line: #e4dccb;
+  --fg-room-sunk: #f5f0e5;
+  --fg-room-field: #ffffff;
+  --fg-room-hover: rgb(31 78 140 / 0.07);
+  --fg-room-tab: #1f4e8c;
+  --fg-room-on-tab: #ffffff;
+  --fg-room-dock: rgb(255 253 248 / 0.97);
+  --fg-room-page: var(--fg-paper);
+  --fg-room-title-size: 15px;
+  --fg-room-title-weight: 400;
+  --fg-room-title-tracking: 0;
+  --fg-room-pill-radius: 2px;
+  --fg-room-btn-radius: 2px;
 }
 
-/* Nordic: cool grey white, fjord blue, pine, clay. Airy geometric sans, soft shadows. */
+/* Nordic: cool grey white, fjord blue, pine, clay. Airy geometric sans.
+   Shape: soft 16px corners, wide diffuse shadows, frosted glass. */
 [data-theme-id='nordic'] {
-  --fg-paper: #f2f4f6;
+  --fg-paper: #f4f6f8;
   --fg-card: #ffffff;
-  --fg-sunk: #e8ecf0;
+  --fg-sunk: #eaeef2;
   --fg-ink: #16202b;
-  --fg-muted: #505c69;
-  --fg-line: #dde3e9;
-  --fg-edge: #dde3e9;
+  --fg-muted: #4e5a67;
+  --fg-line: #dfe5eb;
+  --fg-edge: #dfe5eb;
   --fg-accent: #2a6189;
   --fg-accent-deep: #1f4b6b;
-  --fg-accent-soft: #e2edf5;
+  --fg-accent-soft: #e3eef6;
   --fg-on-accent: #ffffff;
   --fg-warm: #a3502d;
   --fg-warm-deep: #82401f;
-  --fg-warm-soft: #f6e6de;
+  --fg-warm-soft: #f7e8e0;
   --fg-good: #2b6a4f;
   --fg-good-deep: #1f503b;
-  --fg-good-soft: #e0eee6;
+  --fg-good-soft: #e2efe8;
   --fg-on-good: #ffffff;
   --fg-caution: #7f5b0e;
-  --fg-caution-soft: #f4ebd1;
+  --fg-caution-soft: #f5edd4;
   --fg-bad: #af3838;
-  --fg-bad-soft: #f8e3e3;
+  --fg-bad-soft: #f9e5e5;
   --fg-on-bad: #ffffff;
   --fg-xp: #2b6a4f;
   --fg-xpbar: #2a6189;
   --fg-hud: #ffffff;
   --fg-hud-ink: #16202b;
-  --fg-hud-muted: #505c69;
-  --fg-hud-line: #dde3e9;
+  --fg-hud-muted: #4e5a67;
+  --fg-hud-line: #dfe5eb;
   --fg-hud-accent: #2a6189;
   --fg-hud-accent-deep: #1f4b6b;
   --fg-hud-on-accent: #ffffff;
@@ -592,7 +788,7 @@
   --fg-hud-bad: #af3838;
   --fg-hud-xp: #2b6a4f;
   --fg-hud-xpbar: #2a6189;
-  --fg-heat-0: #e3e8ed;
+  --fg-heat-0: #e4e9ee;
   --fg-heat-1: #b3d2c3;
   --fg-heat-2: #5e9b7f;
   --fg-heat-3: #2b6a4f;
@@ -614,20 +810,47 @@
   --fg-num-weight: 700;
   --fg-r-md: 8px;
   --fg-r-lg: 10px;
-  --fg-r-xl: 14px;
-  --fg-r-2xl: 18px;
-  --fg-r-3xl: 26px;
-  --fg-radius: 18px;
-  --fg-card-border: 1px;
-  --fg-card-shadow: 0 1px 2px rgba(22, 32, 43, 0.04), 0 12px 32px -18px rgba(22, 32, 43, 0.18);
-  --fg-btn-radius: 12px;
-  --fg-btn-radius-sm: 10px;
+  --fg-r-xl: 12px;
+  --fg-r-2xl: 16px;
+  --fg-r-3xl: 22px;
+  --fg-radius: 16px;
+  --fg-radius-sm: 10px;
+  --fg-shadow: 0 1px 2px rgba(22, 32, 43, 0.04), 0 18px 40px -22px rgba(22, 32, 43, 0.22);
+  --fg-border-w: 1px;
+  --fg-btn-radius: 10px;
+  --fg-btn-radius-sm: 8px;
   --fg-btn-weight: 700;
-  --fg-btn-shadow: 0 1px 2px rgba(22, 32, 43, 0.06);
+  --fg-btn-shadow: 0 1px 2px rgba(22, 32, 43, 0.06), 0 6px 14px -8px rgba(22, 32, 43, 0.2);
+  --fg-chip-radius: 8px;
   --fg-xp-height: 8px;
+
+  --fg-room-base: #f7f9fb;
+  --fg-room-bg: rgb(247 249 251 / 0.86);
+  --fg-room-border: rgb(255 255 255 / 0.7);
+  --fg-room-radius: 16px;
+  --fg-room-shadow: 0 1px 2px rgb(10 20 30 / 0.12), 0 32px 64px -30px rgb(5 15 25 / 0.7);
+  --fg-room-blur: 28px;
+  --fg-room-sat: 170%;
+  --fg-room-bar-line: rgb(22 32 43 / 0.07);
+  --fg-room-ink: #16202b;
+  --fg-room-muted: #4a5663;
+  --fg-room-line: rgb(22 32 43 / 0.1);
+  --fg-room-sunk: rgb(22 32 43 / 0.05);
+  --fg-room-field: rgb(255 255 255 / 0.85);
+  --fg-room-hover: rgb(22 32 43 / 0.06);
+  --fg-room-tab: #16202b;
+  --fg-room-on-tab: #ffffff;
+  --fg-room-dock: rgb(247 249 251 / 0.86);
+  --fg-room-page: var(--fg-paper);
+  --fg-room-title-size: 13px;
+  --fg-room-title-weight: 700;
+  --fg-room-title-tracking: -0.01em;
+  --fg-room-pill-radius: 12px;
+  --fg-room-btn-radius: 8px;
 }
 
-/* Midnight Library: green black study, brass, burgundy, parchment text. Old style serif. */
+/* Midnight Library: green black study, brass, burgundy, parchment text. Old style serifs.
+   Shape: near square, thin double rules in brass, no drop shadows. */
 [data-theme-id='midnight'] {
   --fg-paper: #0f1712;
   --fg-card: #16211a;
@@ -674,11 +897,11 @@
   --fg-rar-medium: #e08d9b;
   --fg-rar-high: #d4aa52;
 
-  --fg-font-sans: 'Lora Variable', Georgia, serif;
+  --fg-font-sans: 'Spectral', Georgia, serif;
   --fg-font-display: 'Cormorant Garamond Variable', Georgia, serif;
-  --fg-font-label: 'Lora Variable', Georgia, serif;
+  --fg-font-label: 'Spectral', Georgia, serif;
   --fg-font-num: 'Cormorant Garamond Variable', Georgia, serif;
-  --fg-font-btn: 'Lora Variable', Georgia, serif;
+  --fg-font-btn: 'Spectral', Georgia, serif;
   --fg-display-weight: 600;
   --fg-display-tracking: 0;
   --fg-display-adjust: 0.47;
@@ -687,25 +910,63 @@
   --fg-label-size: 11px;
   --fg-label-tracking: 0.16em;
   --fg-num-weight: 600;
-  --fg-r-md: 2px;
+  --fg-r-md: 1px;
   --fg-r-lg: 2px;
-  --fg-r-xl: 3px;
-  --fg-r-2xl: 4px;
-  --fg-r-3xl: 6px;
-  --fg-radius: 3px;
-  --fg-card-shadow: inset 0 0 0 3px #16211a, inset 0 0 0 4px rgba(212, 170, 82, 0.16);
-  --fg-btn-radius: 2px;
-  --fg-btn-radius-sm: 2px;
+  --fg-r-xl: 2px;
+  --fg-r-2xl: 2px;
+  --fg-r-3xl: 3px;
+  --fg-radius: 2px;
+  --fg-radius-sm: 1px;
+  --fg-shadow: none;
+  --fg-border-w: 3px;
+  --fg-border-style: double;
+  --fg-card-line: #3b4d3f;
+  --fg-input-border: 1px;
+  --fg-btn-radius: 1px;
+  --fg-btn-radius-sm: 1px;
   --fg-btn-weight: 500;
-  --fg-btn-tracking: 0.03em;
-  --fg-chip-radius: 2px;
+  --fg-btn-tracking: 0.04em;
+  --fg-chip-radius: 1px;
   --fg-xp-height: 5px;
   --fg-xp-radius: 0px;
   --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .8 0 0 0 0 .55 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --fg-texture-size: 200px 200px;
+
+  --fg-room-base: #141f18;
+  --fg-room-bg: rgb(18 29 22 / 0.91);
+  --fg-room-border: rgb(212 170 82 / 0.5);
+  --fg-room-border-w: 3px;
+  --fg-room-border-style: double;
+  --fg-room-radius: 2px;
+  --fg-room-shadow: 0 24px 44px -22px rgb(0 0 0 / 0.85);
+  --fg-room-blur: 14px;
+  --fg-room-sat: 120%;
+  --fg-room-bar-line: rgb(212 170 82 / 0.32);
+  --fg-room-bar-w: 3px;
+  --fg-room-bar-style: double;
+  --fg-room-texture: var(--fg-texture);
+  --fg-room-texture-size: 200px 200px;
+  --fg-room-ink: #efe6d2;
+  --fg-room-muted: #b7ad96;
+  --fg-room-line: rgb(212 170 82 / 0.18);
+  --fg-room-sunk: rgb(239 230 210 / 0.05);
+  --fg-room-field: rgb(239 230 210 / 0.05);
+  --fg-room-hover: rgb(212 170 82 / 0.1);
+  --fg-room-tab: #d4aa52;
+  --fg-room-on-tab: #17120a;
+  --fg-room-dock: rgb(18 29 22 / 0.91);
+  --fg-room-page: #0b120e;
+  --fg-room-title-size: 18px;
+  --fg-room-title-weight: 600;
+  --fg-room-title-tracking: 0.04em;
+  --fg-room-title-variant: small-caps;
+  --fg-room-pill-radius: 2px;
+  --fg-room-btn-radius: 1px;
+  --fg-room-clock-shadow: 0 2px 24px rgb(0 0 0 / 0.55);
 }
 
-/* Studio: warm graphite, terracotta, cream, olive, mustard. Wide display sans, mono labels. */
+/* Studio: warm graphite, terracotta, cream, olive, mustard. Grotesque display, mono labels.
+   Shape: 10px cards, pill buttons, flat and quiet with one soft shadow. */
 [data-theme-id='studio'] {
   --fg-paper: #2a2622;
   --fg-card: #34302b;
@@ -753,12 +1014,12 @@
   --fg-rar-high: #dcb65c;
 
   --fg-font-sans: 'IBM Plex Sans Variable', system-ui, sans-serif;
-  --fg-font-display: 'Syne Variable', system-ui, sans-serif;
+  --fg-font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
   --fg-font-label: 'Geist Mono Variable', ui-monospace, monospace;
   --fg-font-num: 'Geist Mono Variable', ui-monospace, monospace;
   --fg-font-btn: 'IBM Plex Sans Variable', system-ui, sans-serif;
   --fg-display-weight: 700;
-  --fg-display-tracking: -0.02em;
+  --fg-display-tracking: -0.025em;
   --fg-body-weight: 400;
   --fg-label-weight: 500;
   --fg-label-size: 11px;
@@ -766,19 +1027,47 @@
   --fg-num-weight: 500;
   --fg-r-md: 6px;
   --fg-r-lg: 8px;
-  --fg-r-xl: 10px;
-  --fg-r-2xl: 12px;
-  --fg-r-3xl: 16px;
-  --fg-radius: 12px;
+  --fg-r-xl: 8px;
+  --fg-r-2xl: 10px;
+  --fg-r-3xl: 14px;
+  --fg-radius: 10px;
+  --fg-radius-sm: 6px;
+  --fg-shadow: 0 10px 28px -18px rgba(0, 0, 0, 0.55);
+  --fg-border-w: 1px;
+  --fg-input-radius: 8px;
   --fg-btn-radius: 999px;
   --fg-btn-radius-sm: 999px;
   --fg-btn-weight: 600;
   --fg-chip-radius: 6px;
   --fg-xp-height: 6px;
-  --fg-texture: radial-gradient(rgba(243, 236, 223, 0.07) 1px, transparent 1.2px);
+  --fg-texture: radial-gradient(rgba(243, 236, 223, 0.06) 1px, transparent 1.2px);
   --fg-texture-size: 18px 18px;
-}
 
+  --fg-room-base: #312d29;
+  --fg-room-bg: rgb(46 42 38 / 0.93);
+  --fg-room-border: #4f473e;
+  --fg-room-radius: 10px;
+  --fg-room-shadow: inset 0 1px 0 rgb(243 236 223 / 0.05), 0 20px 44px -18px rgb(0 0 0 / 0.7);
+  --fg-room-blur: 16px;
+  --fg-room-sat: 120%;
+  --fg-room-bar-line: #4a433b;
+  --fg-room-ink: #f3ecdf;
+  --fg-room-muted: #c6bcac;
+  --fg-room-line: #4a433b;
+  --fg-room-sunk: rgb(243 236 223 / 0.06);
+  --fg-room-field: rgb(243 236 223 / 0.06);
+  --fg-room-hover: rgb(243 236 223 / 0.08);
+  --fg-room-tab: #f3ecdf;
+  --fg-room-on-tab: #2a2622;
+  --fg-room-dock: rgb(46 42 38 / 0.93);
+  --fg-room-page: #1f1c19;
+  --fg-room-title-font: 'Geist Mono Variable', ui-monospace, monospace;
+  --fg-room-title-size: 11px;
+  --fg-room-title-weight: 500;
+  --fg-room-title-case: uppercase;
+  --fg-room-title-tracking: 0.08em;
+  --fg-room-btn-radius: 999px;
+}
 /*
   The game HUD (status strip, level card, celebrations) is always dark, so inside it the
   roles switch to their HUD colours. Dark themes use the same values for both.
@@ -831,7 +1120,8 @@ body,
     letter-spacing: var(--fg-display-tracking);
     font-size-adjust: var(--fg-display-adjust);
   }
-  [data-theme-id='storybook'] :where(h1, h2, h3, .h-display) {
+  /* single weight faces: never fake a bold */
+  :where([data-theme-id='storybook'], [data-theme-id='paper']) :where(h1, h2, h3, .h-display) {
     font-synthesis-weight: none;
   }
 }
@@ -894,7 +1184,7 @@ body,
 
   /* Surfaces */
   .card {
-    border: var(--fg-card-border) solid var(--fg-card-line);
+    border: var(--fg-card-border) var(--fg-border-style) var(--fg-card-line);
     border-bottom-width: calc(var(--fg-card-border) + var(--fg-card-edge));
     border-bottom-color: var(--fg-card-edge-color);
     border-radius: var(--fg-radius);
@@ -905,7 +1195,7 @@ body,
   .input {
     @apply w-full px-3 py-2.5 text-sm outline-none transition placeholder:text-muted focus:border-accent focus:ring-4 focus:ring-accent/15;
     border: var(--fg-input-border) solid var(--fg-line);
-    border-radius: var(--fg-r-xl);
+    border-radius: var(--fg-input-radius);
     background-color: var(--fg-card);
     color: var(--fg-ink);
   }
@@ -916,6 +1206,7 @@ body,
     font-family: var(--fg-font-label);
     font-weight: var(--fg-label-weight);
     font-size: var(--fg-label-size);
+    font-size-adjust: var(--fg-label-adjust);
     letter-spacing: var(--fg-label-tracking);
   }
   .h-display {
@@ -924,7 +1215,8 @@ body,
   }
   .hud-label {
     font-family: var(--fg-font-label);
-    font-size: 11px;
+    font-size: var(--fg-hud-label-size);
+    font-size-adjust: var(--fg-label-adjust);
     font-weight: var(--fg-label-weight);
     letter-spacing: var(--fg-label-tracking);
     text-transform: uppercase;
@@ -966,6 +1258,83 @@ body,
     background-image: var(--fg-xp-overlay);
     box-shadow: inset 0 -3px 0 rgba(0, 0, 0, var(--fg-xp-inset));
     transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
+
+/*
+  ---------- Study room ----------
+  The room (views/Room.vue) draws its windows, dock and header as glass over the illustrated
+  scene, in the theme's own --fg-room-* look. Inside .room-ui the usual roles (ink, muted,
+  line, sunk, card) switch to the room colours, so panels built for the pages (tasks,
+  habits, focus timer) just work on the glass.
+*/
+@layer components {
+  .room-ui {
+    --fg-ink: var(--fg-room-ink);
+    --fg-muted: var(--fg-room-muted);
+    --fg-line: var(--fg-room-line);
+    --fg-sunk: var(--fg-room-sunk);
+    --fg-card: var(--fg-room-field);
+    --fg-card-line: var(--fg-room-line);
+    --fg-btn-line: var(--fg-room-line);
+    color: var(--fg-ink);
+  }
+  .room-glass {
+    color: var(--fg-room-ink);
+    background-color: var(--fg-room-bg);
+    background-image: var(--fg-room-texture);
+    background-size: var(--fg-room-texture-size);
+    border: var(--fg-room-border-w) var(--fg-room-border-style) var(--fg-room-border);
+    box-shadow: var(--fg-room-shadow);
+    backdrop-filter: blur(var(--fg-room-blur)) saturate(var(--fg-room-sat));
+    -webkit-backdrop-filter: blur(var(--fg-room-blur)) saturate(var(--fg-room-sat));
+  }
+  /* the small glass buttons in the room header */
+  .room-pill {
+    border-radius: var(--fg-room-pill-radius);
+    font-family: var(--fg-font-btn);
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+  .room-pill:hover {
+    background-color: color-mix(in srgb, var(--fg-room-dock) 70%, var(--fg-room-ink) 12%);
+  }
+  .room-title {
+    font-family: var(--fg-room-title-font);
+    font-size: var(--fg-room-title-size);
+    font-weight: var(--fg-room-title-weight);
+    font-variant-caps: var(--fg-room-title-variant);
+    letter-spacing: var(--fg-room-title-tracking);
+    text-transform: var(--fg-room-title-case);
+  }
+  /* the selected tab, scene or style, and the play button */
+  .room-on {
+    background-color: var(--fg-room-tab);
+    color: var(--fg-room-on-tab);
+  }
+  .room-hover:hover {
+    background-color: var(--fg-room-hover);
+    color: var(--fg-room-ink);
+  }
+  .room-well {
+    background-color: var(--fg-room-sunk);
+    border: 1px solid var(--fg-room-line);
+    border-radius: var(--fg-radius-sm);
+  }
+  .room-range {
+    accent-color: var(--fg-room-tab);
+  }
+  .room-glass.room-on {
+    background-color: var(--fg-room-tab);
+    color: var(--fg-room-on-tab);
+  }
+  /* the big clock: the display face, with the theme's own glow or pixel shadow */
+  .room-clock {
+    font-weight: var(--fg-display-weight);
+    letter-spacing: var(--fg-display-tracking);
+    text-shadow: var(--fg-room-clock-shadow);
+    font-variant-numeric: lining-nums tabular-nums;
   }
 }
 

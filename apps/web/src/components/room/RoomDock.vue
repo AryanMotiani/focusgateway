@@ -22,7 +22,7 @@ defineExpose({ count: computed(() => list.value.length) })
 </script>
 
 <template>
-  <nav class="dock" :class="stacked ? 'dock-stacked' : 'dock-free'" aria-label="Room windows">
+  <nav class="dock room-glass" :class="stacked ? 'dock-stacked' : 'dock-free'" aria-label="Room windows">
     <button
       v-for="it in list"
       :key="it.id"
@@ -62,25 +62,18 @@ defineExpose({ count: computed(() => list.value.length) })
 </template>
 
 <style scoped>
+/* the same glass as the windows, from the theme's --fg-room-* tokens */
 .dock {
   display: flex;
   align-items: center;
   gap: 2px;
   padding: 4px;
-  color: #fff;
-  background: rgb(19 16 30 / 0.78);
-  border: 1px solid rgb(255 255 255 / 0.11);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.06),
-    0 12px 30px -12px rgb(0 0 0 / 0.6);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-}
-.dock-free {
-  border-radius: 14px;
+  background-color: var(--fg-room-dock);
+  border-radius: var(--fg-room-radius);
+  border-bottom-width: calc(var(--fg-room-border-w) + var(--fg-room-edge));
+  border-bottom-color: var(--fg-room-edge-color);
 }
 .dock-stacked {
-  border-radius: 14px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -93,8 +86,9 @@ defineExpose({ count: computed(() => list.value.length) })
   min-width: 34px;
   justify-content: center;
   padding: 0 9px;
-  border-radius: 10px;
-  color: rgb(255 255 255 / 0.75);
+  border-radius: var(--fg-room-btn-radius);
+  color: var(--fg-room-muted);
+  font-family: var(--fg-font-btn);
   font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
@@ -104,20 +98,20 @@ defineExpose({ count: computed(() => list.value.length) })
     color 0.15s;
 }
 .dock-btn:hover {
-  background: rgb(255 255 255 / 0.1);
-  color: #fff;
+  background: var(--fg-room-hover);
+  color: var(--fg-room-ink);
 }
 .dock-btn:focus-visible {
   outline: 2px solid var(--fg-accent);
   outline-offset: 1px;
 }
 .dock-min {
-  color: rgb(255 255 255 / 0.9);
-  background: rgb(255 255 255 / 0.07);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+  color: var(--fg-room-ink);
+  background: var(--fg-room-sunk);
+  box-shadow: inset 0 0 0 1px var(--fg-room-line);
 }
 .dock-top {
-  color: #fff;
+  color: var(--fg-room-ink);
 }
 .dock-dot {
   position: absolute;
@@ -127,7 +121,7 @@ defineExpose({ count: computed(() => list.value.length) })
   height: 4px;
   margin-left: -2px;
   border-radius: 50%;
-  background: rgb(255 255 255 / 0.45);
+  background: color-mix(in srgb, var(--fg-room-ink) 40%, transparent);
 }
 .dock-top .dock-dot {
   background: var(--fg-accent);
@@ -139,12 +133,11 @@ defineExpose({ count: computed(() => list.value.length) })
 }
 .dock-hint {
   cursor: help;
-  color: rgb(255 255 255 / 0.5);
 }
 .dock-sep {
   width: 1px;
   height: 20px;
   margin: 0 3px;
-  background: rgb(255 255 255 / 0.12);
+  background: var(--fg-room-line);
 }
 </style>

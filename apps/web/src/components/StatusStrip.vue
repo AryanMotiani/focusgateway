@@ -1,7 +1,8 @@
 <script setup>
 // The one strip that sits on top of every screen: level + XP, streak, what is blocked
 // right now, the focus timer and the music (with the track name). It ties all pages together.
-// bare: inside a study room window, which draws the glass itself.
+// bare: inside a study room window (the window draws the glass). glass: its own room glass.
+// Both use the theme's room colours (style.css .room-ui and .room-glass).
 import { computed } from 'vue'
 import { focusPhase, taskStreak, trackById, trackStyle } from '@focusgateway/core'
 import { store, blocks } from '../lib/store.js'
@@ -39,19 +40,19 @@ function toggleMusic() {
 }
 const shell = computed(() =>
   props.bare
-    ? 'text-white'
+    ? 'text-ink'
     : props.glass
-      ? 'border border-white/10 bg-[#15121f]/80 text-white backdrop-blur-xl'
+      ? 'room-ui room-glass'
       : isGame.value
         ? 'bg-hud text-hud-ink border-2 border-hud-line border-b-4 border-b-black/40'
         : 'card text-ink',
 )
-const sub = computed(() => (props.glass || props.bare ? 'text-white/60' : isGame.value ? 'text-hud-muted' : 'text-muted'))
+const sub = computed(() => (props.glass || props.bare ? 'text-muted' : isGame.value ? 'text-hud-muted' : 'text-muted'))
 </script>
 
 <template>
   <div v-if="p" class="flex flex-wrap items-center gap-x-4 gap-y-2" :class="[shell, !bare && 'rounded-2xl px-3 py-2.5 sm:px-4']">
-    <RouterLink to="/stats?tab=badges" class="flex min-w-0 flex-1 items-center gap-3 sm:min-w-56" :title="`${p.xp} XP total`">
+    <RouterLink to="/stats?tab=badges" class="flex min-w-48 flex-1 items-center gap-3 sm:min-w-56" :title="`${p.xp} XP total`">
       <span
         class="num grid h-9 min-w-9 shrink-0 place-items-center rounded-xl px-2 text-sm"
         :class="isGame && !glass ? 'bg-accent text-on-accent shadow-[inset_0_-3px_0_var(--fg-accent-deep)]' : 'bg-accent-soft text-accent'"
@@ -60,9 +61,9 @@ const sub = computed(() => (props.glass || props.bare ? 'text-white/60' : isGame
       <span class="min-w-0 flex-1">
         <span class="hud-label flex justify-between gap-2" :class="sub"
           ><span>{{ p.title }}</span
-          ><span class="num">{{ p.into }} / {{ p.needed }} XP</span></span
+          ><span class="num whitespace-nowrap">{{ p.into }} / {{ p.needed }} XP</span></span
         >
-        <span class="xpbar mt-1 block" :class="glass && '!bg-white/15'"><i :style="{ width: Math.max(3, p.progress * 100) + '%' }" /></span>
+        <span class="xpbar mt-1 block"><i :style="{ width: Math.max(3, p.progress * 100) + '%' }" /></span>
       </span>
     </RouterLink>
 
@@ -87,7 +88,7 @@ const sub = computed(() => (props.glass || props.bare ? 'text-white/60' : isGame
     <button
       class="flex h-8 max-w-56 min-w-8 items-center gap-2 rounded-full transition"
       :class="[
-        glass || bare ? 'bg-white/10 hover:bg-white/20' : isGame ? 'bg-white/10 hover:bg-white/20' : 'bg-sunk hover:bg-line',
+        glass || bare ? 'bg-sunk hover:bg-line' : isGame ? 'bg-white/10 hover:bg-white/20' : 'bg-sunk hover:bg-line',
         'justify-center px-2 lg:justify-start lg:pr-3.5',
       ]"
       :aria-label="playing ? `Pause music, now playing ${track.name}` : `Play lofi music, ${track.name}`"
