@@ -82,7 +82,7 @@ jobs:
             grep ' MB ' build.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: agent-binaries
           path: agent/dist/
@@ -99,12 +99,12 @@ jobs:
       - run: npm run build
       - name: Lint Firefox build (addons.mozilla.org rules)
         run: npm run lint:firefox
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: extension-builds
           path: extension/dist/*.zip
           retention-days: 14
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: build-output
           path: |
@@ -130,7 +130,7 @@ jobs:
         run: npm run agent:build -- --target linux/amd64
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report

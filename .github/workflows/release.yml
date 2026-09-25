@@ -53,9 +53,9 @@ jobs:
           cp extension/dist/focusgateway-*-"$VERSION".zip release/
           git archive --format=zip --prefix=focusgateway/ -o "release/focusgateway-source-$GITHUB_REF_NAME.zip" HEAD
           ls -l release
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: release-files, path: release/, retention-days: 7 }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: darwin-binaries, path: 'agent/dist/*darwin*', retention-days: 1 }
 
   macos-pkg:
@@ -85,7 +85,7 @@ jobs:
           [ -n "$script" ] && [ -x "$script" ] || { echo "postinstall script missing"; exit 1; }
           grep -q -- '--no-pause' "$script"
           grep -q 'app.focusgateway.agent' "$out/Distribution"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: macos-pkg, path: packaging/out/FocusGateway.pkg, retention-days: 7 }
 
   publish:
@@ -111,7 +111,7 @@ jobs:
 
             Lock agent: `FocusGateway-Setup.exe` (Windows), `FocusGateway.pkg` (macOS), `.deb` / `.rpm` or `curl -fsSL https://github.com/${{ github.repository }}/releases/latest/download/install.sh | sh` (Linux).
             The installers are not code-signed yet: see [installing the lock agent](https://github.com/${{ github.repository }}/blob/master/docs/INSTALL-AGENT.md) for the one extra click.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: extension-zips
           path: |
