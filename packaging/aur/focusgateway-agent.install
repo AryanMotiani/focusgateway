@@ -1,0 +1,19 @@
+# Arch packages don't start services on their own, so the agent is set up by hand
+# once. It keeps its settings across upgrades.
+
+post_install() {
+  echo "==> Finish setting up the FocusGateway lock agent:"
+  echo "    sudo focusgateway-agent install"
+  echo "    It registers the service and opens FocusGateway in your browser to pair."
+}
+
+post_upgrade() {
+  if [ -f /etc/systemd/system/focusgateway-agent.service ]; then
+    /opt/focusgateway/focusgateway-agent install --keep-settings --no-browser >/dev/null || true
+  fi
+}
+
+pre_remove() {
+  # Refused (exit code 2) while a no-failsafe block is running.
+  /opt/focusgateway/focusgateway-agent uninstall --yes --keep-program || true
+}

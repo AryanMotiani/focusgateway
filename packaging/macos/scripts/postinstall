@@ -1,0 +1,5 @@
+#!/bin/sh
+# Runs as root after the package copied the agent into place. `install` registers
+# the LaunchDaemon, writes the browser policies and opens the pairing link in the
+# signed-in user's browser. Settings from an earlier install are kept.
+exec "/Library/Application Support/FocusGateway/app/focusgateway-agent" install --keep-settings

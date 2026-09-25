@@ -8,3 +8,6 @@ TECHNICAL-PRD.md
 test-results
 playwright-report
 *.md
+agent/internal/assets
+docs/store/screenshots
+agent/internal/core/testdata

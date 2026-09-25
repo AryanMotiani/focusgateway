@@ -49,7 +49,14 @@ const targets = {
   firefox: {
     ...baseManifest,
     background: { scripts: ['background.js'] },
-    browser_specific_settings: { gecko: { id: 'focusgateway@focusgateway.app', strict_min_version: '128.0' } },
+    browser_specific_settings: {
+      gecko: {
+        id: 'focusgateway@focusgateway.app',
+        strict_min_version: '128.0',
+        // Firefox's built-in data consent: FocusGateway collects and transmits nothing.
+        data_collection_permissions: { required: ['none'] },
+      },
+    },
   },
 }
 

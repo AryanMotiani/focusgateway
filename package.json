@@ -8,8 +8,7 @@
   "workspaces": [
     "packages/*",
     "apps/*",
-    "extension",
-    "agent"
+    "extension"
   ],
   "scripts": {
     "dev": "npm run dev -w apps/web",
@@ -19,13 +18,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "agent:test": "cd agent && go vet ./... && go test ./...",
+    "agent:build": "node scripts/build-agent.mjs",
+    "agent:bundles": "node scripts/sync-agent-bundles.mjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint:firefox": "web-ext lint --self-hosted --source-dir extension/dist/firefox",
     "check": "npm run lint && npm run format:check && npm test && npm run build",
-    "set-repo": "node scripts/set-repo.mjs"
+    "set-repo": "node scripts/set-repo.mjs",
+    "store:screenshots": "node scripts/store-screenshots.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

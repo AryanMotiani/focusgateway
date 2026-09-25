@@ -1,0 +1,286 @@
+package daemon
+
+import (
+	"encoding/json"
+	"io"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+	"time"
+
+	"focusgateway/agent/internal/hosts"
+	"focusgateway/agent/internal/paths"
+)
+
+const extOrigin = "chrome-extension://abcdefghijklmnopabcdefghijklmnop"
+
+type env struct {
+	t     *testing.T
+	agent *Agent
+	hosts string
+	now   int64
+}
+
+func setup(t *testing.T, cfg paths.Config) *env {
+	t.Helper()
+	dir := t.TempDir()
+	t.Setenv("FOCUSGATEWAY_DATA", filepath.Join(dir, "data"))
+	hostsFile := filepath.Join(dir, "hosts")
+	t.Setenv("FOCUSGATEWAY_HOSTS", hostsFile)
+	if err := os.WriteFile(hostsFile, []byte("127.0.0.1 localhost\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := paths.WriteJSON("config.json", cfg); err != nil {
+		t.Fatal(err)
+	}
+	e := &env{t: t, hosts: hostsFile, now: time.Date(2026, 9, 21, 22, 0, 0, 0, time.Local).UnixMilli()}
+	e.agent = New()
+	e.agent.now = func() int64 { return e.now }
+	return e
+}
+
+func (e *env) do(method, path, origin, auth, body string) (int, map[string]any) {
+	e.t.Helper()
+	req := httptest.NewRequest(method, path, strings.NewReader(body))
+	req.Host = "127.0.0.1:47621"
+	if origin != "" {
+		req.Header.Set("Origin", origin)
+	}
+	if auth != "" {
+		req.Header.Set("Authorization", "Bearer "+auth)
+	}
+	rec := httptest.NewRecorder()
+	e.agent.ServeHTTP(rec, req)
+	if ct := rec.Header().Get("content-type"); ct != "application/json" {
+		e.t.Fatalf("content-type %q", ct)
+	}
+	var out map[string]any
+	b, _ := io.ReadAll(rec.Body)
+	_ = json.Unmarshal(b, &out)
+	return rec.Code, out
+}
+
+func code(s string) *string { return &s }
+
+func (e *env) pairOK(c string) string {
+	e.t.Helper()
+	status, body := e.do("POST", "/v1/pair", extOrigin, "", `{"code":"`+c+`"}`)
+	if status != 200 || body["ok"] != true {
+		e.t.Fatalf("pair: %d %v", status, body)
+	}
+	return body["secret"].(string)
+}
+
+const lockedSnapshot = `{"sentAt":%d,"rules":[{"id":"L","name":"Night","mode":"hard","siteIds":["youtube"],"days":[1],"start":1260,"end":1380,"failsafe":false}],"tasks":[],"overrides":[],"focus":{"active":null},"customSites":[]}`
+
+func sprintf(format string, v int64) string {
+	return strings.Replace(format, "%d", jsonInt(v), 1)
+}
+
+func jsonInt(v int64) string {
+	b, _ := json.Marshal(v)
+	return string(b)
+}
+
+func TestHealth(t *testing.T) {
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE")})
+	status, body := e.do("GET", "/health", "", "", "")
+	if status != 200 || body["ok"] != true || body["failOpen"] != false || body["blocking"] != float64(0) {
+		t.Fatalf("%d %v", status, body)
+	}
+	if status, _ := e.do("GET", "/health?x=1", "", "", ""); status != 404 {
+		t.Fatalf("exact path only, got %d", status)
+	}
+}
+
+func TestRefusesWebPagesAndForeignHosts(t *testing.T) {
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE")})
+	if status, body := e.do("GET", "/health", "https://evil.example", "", ""); status != 403 || body["error"] != "Forbidden origin" {
+		t.Fatalf("%d %v", status, body)
+	}
+	if status, _ := e.do("GET", "/health", "moz-extension://1234", "", ""); status != 200 {
+		t.Fatalf("Firefox extension origin should be allowed, got %d", status)
+	}
+	req := httptest.NewRequest("GET", "/health", nil)
+	req.Host = "rebind.example:47621"
+	rec := httptest.NewRecorder()
+	e.agent.ServeHTTP(rec, req)
+	if rec.Code != 403 {
+		t.Fatalf("foreign Host header must be refused, got %d", rec.Code)
+	}
+}
+
+func TestPairingIsOneTime(t *testing.T) {
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE")})
+	if status, _ := e.do("POST", "/v1/pair", "", "", `{"code":"AAAA-BBBB-CCCC-DDDD-EEEE"}`); status != 403 {
+		t.Fatalf("pairing without an extension origin must fail, got %d", status)
+	}
+	if status, body := e.do("POST", "/v1/pair", extOrigin, "", `{"code":"WRONG"}`); status != 401 || body["error"] != "Wrong pairing code" {
+		t.Fatalf("%d %v", status, body)
+	}
+	if status, _ := e.do("POST", "/v1/pair", extOrigin, "", `not json`); status != 400 {
+		t.Fatalf("bad JSON: %d", status)
+	}
+	secret := e.pairOK(" aaaa-bbbb-cccc-dddd-eeee ") // case and spaces are forgiven, like the JS agent
+	if len(secret) != 64 {
+		t.Fatalf("secret %q", secret)
+	}
+	cfg, _ := paths.ReadConfig()
+	if cfg.PairCode != nil || paths.Val(cfg.SecretHash) != SHA256(secret) || cfg.PairedAt == "" {
+		t.Fatalf("config after pairing: %+v", cfg)
+	}
+	if status, _ := e.do("POST", "/v1/pair", extOrigin, "", `{"code":"AAAA-BBBB-CCCC-DDDD-EEEE"}`); status != 409 {
+		t.Fatalf("second pairing must be refused, got %d", status)
+	}
+	st, err := os.Stat(paths.File("config.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if st.Mode().Perm()&0o077 != 0 && os.PathSeparator == '/' {
+		t.Fatalf("config.json must be private, mode %v", st.Mode())
+	}
+}
+
+func TestPairingLinkCodeExpiresAndIsSingleUse(t *testing.T) {
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE"), LinkCode: code("LINK-LINK-LINK-LINK-LINK")})
+	cfg, _ := paths.ReadConfig()
+	cfg.LinkExpiresAt = e.now + 60_000
+	_ = paths.WriteJSON("config.json", cfg)
+
+	e.now += 120_000 // expired
+	if status, _ := e.do("POST", "/v1/pair", extOrigin, "", `{"code":"LINK-LINK-LINK-LINK-LINK"}`); status != 401 {
+		t.Fatalf("expired link code must fail, got %d", status)
+	}
+	e.now -= 120_000
+	e.pairOK("LINK-LINK-LINK-LINK-LINK")
+	cfg, _ = paths.ReadConfig()
+	if cfg.LinkCode != nil || cfg.PairCode != nil {
+		t.Fatalf("both codes must be spent: %+v", cfg)
+	}
+	if status, _ := e.do("POST", "/v1/pair", extOrigin, "", `{"code":"LINK-LINK-LINK-LINK-LINK"}`); status != 409 {
+		t.Fatalf("link code must be single use, got %d", status)
+	}
+}
+
+func TestLinkCodeAloneAllowsPairingUntilItExpires(t *testing.T) {
+	e := setup(t, paths.Config{SecretHash: code(SHA256("old")), LinkCode: code("LINK-LINK-LINK-LINK-LINK")})
+	cfg, _ := paths.ReadConfig()
+	cfg.LinkExpiresAt = e.now + 60_000
+	_ = paths.WriteJSON("config.json", cfg)
+	e.now += 61_000
+	if status, _ := e.do("POST", "/v1/pair", extOrigin, "", `{"code":"LINK-LINK-LINK-LINK-LINK"}`); status != 409 {
+		t.Fatalf("no live code: want 409, got %d", status)
+	}
+}
+
+func TestSyncEnforcesAndKeepsLockedRules(t *testing.T) {
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE")})
+	if status, _ := e.do("POST", "/v1/sync", extOrigin, "nope", `{}`); status != 401 {
+		t.Fatalf("unpaired sync: %d", status)
+	}
+	secret := e.pairOK("AAAA-BBBB-CCCC-DDDD-EEEE")
+	if status, _ := e.do("POST", "/v1/sync", extOrigin, "wrong", `{}`); status != 401 {
+		t.Fatalf("wrong secret: %d", status)
+	}
+	if status, _ := e.do("POST", "/v1/sync", extOrigin, secret, `{`); status != 400 {
+		t.Fatalf("bad JSON: %d", status)
+	}
+	if status, body := e.do("POST", "/v1/sync", extOrigin, secret, `{"rules":"x"}`); status != 400 || body["error"] != "Snapshot.rules must be an array." {
+		t.Fatalf("invalid snapshot: %d %v", status, body)
+	}
+
+	status, body := e.do("POST", "/v1/sync", extOrigin, secret, sprintf(lockedSnapshot, 1000))
+	if status != 200 || body["ok"] != true {
+		t.Fatalf("sync: %d %v", status, body)
+	}
+	if body["lockedUntil"] != float64(time.Date(2026, 9, 21, 23, 0, 0, 0, time.Local).UnixMilli()) {
+		t.Fatalf("lockedUntil %v", body["lockedUntil"])
+	}
+	content, _ := hosts.Read(e.hosts)
+	if !strings.Contains(content, "0.0.0.0 youtube.com") || !strings.Contains(content, "127.0.0.1 localhost") {
+		t.Fatalf("hosts not updated:\n%s", content)
+	}
+
+	// The extension tries to delete the running no-failsafe rule: the agent keeps it.
+	empty := `{"sentAt":2000,"rules":[],"tasks":[],"overrides":[],"focus":{"active":null},"customSites":[]}`
+	status, body = e.do("POST", "/v1/sync", extOrigin, secret, empty)
+	if status != 200 || len(body["kept"].([]any)) != 1 {
+		t.Fatalf("locked rule not kept: %d %v", status, body)
+	}
+	content, _ = hosts.Read(e.hosts)
+	if !strings.Contains(content, "youtube.com") {
+		t.Fatal("block must survive while locked")
+	}
+
+	// Out-of-order requests are dropped.
+	status, body = e.do("POST", "/v1/sync", extOrigin, secret, sprintf(lockedSnapshot, 1500))
+	if status != 200 || body["stale"] != true {
+		t.Fatalf("stale: %d %v", status, body)
+	}
+
+	// After the window the empty snapshot wins and the hosts file is cleaned.
+	e.now = time.Date(2026, 9, 21, 23, 30, 0, 0, time.Local).UnixMilli()
+	empty3 := strings.Replace(empty, "2000", "3000", 1)
+	status, body = e.do("POST", "/v1/sync", extOrigin, secret, empty3)
+	if status != 200 || body["lockedUntil"] != nil {
+		t.Fatalf("after window: %d %v", status, body)
+	}
+	content, _ = hosts.Read(e.hosts)
+	if strings.Contains(content, "youtube.com") {
+		t.Fatalf("hosts must be clean after the window:\n%s", content)
+	}
+	if _, body = e.do("GET", "/health", "", "", ""); body["blocking"] != float64(0) {
+		t.Fatalf("health blocking %v", body["blocking"])
+	}
+}
+
+func TestTickRestoresRemovedBlock(t *testing.T) {
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE")})
+	secret := e.pairOK("AAAA-BBBB-CCCC-DDDD-EEEE")
+	e.do("POST", "/v1/sync", extOrigin, secret, sprintf(lockedSnapshot, 1000))
+	if err := os.WriteFile(e.hosts, []byte("127.0.0.1 localhost\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	e.agent.Tick()
+	content, _ := hosts.Read(e.hosts)
+	if !strings.Contains(content, "youtube.com") {
+		t.Fatal("tick must restore a block that was removed by hand")
+	}
+}
+
+func TestCrashLoopFailsOpenButNotWhileLocked(t *testing.T) {
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE")})
+	now := time.Now().UnixMilli()
+	_ = paths.WriteJSON("crashes.json", []int64{now - 1000, now - 2000, now - 3000})
+	_ = paths.WriteJSON("run-state.json", map[string]bool{"clean": false})
+	e.agent.now = func() int64 { return now }
+	e.agent.crashGuard()
+	if e.agent.failOpenUntil <= now {
+		t.Fatal("4 crashes in 2 minutes must fail open")
+	}
+
+	e2 := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE")})
+	var snap map[string]any
+	d := json.NewDecoder(strings.NewReader(sprintf(lockedSnapshot, 1)))
+	d.UseNumber()
+	_ = d.Decode(&snap)
+	e2.agent.snapshot = snap
+	locked := e2.now
+	_ = paths.WriteJSON("crashes.json", []int64{locked - 1000, locked - 2000, locked - 3000})
+	_ = paths.WriteJSON("run-state.json", map[string]bool{"clean": false})
+	e2.agent.crashGuard()
+	if e2.agent.failOpenUntil != 0 {
+		t.Fatal("must never fail open while a no-failsafe rule runs")
+	}
+}
+
+func TestBodyLimit(t *testing.T) {
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE")})
+	secret := e.pairOK("AAAA-BBBB-CCCC-DDDD-EEEE")
+	big := `{"rules":[],"x":"` + strings.Repeat("a", maxBodyBytes+10) + `"}`
+	if status, _ := e.do("POST", "/v1/sync", extOrigin, secret, big); status != 400 {
+		t.Fatalf("oversized body: %d", status)
+	}
+}

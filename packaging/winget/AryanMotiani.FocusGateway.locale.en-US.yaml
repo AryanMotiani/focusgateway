@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: AryanMotiani.FocusGateway
+PackageVersion: 1.0.0
+PackageLocale: en-US
+Publisher: FocusGateway
+PublisherUrl: https://github.com/AryanMotiani/focusgateway
+PublisherSupportUrl: https://github.com/AryanMotiani/focusgateway/issues
+PrivacyUrl: https://aryanmotiani.github.io/focusgateway/privacy.html
+PackageName: FocusGateway lock agent
+PackageUrl: https://aryanmotiani.github.io/focusgateway/
+License: MIT
+LicenseUrl: https://github.com/AryanMotiani/focusgateway/blob/master/LICENSE
+ShortDescription: Makes FocusGateway site blocks apply to every browser and app on this computer.
+Description: |-
+  The FocusGateway lock agent is a small background service that enforces your FocusGateway blocks
+  system-wide through the hosts file, and sets browser policies that turn off Secure DNS and private
+  windows. It pairs with the free FocusGateway browser extension. No account, no data leaves your computer.
+Moniker: focusgateway
+Tags:
+  - focus
+  - productivity
+  - site-blocker
+  - students
+  - pomodoro
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

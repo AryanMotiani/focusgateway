@@ -13,11 +13,30 @@ permissions:
 
 jobs:
   analyze:
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
+            build-mode: none
+          # the lock agent runs with admin rights, so it gets scanned too
+          - language: go
+            build-mode: manual
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        if: matrix.language == 'go'
+        with: { go-version-file: agent/go.mod, cache: false }
       - uses: github/codeql-action/init@v3
         with:
-          languages: javascript-typescript
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
           queries: security-and-quality
+      - if: matrix.language == 'go'
+        working-directory: agent
+        run: go build ./...
       - uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}

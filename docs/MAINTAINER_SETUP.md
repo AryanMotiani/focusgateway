@@ -27,7 +27,7 @@ Settings, **Pages**, Source: **GitHub Actions**. After the next green CI run on 
 Settings, **Rules**, Rulesets, **New branch ruleset**:
 
 - Target: default branch
-- Turn on: Restrict deletions, Block force pushes, **Require a pull request before merging** (1 approval, dismiss stale approvals), **Require status checks to pass** and add: `Lint and format`, `Build web app and extension`, `End-to-end (extension in Chromium)`, and the `Unit tests` jobs
+- Turn on: Restrict deletions, Block force pushes, **Require a pull request before merging** (1 approval, dismiss stale approvals), **Require status checks to pass** and add: `Lint and format`, `Build web app and extension`, `End-to-end (extension in Chromium)`, `Lock agent cross build`, and the `Unit tests` and `Lock agent (Go, ...)` jobs
 - Leave yourself in the bypass list if you want to push small fixes directly
 
 ## 5. Security and community features
@@ -38,20 +38,58 @@ Settings, **Rules**, Rulesets, **New branch ruleset**:
 - Repository home page, the gear next to About: add a description, the website URL and topics such as `focus`, `productivity`, `site-blocker`, `browser-extension`, `pomodoro`, `students`, `vue`.
 - Issues, Labels: create `good first issue`, `help wanted`, `site-bundle`, `triage` (bug and enhancement exist by default).
 
-## 6. First release
+## 6. Release flow
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+npm version 1.1.0 --no-git-tag-version   # updates package.json (the extension and agent versions come from it)
+# move the "Unreleased" notes in CHANGELOG.md under the new version, commit
+git tag v1.1.0
+git push origin master v1.1.0
 ```
 
-Make sure `package.json` has the version you tag (it starts at 1.0.0). The Release workflow builds the Chromium and Firefox zips and a source bundle (which contains the lock agent) and attaches them to a GitHub Release. The Install page's "Download latest release" button points there.
+The Release workflow (`.github/workflows/release.yml`) then:
 
-## 7. Browser stores (optional, recommended)
+1. checks the tag matches `package.json`, runs `npm run check`, the Firefox lint and the Go tests,
+2. builds the lock agent for Windows, macOS and Linux (x64 and ARM64) with the version and the Pages URL (`homepage` in `package.json`) embedded,
+3. builds `FocusGateway-Setup.exe` (NSIS) and the `.deb` and `.rpm` packages (nfpm) on Ubuntu, and the universal `FocusGateway.pkg` on a macOS runner,
+4. publishes a GitHub Release with every file under a **stable name** plus `SHA256SUMS.txt`. The Install page links to `releases/latest/download/<name>`, so it always serves the newest,
+5. publishes to the browser stores whose secrets exist (next section).
 
-- **Chrome Web Store:** register as a developer (one-time 5 USD), upload `focusgateway-chromium-<version>.zip` by hand the first time, fill in the listing and privacy form (data stays on the device, no data collected). Then add the `CWS_*` secrets from CONTRIBUTING.md so later releases upload themselves.
-- **Edge Add-ons** (free) and **Opera add-ons** accept the same Chromium zip.
-- **Firefox Add-ons** (free): upload `focusgateway-firefox-<version>.zip` at addons.mozilla.org. Then add the `AMO_*` secrets.
-- When listed, put the store links in `apps/web/src/config.js`. The lock agent can then force-install the extension: `focusgateway-agent install --chrome-extension-id <id>`.
+Nothing is code-signed yet, which is fine: [INSTALL-AGENT.md](INSTALL-AGENT.md) explains the one extra click on Windows and macOS. To sign later, add a signing step for the `.exe` (Authenticode) and the `.pkg` (`productsign` and notarization, which needs the 99 USD per year Apple Developer Program) before the publish job.
 
-Store reviewers will ask why the extension needs access to all sites: it is needed to block any site the user chooses and to redirect open tabs when a block starts.
+Package managers (winget, a Homebrew tap, AUR) are templates in [packaging/](../packaging/README.md), submitted by hand after a release.
+
+## 7. Browser stores
+
+| Store | Cost | Status | Checklist |
+|---|---|---|---|
+| Firefox Add-ons | free | publish now | [store/CHECKLIST-FIREFOX.md](store/CHECKLIST-FIREFOX.md) |
+| Edge Add-ons | free | publish now | [store/CHECKLIST-EDGE.md](store/CHECKLIST-EDGE.md) |
+| Chrome Web Store | one-time 5 USD | later | [store/CHECKLIST-CHROME.md](store/CHECKLIST-CHROME.md) |
+
+Listing text, permission justifications and data disclosures: [store/LISTING.md](store/LISTING.md). Screenshots: `docs/store/screenshots/` (regenerate with `npm run store:screenshots` after UI changes). Privacy policy: `apps/web/public/privacy.html`, live at https://aryanmotiani.github.io/focusgateway/privacy.html once Pages is on.
+
+The first upload to each store is by hand, so the listing exists. After approval:
+
+1. Put the listing URL in `apps/web/src/config.js` (`FIREFOX_ADDONS_URL`, `EDGE_STORE_URL`, later `CHROME_STORE_URL`). The Install page then shows a one-click store button to people on that browser, and the manual steps only where no listing exists.
+2. Add the API secrets below so every release uploads itself.
+
+### Repository secrets
+
+Settings, Secrets and variables, **Actions**, New repository secret. Each store job in `release.yml` skips itself while its first secret is missing, so add them once the listing exists.
+
+| Store | Secret | Where to get it |
+|---|---|---|
+| Firefox Add-ons | `AMO_JWT_ISSUER` | addons.mozilla.org, Developer Hub, Tools, Manage API Keys: "JWT issuer" |
+| | `AMO_JWT_SECRET` | same page: "JWT secret" |
+| Edge Add-ons | `EDGE_PRODUCT_ID` | Partner Center, your extension, Overview: Product ID |
+| | `EDGE_CLIENT_ID` | Partner Center, Microsoft Edge, **Publish API**: Client ID (v1.1 API) |
+| | `EDGE_API_KEY` | same page: API key. It expires, so renew it before the date shown |
+| Chrome Web Store (later) | `CWS_EXTENSION_ID` | the item ID in the developer dashboard |
+| | `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN` | a Google Cloud OAuth client, steps at https://github.com/fregante/chrome-webstore-upload-keys |
+
+The Firefox job signs with `web-ext sign --channel listed` and attaches the source archive (the extension bundles minified code, so AMO asks for it). The Edge job uses the Edge Add-ons API v1.1: it uploads the Chromium zip to the draft, waits for processing and submits it for review.
+
+Once the Chrome listing exists, the lock agent can force-install the extension so it can't be removed: `focusgateway-agent install --chrome-extension-id <id>` (and `--firefox-xpi <url>` for Firefox).
+
+Store reviewers will ask why the extension needs access to all sites: it is needed to block any site the user chooses and to redirect open tabs when a block starts. The full answers are in [store/LISTING.md](store/LISTING.md).
