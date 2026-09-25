@@ -1,6 +1,6 @@
-import { reactive, computed } from 'vue'
-import { computeBlocks, allSites } from '@focusgateway/core'
-import { connect, createLocalAdapter, readLocalState, clearLocalData } from './api.js'
+import { reactive, computed, ref } from 'vue'
+import { computeBlocks, allSites, focusEndsAt } from '@focusgateway/core'
+import { connect, createLocalAdapter, readLocalState, clearLocalData, extensionPresent } from './api.js'
 
 export const store = reactive({
   ready: false,
@@ -13,6 +13,8 @@ export const store = reactive({
   minute: Math.floor(Date.now() / 60_000) * 60_000,
   clockOffset: 0,
   toasts: [],
+  // can blocking actually work here? see checkHealth and blockingIssue
+  health: { extension: false, hostAccess: null, incognito: null },
 })
 
 let adapter = null
@@ -45,6 +47,8 @@ export async function refresh() {
 export async function init() {
   adapter = await connect()
   store.mode = adapter.mode
+  if (adapter.hostAccess != null) store.health.hostAccess = adapter.hostAccess
+  store.health.extension = adapter.mode !== 'local' || extensionPresent()
   if (adapter.mode === 'bridge' && !adapter.approved) {
     store.pendingApproval = true
     pollApproval()
@@ -59,6 +63,9 @@ export async function init() {
   }, 1000)
   // Local mode has no background worker, so run housekeeping from the page.
   setInterval(() => (adapter.mode === 'local' ? call('system.tick').catch(() => {}) : refresh()), 30_000)
+  checkHealth()
+  setInterval(checkHealth, 30_000)
+  window.addEventListener('focus', checkHealth)
   setInterval(() => adapter.mode !== 'local' && store.state && !store.state.onboarding.completed && refresh(), 3000)
   if (adapter.mode === 'local') call('system.tick').catch(() => {})
   document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && refresh())
@@ -74,6 +81,7 @@ async function pollApproval() {
       store.pendingApproval = false
       await refresh()
       await adoptLocalSetup()
+      checkHealth()
       location.hash = wantedHash && wantedHash !== '#/home' ? wantedHash : '#/'
     }
   }
@@ -100,10 +108,61 @@ async function adoptLocalSetup() {
   }
 }
 
+/**
+ * Re-checks what could stop blocking from working: no extension, this site not approved,
+ * or no host access (Firefox can install extensions without it, and people can switch it off).
+ */
+export async function checkHealth() {
+  if (!adapter) return
+  store.health.extension = adapter.mode !== 'local' || extensionPresent()
+  try {
+    if (adapter.mode === 'extension') {
+      const r = await adapter.meta('permissions')
+      if (r?.ok) Object.assign(store.health, { hostAccess: r.data.hostAccess, incognito: r.data.incognito })
+    } else if (adapter.mode === 'bridge' && !store.pendingApproval) {
+      const r = await adapter.call('hello')
+      if (r?.ok && r.data.hostAccess != null) store.health.hostAccess = r.data.hostAccess
+    }
+  } catch {}
+}
+
+/**
+ * Why blocking is not working in this browser right now, or null when it should work.
+ *  no-extension  local mode, no extension found
+ *  not-approved  the extension is installed but this site is not connected to it
+ *  no-access     the extension can not touch websites (host permission missing)
+ */
+export const blockingIssue = computed(() => {
+  if (!store.ready) return null
+  if (store.mode === 'local') return store.health.extension ? 'not-approved' : 'no-extension'
+  if (store.health.hostAccess === false) return 'no-access'
+  return null
+})
+
+/** A focus session is running right now. */
+export function sessionRunning() {
+  const f = store.state?.focus?.active
+  return !!f && Date.now() + store.clockOffset < focusEndsAt(f)
+}
+
+/** The sites picked for the next focus session, shared by every focus card (Today, Blocking, room). */
+export const focusDraft = ref(null)
+
+/** Asks the extension (from its own pages) for access to all websites. Needs a click. */
+export async function requestHostAccess() {
+  const ext = globalThis.browser ?? globalThis.chrome
+  try {
+    await ext.permissions.request({ origins: ['<all_urls>'] })
+  } catch {}
+  await checkHealth()
+  return store.health.hostAccess
+}
+
 export function useLocalInstead() {
   store.pendingApproval = false
   adapter = createLocalAdapter()
   store.mode = 'local'
+  store.health.extension = extensionPresent()
   return refresh()
 }
 

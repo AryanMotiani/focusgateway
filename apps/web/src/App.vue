@@ -7,6 +7,9 @@ import Icon from './components/Icon.vue'
 import logo from './assets/logo.svg'
 import Toasts from './components/Toasts.vue'
 import DialogHost from './components/DialogHost.vue'
+import TourHost from './components/help/TourHost.vue'
+import HelpDrawer from './components/help/HelpDrawer.vue'
+import BlockingOffDialog from './components/help/BlockingOffDialog.vue'
 import StatusStrip from './components/StatusStrip.vue'
 import TodayRail from './components/TodayRail.vue'
 import Celebrate from './components/Celebrate.vue'
@@ -50,10 +53,15 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
     <div class="card max-w-md p-6 text-center">
       <img :src="logo" alt="" class="mx-auto h-12 w-12" />
       <h1 class="mt-4 text-xl font-semibold">Approve this site in the extension</h1>
-      <p class="mt-2 text-sm text-muted">
-        Click the FocusGateway icon in your browser toolbar and press <b>Allow</b> for this site. This page continues on its own.
-      </p>
-      <button class="btn mt-5" @click="useLocalInstead">Use without the extension</button>
+      <p class="mt-2 text-sm text-muted">The FocusGateway extension is installed. Let this website use it, so it can block sites:</p>
+      <ol class="mt-3 list-decimal space-y-1 pl-5 text-left text-sm">
+        <li>Click the <b>puzzle piece</b> in your browser toolbar (top right), then <b>FocusGateway</b>.</li>
+        <li>Press <b>Allow</b> next to this site.</li>
+        <li>This page continues on its own.</li>
+      </ol>
+      <p class="mt-3 text-xs text-muted">Tip: pin FocusGateway to the toolbar, so its icon is always one click away.</p>
+      <button class="btn mt-5" @click="useLocalInstead">Continue without blocking</button>
+      <p class="mt-2 text-xs font-semibold text-bad">Without approving, nothing is blocked in this browser.</p>
     </div>
   </div>
 
@@ -119,7 +127,7 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
 
       <div class="min-w-0 flex-1">
         <div class="sticky top-[57px] z-20 bg-paper/85 px-4 pt-3 pb-2 backdrop-blur sm:px-6 lg:top-0 lg:px-10 lg:pt-5">
-          <div class="mx-auto max-w-5xl"><StatusStrip /></div>
+          <div class="mx-auto max-w-5xl" data-tour="status"><StatusStrip /></div>
         </div>
         <main class="mx-auto w-full max-w-5xl px-4 pt-4 pb-28 sm:px-6 lg:px-10 lg:pt-6 lg:pb-12">
           <RouterView />
@@ -147,5 +155,8 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
 
   <Toasts />
   <DialogHost />
+  <BlockingOffDialog />
+  <HelpDrawer />
+  <TourHost />
   <Celebrate />
 </template>

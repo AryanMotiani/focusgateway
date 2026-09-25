@@ -14,6 +14,8 @@ import {
   download,
 } from '../config.js'
 import Icon from '../components/Icon.vue'
+import HelpButton from '../components/help/HelpButton.vue'
+import BlockingTest from '../components/help/BlockingTest.vue'
 
 // ------------------------------------------------------------ what are we running on
 const ua = navigator.userAgent
@@ -64,6 +66,7 @@ const otherStores = computed(() =>
   ].filter(Boolean),
 )
 const extensionReady = computed(() => store.mode !== 'local')
+const reload = () => location.reload()
 
 const AGENT = {
   win: { label: 'Download lock agent for Windows', asset: ASSETS.windowsSetup, note: 'Windows 10 and 11, Intel and ARM' },
@@ -214,11 +217,14 @@ const agentPaired = computed(() => !!store.state?.agent?.paired)
 
 <template>
   <div class="max-w-3xl space-y-6">
-    <header>
-      <h1 class="h-display text-4xl">Install</h1>
-      <p class="mt-1 text-muted">
-        Two free pieces, two minutes. The extension is all most people need. The lock agent makes blocks apply everywhere.
-      </p>
+    <header class="flex items-start justify-between gap-3">
+      <div>
+        <h1 class="h-display text-4xl">Install</h1>
+        <p class="mt-1 text-muted">
+          Two free pieces, two minutes. The extension is all most people need. The lock agent makes blocks apply everywhere.
+        </p>
+      </div>
+      <HelpButton page="install" />
     </header>
 
     <!-- pairing status: appears when the agent opened this page, or after typing a code -->
@@ -285,8 +291,16 @@ const agentPaired = computed(() => !!store.state?.agent?.paired)
         </div>
         <span v-if="extensionReady" class="chip !bg-good-soft !text-good"><Icon name="check" :size="12" /> Installed</span>
       </div>
+      <div v-if="extensionReady" class="mt-4">
+        <BlockingTest />
+      </div>
       <p class="mt-2 text-sm text-muted">Blocks sites on your schedule and keeps your data on this computer. Free, no account.</p>
 
+      <div v-if="!extensionReady && store.health.extension" class="mt-4 rounded-xl border-2 border-bad bg-bad-soft p-4 text-sm">
+        <p class="font-semibold text-bad">The extension is installed, but this site is not connected to it, so nothing is blocked.</p>
+        <p class="mt-1 text-muted">Reload, then click the puzzle piece, FocusGateway, and press Allow.</p>
+        <button class="btn btn-primary btn-sm mt-3" @click="reload">Connect now</button>
+      </div>
       <template v-if="!extensionReady">
         <div v-if="browser === 'safari'" class="mt-4 text-sm">
           <p>
@@ -325,12 +339,15 @@ const agentPaired = computed(() => !!store.state?.agent?.paired)
               and turn on <b>Developer mode</b>.
             </li>
             <li>Click <b>Load unpacked</b> and pick the unzipped folder.</li>
-            <li>Come back to this tab, click the FocusGateway toolbar icon and press <b>Allow</b>. Anything you set up here moves in.</li>
+            <li>
+              Come back to this tab and reload it. Click the <b>puzzle piece</b> in the toolbar, then <b>FocusGateway</b>, and press
+              <b>Allow</b>. Anything you set up here moves in. Until you allow it, nothing is blocked.
+            </li>
           </ol>
           <p v-else class="text-muted">
             Firefox keeps only signed add-ons, so use the Firefox Add-ons button once it is live. To try it now: open
             <code>about:debugging</code>, This Firefox, <b>Load Temporary Add-on</b>, and pick <code>manifest.json</code> from the unzipped
-            download (it lasts until Firefox restarts).
+            download (it lasts until Firefox restarts). When Firefox asks, allow access to all websites: without it, nothing is blocked.
           </p>
         </div>
       </template>

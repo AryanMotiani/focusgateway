@@ -5,6 +5,7 @@ import { store } from '../lib/store.js'
 import { updateTask } from '../lib/actions.js'
 import { time, DAY_NAMES } from '../lib/format.js'
 import Icon from '../components/Icon.vue'
+import HelpButton from '../components/help/HelpButton.vue'
 import TaskEditor from '../components/TaskEditor.vue'
 import RuleEditor from '../components/RuleEditor.vue'
 
@@ -55,15 +56,16 @@ async function drop(day, e) {
         <h1 class="h-display text-4xl">Schedule</h1>
         <p class="text-sm text-muted">Blocking windows and deadlines for the week. Drag a task to another day to move its deadline.</p>
       </div>
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-1" data-tour="schedule-nav">
         <button class="btn btn-sm" aria-label="Previous week" @click="offset--"><Icon name="chevronLeft" :size="16" /></button>
         <button class="btn btn-sm" @click="offset = 0">This week</button>
         <button class="btn btn-sm" aria-label="Next week" @click="offset++"><Icon name="chevronRight" :size="16" /></button>
+        <HelpButton page="schedule" class="ml-1" />
       </div>
     </header>
     <p class="text-sm font-medium">{{ range }}</p>
 
-    <div class="grid gap-2 md:grid-cols-7">
+    <div class="grid gap-2 md:grid-cols-7" data-tour="schedule-week">
       <section
         v-for="(day, i) in days"
         :key="day.d"
@@ -105,7 +107,7 @@ async function drop(day, e) {
         </div>
       </section>
     </div>
-    <div class="flex flex-wrap gap-4 text-xs text-muted">
+    <div class="flex flex-wrap gap-4 text-xs text-muted" data-tour="schedule-legend">
       <span class="flex items-center gap-1.5"><span class="h-3 w-3 rounded bg-accent-soft" /> Task-gated window</span>
       <span class="flex items-center gap-1.5"><span class="h-3 w-3 rounded bg-bad-soft" /> Hard block</span>
     </div>

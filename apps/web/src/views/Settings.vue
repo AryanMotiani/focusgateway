@@ -6,6 +6,8 @@ import { askPin } from '../lib/dialogs.js'
 import { download } from '../lib/format.js'
 import { hasLocalData, clearLocalData, createLocalAdapter } from '../lib/api.js'
 import Icon from '../components/Icon.vue'
+import HelpButton from '../components/help/HelpButton.vue'
+import BlockingTest from '../components/help/BlockingTest.vue'
 import Modal from '../components/Modal.vue'
 import PinField from '../components/PinField.vue'
 import ThemePicker from '../components/look/ThemePicker.vue'
@@ -134,7 +136,10 @@ async function revoke(o) {
 
 <template>
   <div class="max-w-3xl space-y-6">
-    <h1 class="h-display text-4xl">Settings</h1>
+    <header class="flex items-center justify-between gap-3">
+      <h1 class="h-display text-4xl">Settings</h1>
+      <HelpButton page="settings" />
+    </header>
 
     <section v-if="localData" class="card border-accent p-5">
       <h2 class="font-semibold">Data found from before the extension</h2>
@@ -238,7 +243,13 @@ async function revoke(o) {
       </div>
     </section>
 
-    <section class="card divide-y divide-line">
+    <section class="card p-5" data-tour="settings-test">
+      <h2 class="font-semibold">Does blocking work here?</h2>
+      <p class="mt-1 mb-3 text-sm text-muted">Check this browser in one click. Handy after installing, or when a site was not blocked.</p>
+      <BlockingTest />
+    </section>
+
+    <section class="card divide-y divide-line" data-tour="settings-pin">
       <div class="flex flex-wrap items-center justify-between gap-3 p-5">
         <div>
           <h2 class="font-semibold">PIN</h2>
@@ -256,7 +267,7 @@ async function revoke(o) {
       </div>
     </section>
 
-    <section class="card p-5">
+    <section class="card p-5" data-tour="settings-agent">
       <h2 class="flex items-center gap-2 font-semibold"><Icon name="terminal" :size="18" /> Lock agent</h2>
       <p class="mt-1 text-sm text-muted">
         The optional agent enforces your blocks in every browser and app on this computer and turns off the tricks people use to get around

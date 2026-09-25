@@ -1,7 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { gatedStatus, windowAt, isLocked, findSite, formatMinutes, tasksForRule } from '@focusgateway/core'
-import { store, blocks, canBlock } from '../lib/store.js'
+import { store, blocks, blockingIssue } from '../lib/store.js'
+import BlockingOffBadge from '../components/help/BlockingOffBadge.vue'
+import { ruleWhy } from '../components/help/ruleWhy.js'
 import { withPin } from '../lib/actions.js'
 import { daysLabel } from '../lib/format.js'
 import Icon from '../components/Icon.vue'
@@ -9,6 +11,7 @@ import RuleEditor from '../components/RuleEditor.vue'
 import TaskEditor from '../components/TaskEditor.vue'
 import FocusCard from '../components/FocusCard.vue'
 import FailsafeFlow from '../components/FailsafeFlow.vue'
+import HelpButton from '../components/help/HelpButton.vue'
 
 const editor = ref(null)
 const taskFor = ref(null)
@@ -58,15 +61,17 @@ function editRuleById(id) {
           Everything that keeps you off distracting sites. Blocks stack: a site is blocked if any rule says so.
         </p>
       </div>
-      <button class="btn btn-primary" @click="editor = { mode: 'gated' }"><Icon name="plus" :size="16" /> New rule</button>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-primary" data-tour="blocking-new" @click="editor = { mode: 'gated' }">
+          <Icon name="plus" :size="16" /> New rule
+        </button>
+        <HelpButton page="blocking" />
+      </div>
     </header>
 
-    <RouterLink v-if="!canBlock" to="/install" class="flex items-center gap-3 rounded-2xl bg-warm-soft p-4 text-sm">
-      <Icon name="alert" class="text-warm" />
-      <span class="flex-1">Rules are saved, but nothing is enforced until you install the extension.</span><Icon name="chevronRight" />
-    </RouterLink>
+    <BlockingOffBadge big />
 
-    <section>
+    <section data-tour="blocking-gated">
       <div class="mb-3 flex items-center justify-between">
         <h2 class="text-lg font-semibold">Task-Gated windows</h2>
         <button class="btn btn-sm" @click="editor = { mode: 'gated' }"><Icon name="plus" :size="14" /> Add</button>
@@ -85,6 +90,9 @@ function editRuleById(id) {
             <span class="chip shrink-0" :class="TONE[status(r).tone]">{{ status(r).label }}</span>
           </div>
           <p class="mt-2 text-sm">{{ siteNames(r).join(', ') }}</p>
+          <p class="mt-1 text-xs" data-rule-why :class="blockingIssue ? 'font-semibold text-bad' : 'text-muted'">
+            {{ blockingIssue ? 'Not enforced in this browser: blocking is off. ' : '' }}{{ ruleWhy(store.state, r, store.now).text }}
+          </p>
           <p class="mt-1 text-xs text-muted">{{ open(r) }} open task{{ open(r) === 1 ? '' : 's' }} attached</p>
           <div class="mt-3 flex flex-wrap gap-1.5">
             <button class="btn btn-sm" @click="taskFor = r"><Icon name="plus" :size="13" /> Task</button>
@@ -110,7 +118,7 @@ function editRuleById(id) {
       </div>
     </section>
 
-    <section>
+    <section data-tour="blocking-hard">
       <div class="mb-3 flex items-center justify-between">
         <h2 class="text-lg font-semibold">Hard blocks</h2>
         <button class="btn btn-sm" @click="editor = { mode: 'hard' }"><Icon name="plus" :size="14" /> Add</button>
@@ -128,6 +136,9 @@ function editRuleById(id) {
             <span class="chip shrink-0" :class="TONE[status(r).tone]">{{ status(r).label }}</span>
           </div>
           <p class="mt-2 text-sm">{{ siteNames(r).join(', ') }}</p>
+          <p class="mt-1 text-xs" data-rule-why :class="blockingIssue ? 'font-semibold text-bad' : 'text-muted'">
+            {{ blockingIssue ? 'Not enforced in this browser: blocking is off. ' : '' }}{{ ruleWhy(store.state, r, store.now).text }}
+          </p>
           <p class="mt-1 text-xs" :class="isLocked(r) ? 'text-bad' : 'text-muted'">
             {{ isLocked(r) ? 'No failsafe: fully locked while running' : 'Failsafe allowed' }}
           </p>
@@ -153,7 +164,7 @@ function editRuleById(id) {
       </div>
     </section>
 
-    <section class="card p-5">
+    <section class="card p-5" data-tour="blocking-focus">
       <h2 class="text-lg font-semibold">Focus mode</h2>
       <p class="mb-4 text-sm text-muted">Start right now, no scheduling. Sites stay blocked through work and break rounds.</p>
       <FocusCard />

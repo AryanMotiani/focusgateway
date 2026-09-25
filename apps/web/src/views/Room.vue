@@ -9,7 +9,7 @@
 // T H B S planner tabs, Esc restores a maximized window.
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { UNLOCKS, isUnlocked, isTrackUnlocked, trackById } from '@focusgateway/core'
-import { store, call } from '../lib/store.js'
+import { store, call, sessionRunning } from '../lib/store.js'
 import { lofi, lofiState, playWithSettings, savedTrack } from '../lib/lofi.js'
 import { createWindows } from '../lib/windows.js'
 import { progress } from '../lib/rewards.js'
@@ -27,6 +27,8 @@ import RoomDrawer from '../components/RoomDrawer.vue'
 import StatusStrip from '../components/StatusStrip.vue'
 import Icon from '../components/Icon.vue'
 import logo from '../assets/logo.svg'
+import HelpButton from '../components/help/HelpButton.vue'
+import { autoTour } from '../lib/tour.js'
 
 const player = lofi()
 const saved = store.state?.settings?.lofi || {}
@@ -69,6 +71,7 @@ const narrow = computed(() => width.value < 768)
 const drawerTab = ref(recall('focusgateway:room-drawer-tab', 'tasks'))
 watch(drawerTab, (v) => remember('focusgateway:room-drawer-tab', v))
 const decorating = ref(false)
+watch(decorating, (v) => v && autoTour('decorate', { delay: 500 }))
 const decorTab = ref('items')
 const hidden = ref(recall('focusgateway:room-hidden', false))
 watch(hidden, (v) => remember('focusgateway:room-hidden', v))
@@ -258,12 +261,20 @@ const onResize = () => {
   width.value = window.innerWidth
   ctl.setViewport(window.innerWidth, window.innerHeight)
 }
+// closing or reloading the tab during a focus session asks first (the browser's own prompt)
+function onLeave(e) {
+  if (!sessionRunning()) return
+  e.preventDefault()
+  e.returnValue = ''
+}
 onMounted(() => {
+  window.addEventListener('beforeunload', onLeave)
   document.addEventListener('keydown', onKey)
   window.addEventListener('resize', onResize)
   nextTick(centerRoom)
 })
 onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', onLeave)
   document.removeEventListener('keydown', onKey)
   window.removeEventListener('resize', onResize)
 })
@@ -323,6 +334,7 @@ const chipOn = 'room-glass room-pill room-on'
             v-if="onboarded"
             class="flex items-center gap-1.5 px-3 py-2 text-xs font-bold"
             :class="decorating ? chipOn : pill"
+            data-tour="room-decorate"
             title="Decorate the room and your avatar (D)"
             :aria-pressed="decorating"
             @click="decorate()"
@@ -332,6 +344,7 @@ const chipOn = 'room-glass room-pill room-on'
           <button
             class="flex items-center gap-1.5 px-3 py-2 text-xs font-bold"
             :class="winOpen('scene') && panels ? chipOn : pill"
+            data-tour="room-scene"
             title="Scene and music (C)"
             :aria-pressed="winOpen('scene')"
             @click="decorating ? ((decorating = false), ctl.restore('scene')) : ctl.toggleMin('scene')"
@@ -339,6 +352,7 @@ const chipOn = 'room-glass room-pill room-on'
             <Icon name="sparkles" :size="15" /> <span class="max-sm:hidden">Scene</span>
             <span class="num opacity-60 max-sm:hidden">{{ unlockedCount }}/{{ UNLOCKS.length }}</span>
           </button>
+          <HelpButton glass page="room" :class="pill" />
           <button class="p-2" :class="pill" aria-label="Hide panels (Z)" title="Hide panels (Z)" @click="hidden = true">
             <Icon name="eyeOff" :size="16" />
           </button>

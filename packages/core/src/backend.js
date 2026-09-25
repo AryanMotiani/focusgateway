@@ -3,9 +3,9 @@
 // It runs inside the extension's service worker (or in the page in standalone
 // mode). UIs only ever call dispatch(command, payload).
 import { migrate, defaultState, publicState } from './state.js'
-import { computeBlocks, gatedStatus, isLocked, isRuleLive, focusEndsAt, focusPhase } from './engine.js'
+import { computeBlocks, gatedStatus, isLocked, isRuleLive, focusEndsAt, focusPhase, TEST_DOMAIN, TEST_BLOCK_MS } from './engine.js'
 import { rulesOverlap, validateSchedule, nextWindowStart, windowAt, previousWindow } from './schedule.js'
-import { findSite, parseDomainList, normalizeDomain } from './sites.js'
+import { findSite, parseDomainList, normalizeDomain, hostMatches } from './sites.js'
 import { hashSecret, verifySecret, generateRecoveryCode, normalizeRecoveryCode, randomId } from './crypto.js'
 import { checkConfirmation } from './confirm.js'
 import { sanitizeRoom, roomLockError } from './room.js'
@@ -686,6 +686,20 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       s.focus.active = f
       log(s, 'focus_started', { focusId: f.id })
       return f
+    },
+    // "Test blocking": block TEST_DOMAIN for a minute. The blocked page reports back with
+    // blocking.hit, which proves the whole path (extension, permission, network rule) works.
+    'blocking.test': (s) => {
+      const t = now()
+      s.runtime.blockTest = { id: randomId(), startedAt: t, until: t + TEST_BLOCK_MS, hitAt: null }
+      return { ...s.runtime.blockTest, domain: TEST_DOMAIN }
+    },
+    'blocking.hit': (s, { domain }) => {
+      const test = s.runtime.blockTest
+      if (!test || now() >= test.until || !hostMatches(String(domain || ''), TEST_DOMAIN)) return { test: false }
+      test.hitAt = now()
+      test.until = now() // done: the test domain opens again right away
+      return { test: true }
     },
     'focus.stop': (s, { confirmation }) => {
       if (!s.focus.active) fail('VALIDATION', 'No focus session is running.')

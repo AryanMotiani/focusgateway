@@ -2,13 +2,15 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { nextWindowStart, startOfDay, addDays, computeStats, isHabitDue, isHabitDone, habitStreak } from '@focusgateway/core'
-import { store, blocks, canBlock, call, attempt } from '../lib/store.js'
+import { store, blocks, call, attempt } from '../lib/store.js'
 import { greeting, time, date, countdown } from '../lib/format.js'
 import Icon from '../components/Icon.vue'
 import TaskItem from '../components/TaskItem.vue'
 import TaskEditor from '../components/TaskEditor.vue'
 import FocusCard from '../components/FocusCard.vue'
 import FailsafeFlow from '../components/FailsafeFlow.vue'
+import HelpButton from '../components/help/HelpButton.vue'
+import BlockingOffBadge from '../components/help/BlockingOffBadge.vue'
 import { popXp, playHabit, currentXp } from '../lib/rewards.js'
 
 const route = useRoute()
@@ -70,21 +72,15 @@ onMounted(() => {
       </div>
       <div class="flex items-center gap-2">
         <span class="chip !bg-warm-soft !text-warm !text-sm"><Icon name="flame" :size="14" /> {{ stats.streak }} day streak</span>
-        <button class="btn btn-primary" @click="editing = {}"><Icon name="plus" :size="16" /> Task</button>
+        <button class="btn btn-primary" data-tour="today-add" @click="editing = {}"><Icon name="plus" :size="16" /> Task</button>
+        <HelpButton page="today" />
       </div>
     </header>
 
-    <RouterLink v-if="!canBlock" to="/install" class="flex items-center gap-3 rounded-2xl border border-warm/40 bg-warm-soft p-4 text-sm">
-      <Icon name="puzzle" :size="22" class="text-warm" />
-      <span class="flex-1"
-        ><b>Site blocking is off in this browser.</b> Tasks, habits and the study room work, and are saved on this device. Install the free
-        extension to turn blocking on.</span
-      >
-      <Icon name="chevronRight" />
-    </RouterLink>
+    <BlockingOffBadge big />
 
     <!-- blocking status -->
-    <section class="card overflow-hidden">
+    <section class="card overflow-hidden" data-tour="today-blocks">
       <div v-if="blocks.blocks.length" class="divide-y divide-line">
         <div v-for="b in blocks.blocks" :key="b.ruleId || b.focusId" class="flex flex-wrap items-center gap-4 p-4 sm:p-5">
           <div
@@ -148,7 +144,7 @@ onMounted(() => {
 
     <div class="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
       <!-- tasks -->
-      <section>
+      <section data-tour="today-tasks">
         <div class="mb-3 flex items-baseline justify-between">
           <h2 class="text-lg font-semibold">Today's tasks</h2>
           <span class="text-sm text-muted">{{ stats.today.tasksDone }}/{{ stats.today.tasksDue }} done</span>
@@ -173,14 +169,14 @@ onMounted(() => {
       </section>
 
       <div class="space-y-6">
-        <section class="card p-5">
+        <section class="card p-5" data-tour="today-focus">
           <h2 class="mb-3 flex items-center justify-between font-semibold">
             Focus session <RouterLink to="/room" class="text-xs font-medium text-accent">Open study room →</RouterLink>
           </h2>
           <FocusCard />
         </section>
 
-        <section class="card p-5">
+        <section class="card p-5" data-tour="today-habits">
           <h2 class="mb-3 flex items-center justify-between font-semibold">
             Habits today <RouterLink to="/habits" class="text-xs font-medium text-accent">All habits →</RouterLink>
           </h2>

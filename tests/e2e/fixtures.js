@@ -8,7 +8,18 @@ import { fileURLToPath } from 'node:url'
 const EXT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../extension/dist/chromium')
 
 // A fake "distracting site": the browser resolves these names to our local server.
-const FAKE_SITES = ['youtube.com', 'm.youtube.com', 'www.youtube.com', 'instagram.com', 'www.instagram.com', 'news.ycombinator.com']
+const FAKE_SITES = [
+  'youtube.com',
+  'm.youtube.com',
+  'www.youtube.com',
+  'instagram.com',
+  'www.instagram.com',
+  'news.ycombinator.com',
+  'reddit.com',
+  'www.reddit.com',
+  'old.reddit.com',
+  'example.com',
+]
 export const SITE_PORT = 8089
 
 export const test = base.extend({

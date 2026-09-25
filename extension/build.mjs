@@ -65,7 +65,7 @@ for (const [name, manifest] of Object.entries(targets)) {
   await rm(out, { recursive: true, force: true })
   await mkdir(out, { recursive: true })
   await build({
-    entryPoints: ['background', 'bridge', 'blocked', 'popup'].map((f) => path.join(here, 'src', f + '.js')),
+    entryPoints: ['background', 'bridge', 'blocked', 'popup', 'grant'].map((f) => path.join(here, 'src', f + '.js')),
     outdir: out,
     bundle: true,
     format: 'iife',
@@ -73,7 +73,7 @@ for (const [name, manifest] of Object.entries(targets)) {
     minify: true,
     legalComments: 'none',
   })
-  for (const f of ['blocked.html', 'popup.html', 'page.css']) await cp(path.join(here, 'src', f), path.join(out, f))
+  for (const f of ['blocked.html', 'popup.html', 'grant.html', 'page.css']) await cp(path.join(here, 'src', f), path.join(out, f))
   await cp(path.join(here, 'src/icons'), path.join(out, 'icons'), { recursive: true })
   await cp(webOut, path.join(out, 'app'), { recursive: true })
   await writeFile(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2))

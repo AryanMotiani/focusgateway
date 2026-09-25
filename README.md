@@ -16,6 +16,12 @@ Open the **[Install page](https://aryanmotiani.github.io/focusgateway/#/install)
 1. **The browser extension.** One click from [Firefox Add-ons](docs/store/CHECKLIST-FIREFOX.md) and [Edge Add-ons](docs/store/CHECKLIST-EDGE.md) once the listings are live. Chrome, Brave and Opera install it by hand for now (four clicks, the page shows how) until the Chrome Web Store listing exists.
 2. **The lock agent (optional, recommended).** One download: `FocusGateway-Setup.exe` for Windows, `FocusGateway.pkg` for macOS, a `.deb` or `.rpm` for Linux (or `curl -fsSL https://github.com/AryanMotiani/focusgateway/releases/latest/download/install.sh | sh`). Open it, and your browser connects it to the extension by itself. No Node.js or anything else to install. The downloads are not code-signed yet, so [Windows and macOS show a warning once](docs/INSTALL-AGENT.md).
 
+## Documentation
+
+- **[User guide](docs/USER-GUIDE.md)**: getting started, blocking, focus sessions, habits, the study room, XP and FAQ. Every page of the app also has a **?** help button and a first-visit tour.
+- **[Sites not blocked?](docs/TROUBLESHOOTING-blocking.md)** Quick checks, and the **Test blocking** button in Settings.
+- **[Developer guide](docs/DEVELOPER-GUIDE.md)**: architecture, how blocking is computed, adding themes, room items, tracks and badges, testing and releasing.
+
 ## What it does
 
 **Task-Gated windows.** Pick sites and a time window, then attach tasks. The sites stay blocked during the window until every attached task is done. If the window ends with tasks still open, the block keeps going until you finish them. A window with no tasks stays blocked (no empty-window loophole).

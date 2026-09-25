@@ -11,8 +11,9 @@ async function render() {
   const warn = document.getElementById('warn')
   if (perms?.ok && !perms.data.hostAccess) {
     warn.hidden = false
+    warn.classList.add('bad')
     warn.innerHTML =
-      'FocusGateway needs access to all sites to block them. <button class="btn" id="grant" style="margin-top:6px;padding:6px 10px">Grant access</button>'
+      '<b>Blocking is off.</b> Your browser has not given FocusGateway access to websites, so blocked sites still load. <button class="btn primary" id="grant" style="margin-top:6px;padding:6px 10px">Grant access</button>'
     document.getElementById('grant').onclick = () => ext.permissions.request({ origins: ['<all_urls>'] }).then(render)
   } else if (perms?.ok && perms.data.incognito === false) {
     warn.hidden = false

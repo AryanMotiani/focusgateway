@@ -13,6 +13,7 @@ import BadgeGrid from '../components/viz/BadgeGrid.vue'
 import LevelCard from '../components/viz/LevelCard.vue'
 import Ring from '../components/viz/Ring.vue'
 import Icon from '../components/Icon.vue'
+import HelpButton from '../components/help/HelpButton.vue'
 import { milestones, progress, isGame } from '../lib/rewards.js'
 
 const route = useRoute()
@@ -152,15 +153,20 @@ const tile = 'card flex min-w-0 flex-col gap-2 p-4'
 
 <template>
   <div class="space-y-6">
-    <header>
-      <h1 class="h-display text-4xl">Accountability</h1>
-      <p class="text-sm text-muted">
-        {{ isGame ? 'Your trophy room. Every box is a promise you kept, or did not.' : 'An honest mirror. No guilt, just what happened.' }}
-      </p>
+    <header class="flex items-start justify-between gap-3">
+      <div>
+        <h1 class="h-display text-4xl">Accountability</h1>
+        <p class="text-sm text-muted">
+          {{
+            isGame ? 'Your trophy room. Every box is a promise you kept, or did not.' : 'An honest mirror. No guilt, just what happened.'
+          }}
+        </p>
+      </div>
+      <HelpButton page="stats" />
     </header>
 
     <!-- Overview -->
-    <section aria-label="Overview" class="space-y-3">
+    <section aria-label="Overview" class="space-y-3" data-tour="stats-overview">
       <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <RouterLink
           v-if="progress"
@@ -227,6 +233,7 @@ const tile = 'card flex min-w-0 flex-col gap-2 p-4'
       <div
         role="tablist"
         aria-label="Accountability views"
+        data-tour="stats-tabs"
         class="gap-1"
         :class="isGame ? 'grid grid-cols-4 rounded-2xl bg-sunk p-1' : 'flex border-b border-line sm:gap-2'"
         @keydown="onTabKey"

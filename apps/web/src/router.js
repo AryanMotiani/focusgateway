@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
-import { store } from './lib/store.js'
+import { store, blockingIssue, sessionRunning } from './lib/store.js'
+import { askYesNo } from './lib/dialogs.js'
 
 // Hash history: works on every static host and inside the extension, no rewrites needed.
 const routes = [
@@ -24,6 +25,22 @@ export const router = createRouter({
   history: createWebHashHistory(),
   routes,
   scrollBehavior: () => ({ top: 0 }),
+})
+
+const ROOM = new Set(['/', '/room'])
+
+// Leaving the study room during a session asks first (a friendly nudge, never a trap).
+router.beforeEach(async (to, from) => {
+  if (!from.matched.length || !ROOM.has(from.path) || ROOM.has(to.path) || !sessionRunning()) return true
+  const stay = await askYesNo(
+    'Stay focused?',
+    blockingIssue.value
+      ? 'Your session is still running. Leaving the room does not stop the timer.'
+      : 'Your session is still running. Sites stay blocked either way.',
+    { yes: 'Stay', no: 'Leave' },
+  )
+  // Stay, Esc or a click outside all keep you in the room
+  return stay === false
 })
 
 router.beforeEach((to) => {

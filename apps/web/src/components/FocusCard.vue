@@ -1,7 +1,9 @@
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
 import { focusPhase } from '@focusgateway/core'
-import { store, call, attempt, canBlock } from '../lib/store.js'
+import { store, call, attempt, blockingIssue, focusDraft } from '../lib/store.js'
+import { ensureBlocking } from './help/guard.js'
+import BlockingOffBadge from './help/BlockingOffBadge.vue'
 import { withConfirm } from '../lib/actions.js'
 import { countdown } from '../lib/format.js'
 import { lofi } from '../lib/lofi.js'
@@ -20,7 +22,10 @@ const PRESETS = [
 const f = reactive({ work: 25, brk: 5, n: 4 })
 const picking = ref(false)
 const lastSites = computed(() => store.state.focus.history.at(-1)?.siteIds || store.state.rules.flatMap((r) => r.siteIds))
-const siteIds = ref([...new Set(lastSites.value.length ? lastSites.value : ['youtube', 'instagram', 'reddit', 'x-twitter'])])
+// shared by every focus card, so sites picked on Today are the ones the room starts with
+if (!focusDraft.value)
+  focusDraft.value = [...new Set(lastSites.value.length ? lastSites.value : ['youtube', 'instagram', 'reddit', 'x-twitter'])]
+const siteIds = focusDraft
 
 const active = computed(() => store.state.focus.active)
 const phase = computed(() => (active.value ? focusPhase(active.value, store.now) : null))
@@ -36,11 +41,14 @@ watch(phase, (p) => {
   lastKey = k
 })
 
-const start = () =>
-  attempt(
+async function start() {
+  // no extension, site not approved or no access: say so loudly before starting
+  if (!(await ensureBlocking('focus'))) return
+  await attempt(
     () => call('focus.start', { workMin: f.work, breakMin: f.brk, iterations: f.n, siteIds: siteIds.value }),
-    'Focus session started. Sites are blocked.',
+    blockingIssue.value ? 'Timer started. Sites are NOT blocked in this browser.' : 'Focus session started. Sites are blocked.',
   )
+}
 const stop = () =>
   withConfirm('focus.stop', {}, 'stop_focus', '', {
     title: 'Stop early?',
@@ -62,6 +70,7 @@ const siteNames = computed(() => siteIds.value.map((id) => store.state.customSit
         <button class="btn btn-primary" :disabled="!siteIds.length" @click="start"><Icon name="play" :size="14" /> Start focus</button>
         <span class="num text-xs text-muted">{{ f.work }} min focus, {{ f.n }} rounds</span>
       </div>
+      <BlockingOffBadge class="mt-2" />
     </template>
     <template v-else-if="active && phase">
       <div class="flex items-center gap-5">
@@ -88,12 +97,14 @@ const siteNames = computed(() => siteIds.value.map((id) => store.state.customSit
             {{ phase.phase === 'work' ? 'Focus' : 'Break' }} · round {{ phase.iteration }} of {{ active.iterations }}
           </p>
           <p class="mt-1 text-sm text-muted">
-            {{ active.siteIds.length }} site{{ active.siteIds.length === 1 ? '' : 's' }} blocked until
+            {{ active.siteIds.length }} site{{ active.siteIds.length === 1 ? '' : 's' }}
+            {{ blockingIssue ? 'picked. Timer runs until' : 'blocked until' }}
             {{ new Date(phase.endsAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) }}, breaks included.
           </p>
           <button class="btn btn-sm mt-3" @click="stop">Stop early</button>
         </div>
       </div>
+      <BlockingOffBadge big class="mt-3" />
     </template>
     <template v-else>
       <div class="flex flex-wrap gap-1.5">
@@ -122,9 +133,7 @@ const siteNames = computed(() => siteIds.value.map((id) => store.state.customSit
           Blocking {{ siteNames }} site{{ siteNames === 1 ? '' : 's' }} · change
         </button>
       </div>
-      <p v-if="!canBlock" class="mt-2 text-xs text-muted">
-        The timer works here. <RouterLink to="/install" class="underline">Install the extension</RouterLink> to actually block sites.
-      </p>
+      <BlockingOffBadge big class="mt-3" />
     </template>
     <Modal v-if="picking" title="Sites to block while focusing" wide @close="picking = false">
       <SitePicker v-model="siteIds" />

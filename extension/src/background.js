@@ -37,17 +37,33 @@ function scheduleApply() {
   return applying
 }
 
+/**
+ * Can we redirect to our blocked page? Redirect rules need host access. Chrome grants it
+ * at install, Firefox lets people switch it off ("Access your data for all websites"), and
+ * older Firefox builds or some install paths leave it off until the user allows it.
+ */
+async function hasHostAccess() {
+  try {
+    return await ext.permissions.contains({ origins: ['<all_urls>'] })
+  } catch {
+    return true
+  }
+}
+
 async function apply() {
   const state = await backend.rawState()
   const now = Date.now()
   const { domains, blocks } = computeBlocks(state, now)
+  const hostAccess = await hasHostAccess()
 
-  // 1. Network rules: redirect top-level pages, block embedded frames.
+  // 1. Network rules: redirect top-level pages, block embedded frames. Without host access a
+  // redirect silently does nothing in Firefox, so fall back to a plain block (the browser shows
+  // its own "blocked" error page) instead of letting the site load.
   const existing = await ext.declarativeNetRequest.getDynamicRules()
   const addRules = domains.map((d, i) => ({
     id: i + 2,
     priority: 1,
-    action: { type: 'redirect', redirect: { extensionPath: `/blocked.html?d=${encodeURIComponent(d)}` } },
+    action: hostAccess ? { type: 'redirect', redirect: { extensionPath: `/blocked.html?d=${encodeURIComponent(d)}` } } : { type: 'block' },
     condition: { requestDomains: [d], resourceTypes: ['main_frame'] },
   }))
   if (domains.length) {
@@ -74,8 +90,9 @@ async function apply() {
   // 3. Badge + transition notifications (remember across service-worker restarts).
   if (lastBlockKeys === null) lastBlockKeys = new Set((await ext.storage.session?.get('fg_keys').catch(() => ({})))?.fg_keys || [])
   const keys = new Set(blocks.map((b) => b.ruleId || b.focusId))
-  ext.action.setBadgeText({ text: blocks.length ? String(blocks.length) : '' })
-  ext.action.setBadgeBackgroundColor?.({ color: '#6d5dfc' })
+  // "!" in red: the extension can not show its blocked page (see hasHostAccess)
+  ext.action.setBadgeText({ text: !hostAccess ? '!' : blocks.length ? String(blocks.length) : '' })
+  ext.action.setBadgeBackgroundColor?.({ color: hostAccess ? '#6d5dfc' : '#d93a3a' })
   if (state.settings.notifications && state.onboarding.completed) {
     for (const b of blocks) if (!lastBlockKeys.has(b.ruleId || b.focusId)) notify(`${b.name} started`, describeBlock(b))
     for (const k of lastBlockKeys) {
@@ -233,8 +250,8 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return { ok: true, data: (await ext.storage.session.get('fg_pending_origins')).fg_pending_origins || [] }
       if (msg.action === 'bundles') return { ok: true, data: BUNDLES }
       if (msg.action === 'permissions') {
-        const has = await ext.permissions.contains({ origins: ['<all_urls>'] })
-        return { ok: true, data: { hostAccess: has, incognito: await ext.extension.isAllowedIncognitoAccess?.() } }
+        const incognito = await ext.extension.isAllowedIncognitoAccess?.().catch?.(() => null)
+        return { ok: true, data: { hostAccess: await hasHostAccess(), incognito: incognito ?? null } }
       }
     }
     if (msg?.type === 'fg-bridge' && sender.id === ext.runtime.id && sender.url) {
@@ -242,7 +259,7 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const approved = (await approvedOrigins()).includes(origin)
       if (msg.cmd === 'hello') {
         if (!approved) await requestApproval(origin)
-        return { ok: true, data: { approved, version: ext.runtime.getManifest().version } }
+        return { ok: true, data: { approved, version: ext.runtime.getManifest().version, hostAccess: await hasHostAccess() } }
       }
       if (!approved)
         return { ok: false, error: { code: 'NOT_APPROVED', message: 'Approve this site in the FocusGateway extension first.' } }
@@ -263,11 +280,18 @@ async function tick() {
   await scheduleApply()
 }
 
+// Access switched on or off in the browser's extension settings: rebuild the rules now.
+ext.permissions.onAdded?.addListener(() => scheduleApply())
+ext.permissions.onRemoved?.addListener(() => scheduleApply())
+
 ext.alarms.create('fg-tick', { periodInMinutes: 0.5 })
 ext.alarms.onAlarm.addListener((a) => a.name === 'fg-tick' && tick())
 ext.runtime.onStartup.addListener(tick)
 ext.runtime.onInstalled.addListener(async (details) => {
   await tick()
+  // Firefox may install us without access to websites. Ask right away, from our own page,
+  // because permission prompts need a click and blocking does nothing without it.
+  if (!(await hasHostAccess())) ext.tabs.create({ url: ext.runtime.getURL('grant.html') }).catch(() => {})
   if (details.reason === 'install') {
     // Came from a FocusGateway website tab? Reload it (content scripts are not injected
     // into pages that were open before install) and send the user back there, so a setup

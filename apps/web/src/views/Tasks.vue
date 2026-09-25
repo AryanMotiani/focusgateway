@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { startOfDay, addDays } from '@focusgateway/core'
 import { store, call, attempt } from '../lib/store.js'
 import Icon from '../components/Icon.vue'
+import HelpButton from '../components/help/HelpButton.vue'
 import TaskItem from '../components/TaskItem.vue'
 import TaskEditor from '../components/TaskEditor.vue'
 
@@ -69,7 +70,7 @@ function onDrop(col, e) {
     <header class="flex flex-wrap items-center justify-between gap-3">
       <h1 class="h-display text-4xl">Tasks</h1>
       <div class="flex gap-2">
-        <div class="flex rounded-xl border border-line bg-card p-0.5 text-sm" role="tablist">
+        <div class="flex rounded-xl border border-line bg-card p-0.5 text-sm" role="tablist" data-tour="tasks-view">
           <button
             v-for="v in ['list', 'board']"
             :key="v"
@@ -80,11 +81,12 @@ function onDrop(col, e) {
             {{ v }}
           </button>
         </div>
-        <button class="btn btn-primary" @click="editing = {}"><Icon name="plus" :size="16" /> New task</button>
+        <button class="btn btn-primary" data-tour="tasks-new" @click="editing = {}"><Icon name="plus" :size="16" /> New task</button>
+        <HelpButton page="tasks" />
       </div>
     </header>
 
-    <div class="flex flex-wrap gap-2">
+    <div class="flex flex-wrap gap-2" data-tour="tasks-filters">
       <input v-model="q" class="input max-w-56" placeholder="Search tasks" aria-label="Search tasks" />
       <select v-if="view === 'list'" v-model="show" class="input w-auto" aria-label="Status">
         <option value="open">Open</option>
@@ -108,7 +110,7 @@ function onDrop(col, e) {
     </div>
 
     <template v-if="view === 'list'">
-      <section v-for="g in groups" :key="g.name">
+      <section v-for="(g, gi) in groups" :key="g.name" :data-tour="gi === 0 ? 'tasks-list' : null">
         <h2 class="mb-2 text-sm font-semibold" :class="g.name === 'Overdue' ? 'text-bad' : 'text-muted'">
           {{ g.name }} <span class="font-normal">· {{ g.tasks.length }}</span>
         </h2>
@@ -122,13 +124,13 @@ function onDrop(col, e) {
           />
         </div>
       </section>
-      <div v-if="!groups.length" class="card p-10 text-center text-muted">
+      <div v-if="!groups.length" class="card p-10 text-center text-muted" data-tour="tasks-list">
         <p class="text-sm">{{ show === 'done' ? 'Nothing finished yet. Soon.' : 'No tasks here.' }}</p>
         <button v-if="show !== 'done'" class="btn btn-primary mt-4" @click="editing = {}">Add a task</button>
       </div>
     </template>
 
-    <div v-else class="grid gap-4 md:grid-cols-2">
+    <div v-else class="grid gap-4 md:grid-cols-2" data-tour="tasks-list">
       <section
         v-for="c in columns"
         :key="c.key"

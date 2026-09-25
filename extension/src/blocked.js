@@ -1,4 +1,4 @@
-import { computeBlocks, hostMatches } from '@focusgateway/core'
+import { computeBlocks, hostMatches, TEST_DOMAIN } from '@focusgateway/core'
 
 const ext = globalThis.browser ?? globalThis.chrome
 const QUOTES = [
@@ -22,7 +22,26 @@ const el = (tag, props = {}, ...kids) => {
   return e
 }
 
+// "Test blocking" opened this tab: tell the app it worked (it is waiting for this), then
+// say so here too. Anyone can open example.com, so this only counts while a test runs.
+let testPassed = false
+async function reportTest() {
+  if (!hostMatches(domain, TEST_DOMAIN)) return
+  const res = await ext.runtime.sendMessage({ type: 'fg', cmd: 'blocking.hit', payload: { domain } }).catch(() => null)
+  if (!res?.ok || !res.data?.test) return
+  testPassed = true
+  document.title = 'Blocking works · FocusGateway'
+  document.getElementById('title').textContent = 'Blocking works.'
+  document.getElementById('reasons').replaceChildren(
+    el('p', {
+      className: 'muted',
+      textContent: 'This was the one minute test. Your blocked sites are sent here the same way. You can close this tab.',
+    }),
+  )
+}
+
 async function render() {
+  if (testPassed) return
   const res = await ext.runtime.sendMessage({ type: 'fg', cmd: 'state.get' })
   if (!res?.ok) return
   const state = res.state
@@ -72,6 +91,6 @@ async function render() {
   }
 }
 
-render()
+reportTest().then(() => render())
 setInterval(render, 20_000)
 document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && render())

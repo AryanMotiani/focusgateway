@@ -10,6 +10,7 @@ import { progress, isGame } from '../lib/rewards.js'
 import { countdown } from '../lib/format.js'
 import { lofi, lofiState, playWithSettings, savedTrack } from '../lib/lofi.js'
 import Icon from './Icon.vue'
+import BlockingOffBadge from './help/BlockingOffBadge.vue'
 
 const props = defineProps({ glass: Boolean, bare: Boolean })
 const player = lofi()
@@ -78,6 +79,7 @@ const sub = computed(() => (props.glass || props.bare ? 'text-muted' : isGame.va
       <span class="hud-label hidden md:inline" :class="sub">{{ focus.phase === 'work' ? 'focus' : 'break' }} {{ focus.iteration }}</span>
     </RouterLink>
 
+    <BlockingOffBadge />
     <RouterLink v-if="blockText" to="/blocking" class="flex min-w-0 items-center gap-1.5 text-sm" :title="blockText">
       <Icon name="lock" :size="15" :class="firstBlock.locked ? 'text-bad' : 'text-accent'" />
       <span class="max-w-52 truncate">{{ blockText }}</span>

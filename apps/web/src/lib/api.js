@@ -11,6 +11,18 @@ export function inExtension() {
   return /^(chrome|moz)-extension:$/.test(location.protocol) && !!ext?.runtime?.id
 }
 
+/** Which browser this is, for install instructions ('chrome', 'edge', 'firefox', 'safari', ...). */
+export function detectBrowser(ua = navigator.userAgent) {
+  if (/Android|iPhone|iPad|iPod/i.test(ua)) return 'phone'
+  if (/Firefox\//.test(ua)) return 'firefox'
+  if (/Edg\//.test(ua)) return 'edge'
+  if (/OPR\/|Opera/.test(ua)) return 'opera'
+  if (typeof navigator !== 'undefined' && navigator.brave) return 'brave'
+  if (/Chrome\/|Chromium\//.test(ua)) return 'chrome'
+  if (/Safari\//.test(ua)) return 'safari'
+  return 'other'
+}
+
 export function extensionPresent() {
   return !!document.documentElement.dataset.focusgatewayExtension
 }
@@ -38,7 +50,17 @@ function bridgeAdapter() {
     new Promise((resolve) => {
       const id = ++seq
       waiting.set(id, resolve)
-      window.postMessage({ __fg: 'req', id, cmd, payload }, location.origin)
+      // Payloads often hold Vue reactive arrays (the picked sites, the rule's days). postMessage
+      // can not clone a Proxy and throws DataCloneError, which silently broke focus.start and
+      // rules.create on the hosted site. A JSON copy is what runtime.sendMessage sends anyway.
+      let data
+      try {
+        data = payload === undefined ? undefined : JSON.parse(JSON.stringify(payload))
+      } catch (e) {
+        waiting.delete(id)
+        return resolve({ ok: false, error: { code: 'VALIDATION', message: String(e?.message || e) } })
+      }
+      window.postMessage({ __fg: 'req', id, cmd, payload: data }, location.origin)
       setTimeout(() => {
         if (waiting.delete(id)) resolve({ ok: false, error: { code: 'TIMEOUT', message: 'The extension did not answer.' } })
       }, 15000)
@@ -111,7 +133,7 @@ export async function connect() {
   if (extensionPresent()) {
     const bridge = bridgeAdapter()
     const hello = await bridge.call('hello')
-    if (hello?.ok) return { ...bridge, approved: hello.data.approved }
+    if (hello?.ok) return { ...bridge, approved: hello.data.approved, hostAccess: hello.data.hostAccess ?? null }
   }
   return localAdapter()
 }

@@ -8,6 +8,8 @@ import Modal from './Modal.vue'
 import SitePicker from './SitePicker.vue'
 import DayPicker from './DayPicker.vue'
 import Icon from './Icon.vue'
+import { ensureBlocking } from './help/guard.js'
+import { ruleWhy } from './help/ruleWhy.js'
 
 const props = defineProps({ rule: Object, mode: { type: String, default: 'gated' } })
 const emit = defineEmits(['close', 'saved', 'edit-rule'])
@@ -33,12 +35,15 @@ async function save() {
   error.value = ''
   conflict.value = null
   const payload = { name: f.name, siteIds: f.siteIds, days: f.days, start: parseHHMM(f.start), end: parseHHMM(f.end), failsafe: f.failsafe }
+  // no extension (or site not approved): say clearly that the rule will not block anything here
+  if (!editing && !(await ensureBlocking('rule'))) return
   try {
     if (!editing) {
       const tasks =
         f.mode === 'gated' ? newTasks.value.filter((t) => t.title.trim()).map((t) => ({ ...t, deadline: endOfToday(store.now) })) : []
-      await call('rules.create', { ...payload, mode: f.mode, taskIds: attach.value, newTasks: tasks })
-      toast('Rule created. It starts at the next window.', 'success')
+      const rule = await call('rules.create', { ...payload, mode: f.mode, taskIds: attach.value, newTasks: tasks })
+      const why = rule && store.state ? ruleWhy(store.state, rule, Date.now()) : null
+      toast(why ? `Rule created. ${why.text}` : 'Rule created.', 'success')
     } else {
       const res = await withPin(
         'rules.update',

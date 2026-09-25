@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Allow blocking · FocusGateway</title>
+    <link rel="icon" href="icons/icon-32.png" />
+    <link rel="stylesheet" href="page.css" />
+    <style>
+      body {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      main {
+        width: min(520px, 100%);
+        display: grid;
+        gap: 14px;
+      }
+      h1 {
+        font-size: clamp(24px, 5vw, 32px);
+        line-height: 1.15;
+        margin: 0;
+      }
+      .logo {
+        width: 44px;
+        height: 44px;
+      }
+      .ok {
+        color: #1f9d55;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img class="logo" src="icons/icon-128.png" alt="" />
+      <h1 id="title">One more click to turn blocking on</h1>
+      <p class="muted" id="text">
+        Your browser installed FocusGateway without access to websites. Without it, FocusGateway can not stop YouTube, Reddit or any other
+        site from loading. Press the button and choose Allow.
+      </p>
+      <div><button class="btn primary" id="grant">Allow access to all websites</button></div>
+      <p class="muted" style="font-size: 13px">
+        FocusGateway only uses this to send blocked sites to its own page. It reads nothing and sends nothing anywhere.
+      </p>
+      <p id="done" class="ok" hidden>Access granted. Blocking is on. You can close this tab.</p>
+    </main>
+    <script src="grant.js"></script>
+  </body>
+</html>

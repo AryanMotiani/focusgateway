@@ -1,6 +1,6 @@
 // Pure blocking engine: given state + a moment, which domains are blocked and why.
 // Shared by the extension (DNR rules), the lock agent (hosts file) and the UI.
-import { windowAt, previousWindow } from './schedule.js'
+import { windowAt, previousWindow, nextWindowStart } from './schedule.js'
 import { domainsForSites } from './sites.js'
 
 function liveOverride(state, ruleId, now) {
@@ -85,6 +85,19 @@ export function isRuleLive(state, rule, now) {
   return s === 'blocked' || s === 'extended' || s === 'unlocked'
 }
 
+/**
+ * The "Test blocking" check (Settings and Install): a one minute block on a harmless
+ * reserved domain, so testers can see in one click that the extension really blocks.
+ * It is not a rule and not a focus session, so it only adds to `domains`.
+ */
+export const TEST_DOMAIN = 'example.com'
+export const TEST_BLOCK_MS = 60_000
+
+export function blockTestActive(state, now) {
+  const t = state.runtime?.blockTest
+  return !!t && now < t.until
+}
+
 export function computeBlocks(state, now) {
   const blocks = []
   for (const rule of state.rules || []) {
@@ -136,5 +149,32 @@ export function computeBlocks(state, now) {
     b.domains = domainsForSites(state, b.siteIds)
     b.domains.forEach((d) => all.add(d))
   }
-  return { domains: [...all].sort(), blocks }
+  const test = blockTestActive(state, now)
+  if (test) all.add(TEST_DOMAIN)
+  return { domains: [...all].sort(), blocks, test }
+}
+
+/**
+ * Is this rule blocking right now, and if not, why not? For the UI, so nobody has to guess
+ * why a site still opens.
+ *  code: 'window' | 'pending' | 'no-tasks' | 'extended'  (blocking)
+ *        'outside' | 'done' | 'failsafe'                 (not blocking)
+ *  until: when the current state ends (ms) or null, next: next window start (ms) or null
+ */
+export function explainRule(state, rule, now) {
+  const blocking = computeBlocks(state, now).blocks.some((b) => b.ruleId === rule.id)
+  const next = nextWindowStart(rule, now)
+  const override = (state.overrides || []).find((o) => o.ruleId === rule.id && o.until > now)
+  if (rule.mode === 'hard') {
+    const w = windowAt(rule, now)
+    if (!w) return { blocking: false, code: 'outside', until: null, next }
+    if (!blocking) return { blocking: false, code: 'failsafe', until: override?.until ?? w.end, next }
+    return { blocking: true, code: 'window', until: w.end, next }
+  }
+  const g = gatedStatus(state, rule, now)
+  if (g.status === 'inactive') return { blocking: false, code: 'outside', until: null, next }
+  if (g.status === 'unlocked') return { blocking: false, code: 'done', until: g.window.end, next }
+  if (!blocking) return { blocking: false, code: 'failsafe', until: override?.until ?? null, next }
+  if (g.status === 'extended') return { blocking: true, code: 'extended', until: null, next, pending: g.pending.length }
+  return { blocking: true, code: g.pending.length ? 'pending' : 'no-tasks', until: g.window.end, next, pending: g.pending.length }
 }

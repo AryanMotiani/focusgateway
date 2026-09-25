@@ -16,6 +16,7 @@ import { store, call, attempt } from '../lib/store.js'
 import { askYesNo } from '../lib/dialogs.js'
 import { DAY_NAMES, daysLabel } from '../lib/format.js'
 import Icon from '../components/Icon.vue'
+import HelpButton from '../components/help/HelpButton.vue'
 import Modal from '../components/Modal.vue'
 import DayPicker from '../components/DayPicker.vue'
 import YearHeatmap from '../components/viz/YearHeatmap.vue'
@@ -83,10 +84,13 @@ const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.m
           Small things, every day. {{ doneToday }} of {{ dueToday }} done today.<template v-if="isGame"> +{{ XP.habit }} XP each.</template>
         </p>
       </div>
-      <button class="btn btn-primary" @click="openForm()"><Icon name="plus" :size="16" /> New habit</button>
+      <div class="flex items-center gap-2">
+        <button class="btn btn-primary" data-tour="habits-new" @click="openForm()"><Icon name="plus" :size="16" /> New habit</button>
+        <HelpButton page="habits" />
+      </div>
     </header>
 
-    <div class="space-y-3">
+    <div class="space-y-3" data-tour="habits-list">
       <article v-for="h in habits" :key="h.id" class="card p-4">
         <div class="flex flex-wrap items-center gap-4">
           <button class="flex min-w-0 flex-1 items-center gap-3 text-left" @click="openForm(h)">
