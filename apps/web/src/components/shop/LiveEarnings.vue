@@ -11,7 +11,7 @@ import CoinIcon from './CoinIcon.vue'
 import Icon from '../Icon.vue'
 
 // medium: a smaller jar and no footer, for a focus window of normal height
-defineProps({ compact: Boolean, medium: Boolean, dark: Boolean })
+defineProps({ compact: Boolean, medium: Boolean })
 const uid = 'jar' + Math.random().toString(36).slice(2, 8)
 const l = computed(() => live.value)
 const coins = computed(() => l.value?.now.coins || 0)
@@ -63,7 +63,7 @@ const firstPending = computed(() => l.value && !l.value.now.first && l.value.don
           cy="18"
           r="15.5"
           fill="none"
-          stroke="#ffc233"
+          stroke="var(--fg-coin)"
           stroke-width="3"
           stroke-linecap="round"
           stroke-dasharray="97.4"
@@ -74,11 +74,11 @@ const firstPending = computed(() => l.value && !l.value.now.first && l.value.don
       <CoinIcon :size="16" />
       <span v-for="b in bits" :key="b.id" class="bit num" :style="{ left: '50%' }">+{{ b.n }}</span>
     </span>
-    <span class="num font-bold text-[#f2b705]">+{{ shown }}</span>
+    <span class="coin-text num font-bold">+{{ shown }}</span>
     <span class="num text-xs opacity-70">+{{ xp }} XP</span>
   </div>
 
-  <div v-else-if="l" class="live" :class="dark ? 'text-white' : ''" data-live-earnings>
+  <div v-else-if="l" class="live" data-live-earnings>
     <div class="flex items-center gap-4">
       <!-- the jar fills with gold as the session goes on -->
       <div class="relative shrink-0" :class="medium ? 'h-[52px] w-[43px]' : 'h-[78px] w-[64px]'">
@@ -121,18 +121,14 @@ const firstPending = computed(() => l.value && !l.value.now.first && l.value.don
       <div class="min-w-0 flex-1">
         <p class="flex items-baseline gap-2">
           <CoinIcon :size="22" class="self-center" />
-          <span class="num leading-none text-[#f2b705]" :class="medium ? 'text-2xl' : 'text-3xl'" data-live-coins>+{{ shown }}</span>
+          <span class="coin-text num leading-none" :class="medium ? 'text-2xl' : 'text-3xl'" data-live-coins>+{{ shown }}</span>
           <span class="text-xs opacity-60">coins</span>
-          <span class="num ml-auto text-sm font-bold" :class="dark ? 'text-white/80' : ''" data-live-xp>+{{ xp }} XP</span>
+          <span class="num ml-auto text-sm font-bold" data-live-xp>+{{ xp }} XP</span>
         </p>
         <!-- the next coin -->
-        <p
-          class="mt-2 h-1.5 overflow-hidden rounded-full"
-          :class="dark ? 'bg-white/10' : 'bg-sunk'"
-          :title="l.now.capped ? 'Daily focus coin cap reached' : 'Next coin'"
-        >
+        <p class="mt-2 h-1.5 overflow-hidden rounded-full bg-sunk" :title="l.now.capped ? 'Daily focus coin cap reached' : 'Next coin'">
           <i
-            class="block h-full rounded-full bg-[#ffc233] transition-[width] duration-1000 ease-linear"
+            class="coin-bar block h-full rounded-full transition-[width] duration-1000 ease-linear"
             :style="{ width: l.toNext * 100 + '%' }"
           />
         </p>
@@ -149,7 +145,7 @@ const firstPending = computed(() => l.value && !l.value.now.first && l.value.don
         </p>
       </div>
     </div>
-    <p v-if="!medium" class="mt-3 flex items-center gap-2 rounded-xl px-3 py-2 text-xs" :class="dark ? 'bg-white/[.07]' : 'bg-sunk'">
+    <p v-if="!medium" class="mt-3 flex items-center gap-2 rounded-xl bg-sunk px-3 py-2 text-xs">
       <Icon name="target" :size="14" class="shrink-0 opacity-70" />
       <span class="min-w-0 flex-1"
         >Finish all rounds: <b class="num">+{{ l.done.coins }}</b> coins<template v-if="l.done.bonus">
@@ -180,8 +176,8 @@ const firstPending = computed(() => l.value && !l.value.now.first && l.value.don
   transform: translateX(-50%);
   font-size: 14px;
   font-weight: 800;
-  color: #ffc233;
-  text-shadow: 0 1px 0 rgb(0 0 0 / 0.4);
+  color: var(--fg-coin-ink);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--fg-paper) 70%, transparent);
   pointer-events: none;
   animation: bit 1.3s ease-out forwards;
 }
@@ -211,7 +207,7 @@ const firstPending = computed(() => l.value && !l.value.now.first && l.value.don
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
 .chip-l.hot {
-  background: #ffc233;
-  color: #2a1d00;
+  background: var(--fg-coin);
+  color: var(--fg-on-coin);
 }
 </style>

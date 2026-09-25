@@ -117,14 +117,16 @@ function layout(vw, vh) {
   const bottom = vh - (vw >= 1180 ? M : 64)
   const player = { x: M, y: bottom - pH, w: lw, h: pH }
   let status
-  if (wide) {
-    // in the gap between the logo and pages on the left and the buttons on the right
-    const x0 = 444
-    const x1 = vw - 356
+  // in the gap between the logo and pages on the left and the buttons (coins, decorate, scene,
+  // help) on the right, when that gap is wide enough, else under the header
+  const x0 = 484
+  const x1 = vw - 476
+  const inBar = wide && x1 - x0 >= 560
+  if (inBar) {
     const w = Math.min(660, x1 - x0)
     status = { x: Math.round(x0 + (x1 - x0 - w) / 2), y: 12, w, h: 96 }
-  } else status = { x: M, y: 76, w: Math.min(760, vw - 2 * M), h: 96 }
-  const top = wide ? 80 : status.y + status.h + GAP
+  } else status = { x: M, y: 76, w: Math.min(920, vw - 2 * M), h: 96 }
+  const top = inBar ? 80 : status.y + status.h + GAP
   const fH = Math.max(200, Math.min(onboarded.value ? 380 : 190, player.y - GAP - top))
   const focus = { x: M, y: player.y - GAP - fH, w: lw, h: fH }
   const dW = vw >= 1600 ? 420 : wide ? 400 : Math.min(380, vw - lw - 2 * M - GAP)

@@ -50,7 +50,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[62] grid place-items-center overflow-y-auto bg-[#0b0918]/60 p-4 backdrop-blur-sm" @mousedown.self="close">
+  <div class="fixed inset-0 z-[62] grid place-items-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm" @mousedown.self="close">
     <div
       class="pop-in w-full max-w-sm overflow-hidden rounded-3xl bg-hud text-hud-ink shadow-2xl"
       role="dialog"
@@ -65,35 +65,35 @@ onMounted(() => {
         <p class="hud-label relative text-xs text-hud-muted">{{ completed ? 'Session complete' : 'Session ended early' }}</p>
         <p ref="coinEl" class="relative mt-2 flex items-center justify-center gap-3">
           <CoinIcon :size="46" class="spin" />
-          <span class="num text-6xl leading-none text-[#ffc233]" data-reward-coins>+{{ shown }}</span>
+          <span class="coin-text num text-6xl leading-none" data-reward-coins>+{{ shown }}</span>
         </p>
         <p class="relative mt-1 text-sm text-hud-muted">coins earned</p>
       </div>
 
       <div class="space-y-4 px-5 pb-5">
         <ul class="space-y-1.5 text-sm">
-          <li v-for="row in rows" :key="row.label" class="flex items-center gap-2.5 rounded-xl bg-white/[.06] px-3 py-2">
-            <Icon :name="row.icon" :size="15" :class="row.hot ? 'text-[#ff9d4d]' : 'text-hud-muted'" />
+          <li v-for="row in rows" :key="row.label" class="flex items-center gap-2.5 rounded-xl bg-sunk px-3 py-2">
+            <Icon :name="row.icon" :size="15" :class="row.hot ? 'text-warm' : 'text-hud-muted'" />
             <span class="flex-1">{{ row.label }}</span>
-            <b class="num" :class="row.hot ? 'text-[#ff9d4d]' : 'text-[#ffc233]'">{{ row.value }}</b>
+            <b class="num" :class="row.hot ? 'text-warm' : 'coin-text'">{{ row.value }}</b>
           </li>
         </ul>
 
         <div>
           <p class="flex justify-between text-xs">
             <span class="hud-label text-hud-muted">Level {{ progress.level }} · {{ progress.title }}</span>
-            <b class="num text-[#b8f5c6]">+{{ r.xp }} XP</b>
+            <b class="num text-good">+{{ r.xp }} XP</b>
           </p>
-          <span class="mt-1.5 block h-2.5 overflow-hidden rounded-full bg-white/10"
+          <span class="mt-1.5 block h-2.5 overflow-hidden rounded-full bg-sunk"
             ><i
-              class="block h-full rounded-full bg-[var(--fg-hud-xpbar,#ffd34d)] transition-[width] duration-1000 ease-out"
+              class="block h-full rounded-full bg-(--fg-hud-xpbar) transition-[width] duration-1000 ease-out"
               :style="{ width: Math.max(3, bar * 100) + '%' }"
           /></span>
           <p class="num mt-1 text-right text-[11px] text-hud-muted">{{ progress.into }} / {{ progress.needed }} XP</p>
         </div>
 
-        <div v-if="celebration.badge" class="flex items-center gap-3 rounded-2xl bg-white/[.08] p-2.5">
-          <span class="grid h-10 w-10 place-items-center rounded-xl bg-xp text-[#1a1830]"><Icon :name="celebration.badge.icon" /></span>
+        <div v-if="celebration.badge" class="flex items-center gap-3 rounded-2xl bg-sunk p-2.5">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-xp text-hud"><Icon :name="celebration.badge.icon" /></span>
           <span>
             <span class="hud-label block text-[10px] text-hud-muted">Badge earned</span>
             <span class="text-sm font-bold">{{ celebration.badge.name }}</span>
@@ -107,12 +107,12 @@ onMounted(() => {
               v-for="it in s.afford"
               :key="it.id"
               to="/shop"
-              class="flex flex-col items-center gap-1 rounded-2xl bg-white/[.07] p-2 text-center hover:bg-white/[.12]"
+              class="flex flex-col items-center gap-1 rounded-2xl bg-sunk p-2 text-center hover:brightness-110"
               @click="close"
             >
               <span class="relative block h-12 w-full"><ItemPreview :item="it" /></span>
               <span class="line-clamp-1 w-full text-[11px] font-bold">{{ it.name }}</span>
-              <span class="num flex items-center gap-1 text-[11px] text-[#ffc233]"><CoinIcon :size="11" />{{ it.price }}</span>
+              <span class="coin-text num flex items-center gap-1 text-[11px]"><CoinIcon :size="11" />{{ it.price }}</span>
             </RouterLink>
           </div>
         </div>
@@ -131,8 +131,8 @@ onMounted(() => {
 <style scoped>
 .rays {
   background:
-    radial-gradient(circle, rgb(255 194 51 / 0.35), transparent 30%),
-    repeating-conic-gradient(rgb(255 211 77 / 0.1) 0 10deg, transparent 10deg 20deg);
+    radial-gradient(circle, color-mix(in srgb, var(--fg-coin) 35%, transparent), transparent 30%),
+    repeating-conic-gradient(color-mix(in srgb, var(--fg-coin) 12%, transparent) 0 10deg, transparent 10deg 20deg);
   mask-image: radial-gradient(circle, #000 12%, transparent 45%);
   animation: turn 18s linear infinite;
 }

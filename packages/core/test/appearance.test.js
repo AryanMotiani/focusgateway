@@ -207,6 +207,9 @@ const PAIRS = [
   ['room-muted', 'room-base', 4.5],
   ['accent', 'room-base', 4.5],
   ['room-on-tab', 'room-tab', 4.5],
+  // coin amounts on the page and on the room glass (the gold chip itself is checked below)
+  ['coin-ink', 'card', 4.5],
+  ['coin-ink', 'room-base', 4.5],
 ]
 
 describe('theme shapes', () => {
@@ -218,6 +221,15 @@ describe('theme shapes', () => {
     const all = [...APPEARANCE.game.themes, ...APPEARANCE.minimal.themes]
     for (const t of all) expect(shape(t.id).every(Boolean)).toBe(true)
     expect(new Set(all.map((t) => shape(t.id).join('|'))).size).toBe(all.length)
+  })
+})
+
+describe('coin colours', () => {
+  const root = css.match(/:root,\s*\[data-theme-id\]\s*\{([^}]*)\}/)[1]
+  const get = (k) => root.match(new RegExp(`--fg-${k}:\\s*(#[0-9a-f]{6})`, 'i'))[1]
+  it('keeps text readable on the gold chip and the new dot', () => {
+    expect(contrast(get('on-coin'), get('coin'))).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(get('on-new'), get('new'))).toBeGreaterThanOrEqual(4.5)
   })
 })
 

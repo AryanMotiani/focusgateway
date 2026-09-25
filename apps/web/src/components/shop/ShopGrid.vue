@@ -9,7 +9,7 @@ import { catalog, markSeen } from '../../lib/shop.js'
 import ShopItemCard from './ShopItemCard.vue'
 import BuyDialog from './BuyDialog.vue'
 
-const props = defineProps({ dark: Boolean, compact: Boolean, hideOwned: Boolean })
+const props = defineProps({ compact: Boolean, hideOwned: Boolean })
 const emit = defineEmits(['use'])
 const TABS = [{ id: 'all', label: 'All' }, ...SHOP_CATEGORIES]
 const tab = ref('all')
@@ -51,23 +51,15 @@ function use(item) {
         :key="t.id"
         role="tab"
         :aria-selected="tab === t.id"
-        class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold whitespace-nowrap transition"
-        :class="
-          tab === t.id
-            ? dark
-              ? 'bg-white/90 text-[#120f24]'
-              : 'bg-accent text-on-accent'
-            : dark
-              ? 'bg-white/5 text-white/70 hover:bg-white/10'
-              : 'bg-sunk text-muted hover:text-ink'
-        "
+        class="flex shrink-0 items-center gap-1.5 rounded-(--fg-btn-radius-sm) px-3 py-1.5 font-(family-name:--fg-font-btn) text-xs font-bold whitespace-nowrap transition"
+        :class="tab === t.id ? 'bg-accent text-on-accent' : 'bg-sunk text-muted hover:text-ink'"
         :data-shop-tab="t.id"
         @click="tab = t.id"
       >
         {{ t.label }}
         <span
           v-if="counts[t.id]"
-          class="num grid h-4 min-w-4 place-items-center rounded-full bg-[#ffc233] px-1 text-[10px] text-[#2a1d00]"
+          class="coin-chip num grid h-4 min-w-4 place-items-center rounded-full px-1 text-[10px]"
           :title="`${counts[t.id]} you can buy now`"
           >{{ counts[t.id] }}</span
         >
@@ -78,15 +70,7 @@ function use(item) {
       data-shop-grid
       @wheel="scroll"
     >
-      <ShopItemCard
-        v-for="i in items"
-        :key="i.id"
-        :item="i"
-        :dark="dark"
-        :compact="compact"
-        :is-new="newIds.has(i.id) && !i.owned"
-        @open="open = i"
-      />
+      <ShopItemCard v-for="i in items" :key="i.id" :item="i" :compact="compact" :is-new="newIds.has(i.id) && !i.owned" @open="open = i" />
     </div>
     <BuyDialog v-if="open" :key="open.id" :item="open" @close="open = null" @use="use" />
   </div>

@@ -28,11 +28,16 @@ watch(balance, (to, from) => {
   <RouterLink to="/shop" class="relative flex items-center gap-1.5 text-sm font-bold" :title="title" :aria-label="title" data-coin-counter>
     <CoinIcon :size="18" :class="bump && 'bump'" @animationend="bump = false" />
     <span class="num" data-coin-balance>{{ balance }}</span>
-    <span v-if="earning" class="num rounded-full bg-[#ffc233]/20 px-1.5 text-xs text-[#f2b705]" data-coin-live>+{{ earning }}</span>
+    <span
+      v-if="earning"
+      class="coin-text num rounded-full bg-[color-mix(in_srgb,var(--fg-coin)_22%,transparent)] px-1.5 text-xs"
+      data-coin-live
+      >+{{ earning }}</span
+    >
     <span v-else class="hud-label hidden sm:inline" :class="sub">coins</span>
     <span
       v-if="fresh"
-      class="dot absolute -top-2 -right-3 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-[#ff5d8f] px-0.5 text-[9px] leading-none text-white"
+      class="dot new-dot absolute -top-2 -right-3 grid h-3.5 min-w-3.5 place-items-center rounded-full px-0.5 text-[9px] leading-none"
       data-shop-dot
       >{{ fresh }}</span
     >

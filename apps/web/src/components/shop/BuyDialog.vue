@@ -39,7 +39,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
 
 <template>
   <Teleport to="body">
-    <div class="fixed inset-0 z-[65] grid place-items-center bg-[#0b0918]/60 p-4 backdrop-blur-sm" @mousedown.self="emit('close')">
+    <div class="fixed inset-0 z-[65] grid place-items-center bg-black/45 p-4 backdrop-blur-sm" @mousedown.self="emit('close')">
       <div
         class="pop-in w-full max-w-xs overflow-hidden rounded-3xl bg-hud text-hud-ink shadow-2xl"
         role="dialog"
@@ -56,7 +56,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
           <span class="relative h-28 w-40" :class="step === 'done' && 'pop-in'"><ItemPreview :item="item" big /></span>
           <span
             v-if="step === 'done'"
-            class="pop-in absolute top-3 right-3 flex items-center gap-1 rounded-full bg-[#7cd992] px-2.5 py-1 text-[11px] font-black text-[#0e2a16]"
+            class="pop-in absolute top-3 right-3 flex items-center gap-1 rounded-full bg-good px-2.5 py-1 text-[11px] font-black text-hud"
             ><Icon name="check" :size="12" /> Yours</span
           >
         </div>

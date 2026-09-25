@@ -171,20 +171,16 @@ const bright = computed({
 </script>
 
 <template>
-  <section
-    class="flex flex-col rounded-3xl border border-white/10 bg-[#15121f]/85 text-white backdrop-blur-xl"
-    data-room-tray
-    aria-label="Decorate the room"
-  >
+  <section class="room-glass flex flex-col rounded-(--fg-room-radius)" data-room-tray aria-label="Decorate the room">
     <div class="flex flex-wrap items-center gap-2 px-3 pt-3 sm:px-4">
-      <div class="flex gap-1 rounded-full bg-white/5 p-1" role="tablist">
+      <div class="flex gap-1 rounded-(--fg-room-pill-radius) bg-sunk p-1" role="tablist">
         <button
           v-for="t in TABS"
           :key="t.id"
           role="tab"
           :aria-selected="current === t.id"
-          class="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition max-sm:px-2.5"
-          :class="current === t.id ? 'bg-white text-[#120f24]' : 'text-white/70 hover:bg-white/10'"
+          class="flex items-center gap-1.5 rounded-(--fg-room-btn-radius) px-3 py-1.5 font-(family-name:--fg-font-btn) text-xs font-bold transition max-sm:px-2.5"
+          :class="current === t.id ? 'room-on' : 'room-hover text-muted'"
           @click="current = t.id"
         >
           <Icon :name="t.icon" :size="13" />{{ t.label }}
@@ -193,30 +189,25 @@ const bright = computed({
           <span v-if="t.id === 'shop'" class="num flex items-center gap-1 opacity-80"><CoinIcon :size="12" />{{ balance }}</span>
           <span
             v-if="t.id === 'shop' && fresh && current !== 'shop'"
-            class="grid h-4 min-w-4 place-items-center rounded-full bg-[#ff5d8f] px-1 text-[9px] text-white"
+            class="new-dot grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px]"
             data-shop-dot
             >{{ fresh }}</span
           >
         </button>
       </div>
-      <p class="min-w-0 flex-1 truncate text-xs text-white/55 max-sm:hidden">
+      <p class="min-w-0 flex-1 truncate text-xs text-muted max-sm:hidden">
         <template v-if="current === 'avatar' || current === 'room'"
           >Changes show up in the room right away. Tap a price to buy it with coins.</template
         >
         <template v-else-if="current === 'shop'">Earn coins by studying, spend them here. What you can afford comes first.</template>
         <template v-else>Drag into the room, or tap to place. Drag back here, or tap again, to put away.</template>
       </p>
-      <button
-        class="ml-auto flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-bold text-[#120f24]"
-        @click="emit('close')"
-      >
-        <Icon name="check" :size="14" /> Done
-      </button>
+      <button class="btn btn-primary btn-sm ml-auto" @click="emit('close')"><Icon name="check" :size="14" /> Done</button>
     </div>
 
     <!-- the shop, one scrolling row -->
     <div v-if="current === 'shop'" class="min-h-0 flex-1 p-3 sm:px-4" data-room-shop>
-      <ShopGrid dark compact @use="use" />
+      <ShopGrid compact @use="use" />
     </div>
 
     <!-- items and badges -->
@@ -228,16 +219,8 @@ const bright = computed({
       <button
         v-for="t in current === 'items' ? items : badges"
         :key="t.id"
-        class="tile group relative flex h-[92px] flex-col items-center justify-between rounded-2xl border p-1.5 text-center transition"
-        :class="
-          !t.owned
-            ? t.badge
-              ? 'cursor-not-allowed border-white/5 bg-white/[.03]'
-              : 'border-white/5 bg-white/[.03] hover:border-[#ffc233]/50'
-            : t.placed
-              ? 'border-[#ffe08a]/50 bg-[#ffe08a]/10'
-              : 'cursor-grab border-white/10 bg-white/[.07] hover:border-white/30 hover:bg-white/[.12]'
-        "
+        class="tile room-tile group relative flex h-[92px] flex-col items-center justify-between p-1.5 text-center"
+        :class="!t.owned ? (t.badge ? 'room-tile-off cursor-not-allowed' : 'room-tile-off') : t.placed ? 'room-tile-on' : 'cursor-grab'"
         :title="
           t.owned
             ? t.name
@@ -263,12 +246,12 @@ const bright = computed({
           <g v-html="t.svg" />
           <g v-if="t.glow" v-html="t.glow" />
         </svg>
-        <span class="line-clamp-1 w-full text-[10px] leading-tight font-semibold" :class="t.owned ? 'text-white/85' : 'text-white/40'">{{
+        <span class="line-clamp-1 w-full text-[10px] leading-tight font-semibold" :class="t.owned ? 'text-ink' : 'text-muted'">{{
           t.name
         }}</span>
         <span
           v-if="!t.owned && (t.badge || t.locked)"
-          class="num absolute top-1.5 right-1.5 flex items-center gap-0.5 rounded-full bg-black/50 px-1.5 py-0.5 text-[9px] font-bold text-white/70"
+          class="room-chip num absolute top-1.5 right-1.5 flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold"
           ><Icon name="lock" :size="9" />{{
             t.badge ? `${Math.min(t.progress.value, t.progress.target)}/${t.progress.target}` : 'LV ' + t.level
           }}</span
@@ -276,16 +259,14 @@ const bright = computed({
         <span
           v-else-if="!t.owned"
           class="num absolute top-1.5 right-1.5 flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold"
-          :class="t.price <= balance ? 'bg-[#ffc233] text-[#2a1d00]' : 'bg-black/55 text-white/80'"
+          :class="t.price <= balance ? 'coin-chip' : 'room-chip'"
           ><CoinIcon :size="9" />{{ t.price }}</span
         >
-        <span
-          v-else-if="t.placed"
-          class="absolute top-1.5 right-1.5 grid h-4 w-4 place-items-center rounded-full bg-[#ffe08a] text-[#120f24]"
+        <span v-else-if="t.placed" class="room-tick absolute top-1.5 right-1.5 grid h-4 w-4 place-items-center rounded-full"
           ><Icon name="check" :size="10"
         /></span>
       </button>
-      <p v-if="current === 'badges' && !badgeCount" class="row-span-2 self-center px-2 text-xs text-white/55">
+      <p v-if="current === 'badges' && !badgeCount" class="row-span-2 self-center px-2 text-xs text-muted">
         Earn milestones (tasks, streaks, focus hours) and they show up here as trophies, medals and frames.
       </p>
     </div>
@@ -298,8 +279,8 @@ const bright = computed({
           :key="sec.id"
           role="tab"
           :aria-selected="active.id === sec.id"
-          class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 font-bold whitespace-nowrap transition"
-          :class="active.id === sec.id ? 'bg-white/90 text-[#120f24]' : 'bg-white/5 text-white/70 hover:bg-white/10'"
+          class="flex shrink-0 items-center gap-1.5 rounded-(--fg-room-btn-radius) px-3 py-1 font-bold whitespace-nowrap transition"
+          :class="active.id === sec.id ? 'room-on' : 'room-hover bg-sunk text-muted'"
           @click="section[current] = sec.id"
         >
           {{ sec.label }}
@@ -309,16 +290,12 @@ const bright = computed({
       <div class="min-h-0 flex-1 space-y-3 overflow-y-auto p-3 max-sm:max-h-[46vh] sm:px-4">
         <div v-for="field in active.fields" :key="field">
           <div class="mb-1.5 flex items-center gap-3">
-            <p class="hud-label text-white/55">{{ fieldLabel(field) }}</p>
+            <p class="hud-label text-muted">{{ fieldLabel(field) }}</p>
             <!-- on and off switches for the extras -->
             <button
               v-if="field === 'headphonesColor' || field === 'glassesStyle'"
-              class="flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold"
-              :class="
-                room.avatar[field === 'glassesStyle' ? 'glasses' : 'headphones']
-                  ? 'bg-white text-[#120f24]'
-                  : 'bg-white/10 hover:bg-white/20'
-              "
+              class="flex items-center gap-1 rounded-(--fg-room-btn-radius) px-2.5 py-0.5 text-[11px] font-bold"
+              :class="room.avatar[field === 'glassesStyle' ? 'glasses' : 'headphones'] ? 'room-on' : 'room-hover bg-sunk'"
               :aria-pressed="room.avatar[field === 'glassesStyle' ? 'glasses' : 'headphones']"
               @click="
                 field === 'glassesStyle' ? (room.avatar.glasses = !room.avatar.glasses) : (room.avatar.headphones = !room.avatar.headphones)
@@ -326,8 +303,8 @@ const bright = computed({
             >
               {{ field === 'glassesStyle' ? (room.avatar.glasses ? 'Wearing' : 'Off') : room.avatar.headphones ? 'Wearing' : 'Off' }}
             </button>
-            <p v-if="field === 'earrings' && hidesEars(room.avatar.hair)" class="text-white/40">Show with hair that leaves the ears out.</p>
-            <label v-if="field === 'light'" class="ml-auto flex items-center gap-2 text-white/70">
+            <p v-if="field === 'earrings' && hidesEars(room.avatar.hair)" class="text-muted">Show with hair that leaves the ears out.</p>
+            <label v-if="field === 'light'" class="ml-auto flex items-center gap-2 text-muted">
               <Icon name="sun" :size="13" /> Brightness
               <input
                 v-model.number="bright"
@@ -335,7 +312,7 @@ const bright = computed({
                 :min="BRIGHTNESS_RANGE[0]"
                 :max="BRIGHTNESS_RANGE[1]"
                 step="0.05"
-                class="w-24 accent-white"
+                class="room-range w-24"
                 aria-label="Lamp brightness"
               />
             </label>
@@ -344,15 +321,8 @@ const bright = computed({
             <button
               v-for="o in opts(field)"
               :key="o.value"
-              class="opt relative flex flex-col items-center justify-between gap-1 rounded-2xl border p-1.5 text-center transition"
-              :class="[
-                kindOf(field) === 'swatch' ? 'w-[64px]' : 'w-[76px]',
-                o.on
-                  ? 'border-[#ffe08a]/70 bg-[#ffe08a]/12'
-                  : o.owned
-                    ? 'border-white/10 bg-white/[.06] hover:border-white/30 hover:bg-white/[.12]'
-                    : 'border-white/5 bg-white/[.02] hover:border-[#ffc233]/50',
-              ]"
+              class="opt room-tile relative flex flex-col items-center justify-between gap-1 p-1.5 text-center"
+              :class="[kindOf(field) === 'swatch' ? 'w-[64px]' : 'w-[76px]', o.on ? 'room-tile-on' : !o.owned && 'room-tile-off']"
               :aria-pressed="o.on"
               :aria-label="o.owned ? o.name : o.locked ? `${o.name}, unlocks at level ${o.level}` : `Buy ${o.name} for ${o.price} coins`"
               :title="
@@ -370,30 +340,28 @@ const bright = computed({
               >
                 <OptionPreview :field="field" :value="o.value" />
               </span>
-              <span
-                class="line-clamp-1 w-full text-[10px] leading-tight font-semibold"
-                :class="o.owned ? 'text-white/85' : 'text-white/40'"
-                >{{ o.name }}</span
-              >
+              <span class="line-clamp-1 w-full text-[10px] leading-tight font-semibold" :class="o.owned ? 'text-ink' : 'text-muted'">{{
+                o.name
+              }}</span>
               <span
                 v-if="!o.owned && o.locked"
-                class="num absolute top-1 right-1 flex items-center gap-0.5 rounded-full bg-black/60 px-1.5 py-0.5 text-[9px] font-bold text-white/75"
+                class="room-chip num absolute top-1 right-1 flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold"
                 ><Icon name="lock" :size="9" />LV {{ o.level }}</span
               >
               <span
                 v-else-if="!o.owned"
                 class="num absolute top-1 right-1 flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[9px] font-bold"
-                :class="o.price <= balance ? 'bg-[#ffc233] text-[#2a1d00]' : 'bg-black/60 text-white/80'"
+                :class="o.price <= balance ? 'coin-chip' : 'room-chip'"
                 ><CoinIcon :size="9" />{{ o.price }}</span
               >
-              <span v-else-if="o.on" class="absolute top-1 right-1 grid h-4 w-4 place-items-center rounded-full bg-[#ffe08a] text-[#120f24]"
+              <span v-else-if="o.on" class="room-tick absolute top-1 right-1 grid h-4 w-4 place-items-center rounded-full"
                 ><Icon name="check" :size="10"
               /></span>
             </button>
           </div>
         </div>
-        <p v-if="active.id === 'you'" class="text-white/45">Build and skin tone are always yours to pick, free.</p>
-        <p v-if="active.id === 'light'" class="text-white/45">
+        <p v-if="active.id === 'you'" class="text-muted">Build and skin tone are always yours to pick, free.</p>
+        <p v-if="active.id === 'light'" class="text-muted">
           The lamp shows at night, dusk and sunset. Fairy lights need the Fairy lights item in the room.
         </p>
       </div>

@@ -157,6 +157,14 @@
   --fg-texture: none;
   --fg-texture-size: auto;
 
+  /* coins: the gold itself is the same everywhere, its text colour (--fg-coin-ink) is per theme */
+  --fg-coin: #ffc233;
+  --fg-coin-deep: #c98a00;
+  --fg-on-coin: #2a1d00;
+  /* the "new" dot and tag */
+  --fg-new: #d6336c;
+  --fg-on-new: #ffffff;
+
   /* study room glass */
   --fg-room-radius: 14px;
   --fg-room-border-w: 1px;
@@ -272,6 +280,7 @@
   --fg-texture: radial-gradient(rgba(198, 63, 40, 0.075) 2px, transparent 2.5px);
   --fg-texture-size: 26px 26px;
 
+  --fg-coin-ink: #8a5800;
   --fg-room-base: #fffaf0;
   --fg-room-bg: rgb(255 250 240 / 0.94);
   --fg-room-border: #f0d8a8;
@@ -391,6 +400,7 @@
   --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .12 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --fg-texture-size: 180px 180px;
 
+  --fg-coin-ink: #7c520b;
   --fg-room-base: #fcf6e6;
   --fg-room-bg: rgb(252 246 230 / 0.96);
   --fg-room-border: #6f5638;
@@ -509,6 +519,7 @@
   --fg-texture: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 4px);
   --fg-texture-size: auto;
 
+  --fg-coin-ink: #ffc233;
   --fg-room-base: #211f3b;
   --fg-room-bg: rgb(33 31 59 / 0.97);
   --fg-room-border: #09081a;
@@ -622,6 +633,7 @@
     radial-gradient(1px 1px at 88% 88%, rgba(184, 162, 255, 0.5), transparent);
   --fg-texture-size: 220px 220px;
 
+  --fg-coin-ink: #ffc94d;
   --fg-room-base: #16223e;
   --fg-room-bg: rgb(20 31 58 / 0.84);
   --fg-room-border: rgb(184 162 255 / 0.24);
@@ -723,6 +735,7 @@
   --fg-texture: repeating-linear-gradient(180deg, transparent 0 31px, rgba(31, 78, 140, 0.05) 31px 32px);
   --fg-texture-size: auto;
 
+  --fg-coin-ink: #80560c;
   --fg-room-base: #fffdf8;
   --fg-room-bg: rgb(255 253 248 / 0.97);
   --fg-room-border: #cfc4ab;
@@ -824,6 +837,7 @@
   --fg-chip-radius: 8px;
   --fg-xp-height: 8px;
 
+  --fg-coin-ink: #7a560c;
   --fg-room-base: #f7f9fb;
   --fg-room-bg: rgb(247 249 251 / 0.86);
   --fg-room-border: rgb(255 255 255 / 0.7);
@@ -932,6 +946,7 @@
   --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .8 0 0 0 0 .55 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --fg-texture-size: 200px 200px;
 
+  --fg-coin-ink: #e6b94f;
   --fg-room-base: #141f18;
   --fg-room-bg: rgb(18 29 22 / 0.91);
   --fg-room-border: rgb(212 170 82 / 0.5);
@@ -1043,6 +1058,7 @@
   --fg-texture: radial-gradient(rgba(243, 236, 223, 0.06) 1px, transparent 1.2px);
   --fg-texture-size: 18px 18px;
 
+  --fg-coin-ink: #e2b858;
   --fg-room-base: #312d29;
   --fg-room-bg: rgb(46 42 38 / 0.93);
   --fg-room-border: #4f473e;
@@ -1085,6 +1101,7 @@
   --fg-bad: var(--fg-hud-bad);
   --fg-xp: var(--fg-hud-xp);
   --fg-xpbar: var(--fg-hud-xpbar);
+  --fg-coin-ink: var(--fg-hud-xp);
 }
 
 html,
@@ -1328,6 +1345,57 @@ body,
   .room-glass.room-on {
     background-color: var(--fg-room-tab);
     color: var(--fg-room-on-tab);
+  }
+  /* shop and decorate tiles on the room glass */
+  .room-tile {
+    border: 1px solid var(--fg-room-line);
+    border-radius: var(--fg-radius-sm);
+    background-color: var(--fg-room-sunk);
+    transition:
+      border-color 0.15s,
+      background-color 0.15s;
+  }
+  .room-tile:hover {
+    border-color: color-mix(in srgb, var(--fg-room-ink) 35%, transparent);
+    background-color: var(--fg-room-hover);
+  }
+  /* placed, worn or picked */
+  .room-tile-on,
+  .room-tile-on:hover {
+    border-color: var(--fg-accent);
+    background-color: color-mix(in srgb, var(--fg-accent) 14%, transparent);
+  }
+  /* not yours yet */
+  .room-tile-off {
+    border-style: dashed;
+    background-color: transparent;
+  }
+  .room-tile-off:hover {
+    border-color: var(--fg-coin-ink);
+  }
+  /* a small dark-on-light (or light-on-dark) label that reads over any picture */
+  .room-chip {
+    background-color: color-mix(in srgb, var(--fg-room-ink) 82%, transparent);
+    color: var(--fg-room-base);
+  }
+  .room-tick {
+    background-color: var(--fg-accent);
+    color: var(--fg-on-accent);
+  }
+  /* coins */
+  .coin-text {
+    color: var(--fg-coin-ink);
+  }
+  .coin-chip {
+    background-color: var(--fg-coin);
+    color: var(--fg-on-coin);
+  }
+  .coin-bar {
+    background-color: var(--fg-coin);
+  }
+  .new-dot {
+    background-color: var(--fg-new);
+    color: var(--fg-on-new);
   }
   /* the big clock: the display face, with the theme's own glow or pixel shadow */
   .room-clock {
