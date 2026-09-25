@@ -16,7 +16,7 @@ jobs:
     name: Build extension, agent and Windows/Linux installers
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version-file: .nvmrc, cache: npm }
       - uses: actions/setup-go@v5
@@ -53,9 +53,9 @@ jobs:
           cp extension/dist/focusgateway-*-"$VERSION".zip release/
           git archive --format=zip --prefix=focusgateway/ -o "release/focusgateway-source-$GITHUB_REF_NAME.zip" HEAD
           ls -l release
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: release-files, path: release/, retention-days: 7 }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: darwin-binaries, path: 'agent/dist/*darwin*', retention-days: 1 }
 
   macos-pkg:
@@ -63,7 +63,7 @@ jobs:
     needs: build
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
         with: { name: darwin-binaries, path: agent/dist }
       - name: Universal .pkg (unsigned)
@@ -85,7 +85,7 @@ jobs:
           [ -n "$script" ] && [ -x "$script" ] || { echo "postinstall script missing"; exit 1; }
           grep -q -- '--no-pause' "$script"
           grep -q 'app.focusgateway.agent' "$out/Distribution"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: macos-pkg, path: packaging/out/FocusGateway.pkg, retention-days: 7 }
 
   publish:
@@ -102,7 +102,7 @@ jobs:
       - name: Checksums
         working-directory: release
         run: sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           generate_release_notes: true
           files: release/*
@@ -111,7 +111,7 @@ jobs:
 
             Lock agent: `FocusGateway-Setup.exe` (Windows), `FocusGateway.pkg` (macOS), `.deb` / `.rpm` or `curl -fsSL https://github.com/${{ github.repository }}/releases/latest/download/install.sh | sh` (Linux).
             The installers are not code-signed yet: see [installing the lock agent](https://github.com/${{ github.repository }}/blob/master/docs/INSTALL-AGENT.md) for the one extra click.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: extension-zips
           path: |
@@ -148,7 +148,7 @@ jobs:
     steps:
       - if: env.AMO_JWT_ISSUER == ''
         run: echo "addons.mozilla.org secrets not set, skipping."
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.AMO_JWT_ISSUER != ''
       - uses: actions/setup-node@v4
         if: env.AMO_JWT_ISSUER != ''

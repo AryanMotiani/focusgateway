@@ -239,6 +239,17 @@ func EOL() string {
 // Apply writes the domain set into the hosts file. It returns true if the file changed.
 func Apply(domains []string) (bool, error) { return ApplyTo(Path(), domains) }
 
+// detectEOL returns the line ending style used in content, or the OS default.
+func detectEOL(content string) string {
+	if strings.Contains(content, "\r\n") {
+		return "\r\n"
+	}
+	if strings.Contains(content, "\n") {
+		return "\n"
+	}
+	return EOL()
+}
+
 // ApplyTo is Apply for a given file.
 func ApplyTo(file string, domains []string) (bool, error) {
 	domains, dropped := Sanitize(domains)
@@ -247,7 +258,11 @@ func ApplyTo(file string, domains []string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	next := Render(current, domains, EOL())
+	// Use the file's own line endings so the comparison next==current is
+	// always like-for-like. Avoids rewriting a LF file with CRLF on Windows
+	// when no valid domains are supplied.
+	eol := detectEOL(current)
+	next := Render(current, domains, eol)
 	if next == current {
 		return false, nil
 	}
