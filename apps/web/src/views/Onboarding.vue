@@ -9,6 +9,7 @@ import Icon from '../components/Icon.vue'
 import PinField from '../components/PinField.vue'
 import FailsafeFlow from '../components/FailsafeFlow.vue'
 import RuleEditor from '../components/RuleEditor.vue'
+import ComboPicker from '../components/look/ComboPicker.vue'
 import logo from '../assets/logo.svg'
 
 const router = useRouter()
@@ -169,6 +170,10 @@ const firstRule = computed(() => s.value.rules[0])
                 <span class="mt-1 block text-xs text-muted">{{ m.text }}</span>
               </button>
             </div>
+          </div>
+          <div>
+            <p class="label">And a look (more colours and fonts in Settings)</p>
+            <ComboPicker :mode="uiMode" :limit="4" compact />
           </div>
           <button class="btn btn-primary w-full py-3" @click="start">Start setup</button>
         </div>

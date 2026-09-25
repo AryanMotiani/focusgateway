@@ -1,3 +1,5 @@
+import { DEFAULT_APPEARANCE } from './appearance.js'
+
 export const SCHEMA_VERSION = 1
 
 export const DEFAULT_TAGS = ['School', 'Work', 'Personal', 'Fitness', 'Reading']
@@ -16,6 +18,7 @@ export function defaultState() {
       uiMode: 'game', // 'game' | 'minimal'
       sounds: true,
       weeklyFocusGoalMin: 300,
+      appearance: structuredClone(DEFAULT_APPEARANCE), // palette + heading font + body font, per mode
       lofi: { volume: 0.6, scene: 'night', style: 'music-classic', objects: true, mix: { rain: 0.5, cafe: 0, fire: 0, noise: 0 } },
     },
     customSites: [],
@@ -43,6 +46,11 @@ export function migrate(saved) {
   }
   out.settings.lofi = { ...base.settings.lofi, ...(saved.settings?.lofi || {}) }
   out.settings.lofi.mix = { ...base.settings.lofi.mix, ...(saved.settings?.lofi?.mix || {}) }
+  const look = saved.settings?.appearance || {}
+  out.settings.appearance = {
+    game: { ...base.settings.appearance.game, ...(look.game || {}) },
+    minimal: { ...base.settings.appearance.minimal, ...(look.minimal || {}) },
+  }
   for (const k of ['customSites', 'rules', 'tasks', 'tags', 'habits', 'overrides', 'log']) {
     if (!Array.isArray(out[k])) out[k] = base[k]
   }

@@ -19,6 +19,7 @@ import {
   taskColor,
 } from './tasks.js'
 import { dateKey, fromDateKey, startOfDay, addDays } from './time.js'
+import { mergeAppearance } from './appearance.js'
 
 export class FGError extends Error {
   constructor(code, message, details) {
@@ -761,6 +762,11 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         const v = Math.round(Number(patch.weeklyFocusGoalMin))
         if (!(v >= 30 && v <= 5000)) fail('VALIDATION', 'Weekly focus goal must be 30 to 5000 minutes.')
         s.settings.weeklyFocusGoalMin = v
+      }
+      if ('appearance' in patch) {
+        const r = mergeAppearance(s.settings.appearance, patch.appearance)
+        if (r.error) fail('VALIDATION', r.error)
+        s.settings.appearance = r.value
       }
       if (patch.lofi) s.settings.lofi = { ...s.settings.lofi, ...patch.lofi, mix: { ...s.settings.lofi.mix, ...(patch.lofi.mix || {}) } }
       return s.settings

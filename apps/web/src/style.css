@@ -6,13 +6,29 @@
 @import '@fontsource/barlow-condensed/700.css';
 @import '@fontsource/barlow-condensed/800.css';
 @import '@fontsource/instrument-serif';
+/* Optional heading and body fonts. Each @font-face only downloads when a page uses it. */
+@import '@fontsource-variable/fredoka';
+@import '@fontsource-variable/baloo-2';
+@import '@fontsource/lilita-one';
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/lexend';
+@import '@fontsource-variable/outfit';
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource-variable/fraunces';
+@import '@fontsource/dm-serif-display';
+@import '@fontsource-variable/newsreader';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/ibm-plex-sans';
+@import '@fontsource-variable/source-serif-4';
 
 /*
   Two looks, one set of components.
     html[data-mode='game']     tactile, bright, chunky (Duolingo-like) with HUD touches
     html[data-mode='minimal']  calm paper notebook
   Each has a light and a dark palette (.dark on <html>).
-  Components only use the tokens below, never raw colours.
+  On top of that, html[data-palette], [data-heading] and [data-body] pick one of the
+  looks from packages/core/src/appearance.js. The defaults (Grape, Paper) are the plain
+  mode rules below. Components only use the tokens below, never raw colours.
 */
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -64,6 +80,8 @@
   --fg-font-display: 'Instrument Serif', Georgia, serif;
   --fg-font-label: 'Geist Variable', system-ui, sans-serif;
   --fg-font-num: 'Geist Mono Variable', ui-monospace, monospace;
+  --fg-display-weight: 400;
+  --fg-display-tracking: -0.01em;
   --fg-radius: 14px;
   --fg-paper: #f4efe6;
   --fg-card: #fffdf8;
@@ -139,12 +157,15 @@
   --fg-font-display: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
   --fg-font-label: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --fg-font-num: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --fg-display-weight: 900;
+  --fg-display-tracking: -0.03em;
+  --fg-body-weight: 600;
   --fg-radius: 18px;
   --fg-paper: #fff7ec;
   --fg-card: #ffffff;
   --fg-sunk: #f7ecdc;
   --fg-ink: #2b2a33;
-  --fg-muted: #7d7688;
+  --fg-muted: #6e6879;
   --fg-line: #eee2d0;
   --fg-edge: #e0d0b9;
   --fg-accent: #7a4dff;
@@ -205,6 +226,604 @@
   --fg-heat-3: #a58bff;
 }
 
+/* ---------- Heading fonts (data-heading) ---------- */
+html[data-heading='nunito'] {
+  --fg-font-display: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
+  --fg-display-weight: 900;
+  --fg-display-tracking: -0.03em;
+}
+html[data-heading='fredoka'] {
+  --fg-font-display: 'Fredoka Variable', system-ui, sans-serif;
+  --fg-display-weight: 650;
+  --fg-display-tracking: -0.01em;
+}
+html[data-heading='baloo'] {
+  --fg-font-display: 'Baloo 2 Variable', system-ui, sans-serif;
+  --fg-display-weight: 800;
+  --fg-display-tracking: -0.02em;
+}
+html[data-heading='lilita'] {
+  --fg-font-display: 'Lilita One', system-ui, sans-serif;
+  --fg-display-weight: 400;
+  --fg-display-tracking: 0.005em;
+}
+html[data-heading='space-grotesk'] {
+  --fg-font-display: 'Space Grotesk Variable', system-ui, sans-serif;
+  --fg-display-weight: 700;
+  --fg-display-tracking: -0.035em;
+}
+html[data-heading='barlow'] {
+  --fg-font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --fg-display-weight: 800;
+  --fg-display-tracking: 0;
+}
+html[data-heading='instrument'] {
+  --fg-font-display: 'Instrument Serif', Georgia, serif;
+  --fg-display-weight: 400;
+  --fg-display-tracking: -0.01em;
+}
+html[data-heading='fraunces'] {
+  --fg-font-display: 'Fraunces Variable', Georgia, serif;
+  --fg-display-weight: 500;
+  --fg-display-tracking: -0.02em;
+}
+html[data-heading='dm-serif'] {
+  --fg-font-display: 'DM Serif Display', Georgia, serif;
+  --fg-display-weight: 400;
+  --fg-display-tracking: -0.01em;
+}
+html[data-heading='newsreader'] {
+  --fg-font-display: 'Newsreader Variable', Georgia, serif;
+  --fg-display-weight: 500;
+  --fg-display-tracking: -0.02em;
+}
+html[data-heading='geist'] {
+  --fg-font-display: 'Geist Variable', system-ui, sans-serif;
+  --fg-display-weight: 600;
+  --fg-display-tracking: -0.04em;
+}
+
+/* ---------- Body fonts (data-body). The weight only applies in game mode. ---------- */
+html[data-body='nunito'] {
+  --fg-font-sans: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
+  --fg-body-weight: 600;
+}
+html[data-body='lexend'] {
+  --fg-font-sans: 'Lexend Variable', system-ui, sans-serif;
+  --fg-body-weight: 450;
+}
+html[data-body='outfit'] {
+  --fg-font-sans: 'Outfit Variable', system-ui, sans-serif;
+  --fg-body-weight: 500;
+}
+html[data-body='dm-sans'] {
+  --fg-font-sans: 'DM Sans Variable', system-ui, sans-serif;
+  --fg-body-weight: 500;
+}
+html[data-body='space-grotesk'] {
+  --fg-font-sans: 'Space Grotesk Variable', system-ui, sans-serif;
+  --fg-body-weight: 500;
+}
+html[data-body='geist'] {
+  --fg-font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+html[data-body='inter'] {
+  --fg-font-sans: 'Inter Variable', system-ui, sans-serif;
+}
+html[data-body='plex'] {
+  --fg-font-sans: 'IBM Plex Sans Variable', system-ui, sans-serif;
+}
+html[data-body='source-serif'] {
+  --fg-font-sans: 'Source Serif 4 Variable', Georgia, serif;
+}
+
+/*
+  ---------- Palettes (data-palette) ----------
+  One light and one dark block per palette, ids from packages/core/src/appearance.js.
+  Every block sets every colour token, so a light value never leaks into dark.
+  Good, bad and caution colours come from the mode rules above.
+*/
+html[data-mode='game'][data-palette='arcade'] {
+  --fg-paper: #eefaf8;
+  --fg-card: #ffffff;
+  --fg-sunk: #dcf1ed;
+  --fg-ink: #14213d;
+  --fg-muted: #506079;
+  --fg-line: #cfe7e3;
+  --fg-edge: #a9d3cc;
+  --fg-accent: #0a7f74;
+  --fg-accent-deep: #075e56;
+  --fg-accent-soft: #d5f5ef;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #e8157a;
+  --fg-warm-deep: #b80e5f;
+  --fg-warm-soft: #ffe0ee;
+  --fg-xp: #ff2e88;
+  --fg-hud: #0b1330;
+  --fg-hud-ink: #e8fbff;
+  --fg-hud-muted: #8aa0c8;
+  --fg-hud-line: #1c2a52;
+  --fg-heat-0: #d9ece8;
+  --fg-heat-1: #9fe3d9;
+  --fg-heat-2: #2fb8a8;
+  --fg-heat-3: #0a7f74;
+}
+html[data-mode='game'][data-palette='arcade'].dark {
+  --fg-paper: #0a1024;
+  --fg-card: #111a33;
+  --fg-sunk: #0d152c;
+  --fg-ink: #e6f7ff;
+  --fg-muted: #8ea3c4;
+  --fg-line: #1e2b4d;
+  --fg-edge: #050912;
+  --fg-accent: #2ee6d0;
+  --fg-accent-deep: #13a897;
+  --fg-accent-soft: #0f3038;
+  --fg-on-accent: #04161a;
+  --fg-warm: #ff4fa0;
+  --fg-warm-deep: #c9267a;
+  --fg-warm-soft: #3a1330;
+  --fg-xp: #ff4fa0;
+  --fg-hud: #060b1c;
+  --fg-hud-ink: #e6f7ff;
+  --fg-hud-muted: #8ea3c4;
+  --fg-hud-line: #18244a;
+  --fg-heat-0: #141d38;
+  --fg-heat-1: #13545a;
+  --fg-heat-2: #1ca597;
+  --fg-heat-3: #2ee6d0;
+}
+html[data-mode='game'][data-palette='sunset'] {
+  --fg-paper: #fff4ec;
+  --fg-card: #ffffff;
+  --fg-sunk: #fbe6d8;
+  --fg-ink: #2e1a2b;
+  --fg-muted: #7a5d6d;
+  --fg-line: #f3dccd;
+  --fg-edge: #e6c4ae;
+  --fg-accent: #c8431c;
+  --fg-accent-deep: #9a3013;
+  --fg-accent-soft: #ffe3d8;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #f29f05;
+  --fg-warm-deep: #c27d00;
+  --fg-warm-soft: #fff0cf;
+  --fg-xp: #ffb627;
+  --fg-hud: #3a1838;
+  --fg-hud-ink: #fff0f3;
+  --fg-hud-muted: #c9a0b9;
+  --fg-hud-line: #55284f;
+  --fg-heat-0: #f6e3d6;
+  --fg-heat-1: #ffc2a8;
+  --fg-heat-2: #f47b52;
+  --fg-heat-3: #c8431c;
+}
+html[data-mode='game'][data-palette='sunset'].dark {
+  --fg-paper: #1a0f17;
+  --fg-card: #26151f;
+  --fg-sunk: #1f121b;
+  --fg-ink: #fbeee8;
+  --fg-muted: #bb9aa8;
+  --fg-line: #3a2230;
+  --fg-edge: #0d070b;
+  --fg-accent: #ff7a50;
+  --fg-accent-deep: #d4502a;
+  --fg-accent-soft: #3d1d1c;
+  --fg-on-accent: #1a0f17;
+  --fg-warm: #ffb730;
+  --fg-warm-deep: #cc8a12;
+  --fg-warm-soft: #372812;
+  --fg-xp: #ffc43d;
+  --fg-hud: #12080f;
+  --fg-hud-ink: #fbeee8;
+  --fg-hud-muted: #bb9aa8;
+  --fg-hud-line: #2f1a27;
+  --fg-heat-0: #2a1822;
+  --fg-heat-1: #5e2a2a;
+  --fg-heat-2: #b04a2c;
+  --fg-heat-3: #ff7a50;
+}
+html[data-mode='game'][data-palette='forest'] {
+  --fg-paper: #fbf6e9;
+  --fg-card: #fffdf6;
+  --fg-sunk: #f1ead6;
+  --fg-ink: #1f2a1f;
+  --fg-muted: #5f6a55;
+  --fg-line: #e6ddc4;
+  --fg-edge: #d6c9a6;
+  --fg-accent: #2b7d39;
+  --fg-accent-deep: #1d5e28;
+  --fg-accent-soft: #e2f2dc;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #d99a00;
+  --fg-warm-deep: #a87700;
+  --fg-warm-soft: #fbefcc;
+  --fg-xp: #e0a800;
+  --fg-hud: #17291c;
+  --fg-hud-ink: #f3f7ea;
+  --fg-hud-muted: #9fb59a;
+  --fg-hud-line: #284332;
+  --fg-heat-0: #ece4cc;
+  --fg-heat-1: #bfe0b0;
+  --fg-heat-2: #6fbf6a;
+  --fg-heat-3: #2b7d39;
+}
+html[data-mode='game'][data-palette='forest'].dark {
+  --fg-paper: #0f1611;
+  --fg-card: #172119;
+  --fg-sunk: #131c15;
+  --fg-ink: #eef3e6;
+  --fg-muted: #9fae9a;
+  --fg-line: #26352a;
+  --fg-edge: #070b08;
+  --fg-accent: #6fd672;
+  --fg-accent-deep: #3f9f47;
+  --fg-accent-soft: #1b3320;
+  --fg-on-accent: #0c1a0e;
+  --fg-warm: #f2c14a;
+  --fg-warm-deep: #c2931f;
+  --fg-warm-soft: #332b12;
+  --fg-xp: #f7cf4f;
+  --fg-hud: #0a110c;
+  --fg-hud-ink: #eef3e6;
+  --fg-hud-muted: #9fae9a;
+  --fg-hud-line: #1f2e23;
+  --fg-heat-0: #1a241c;
+  --fg-heat-1: #22502b;
+  --fg-heat-2: #3f9f47;
+  --fg-heat-3: #6fd672;
+}
+html[data-mode='game'][data-palette='ocean'] {
+  --fg-paper: #f0f6ff;
+  --fg-card: #ffffff;
+  --fg-sunk: #e0ecfb;
+  --fg-ink: #142238;
+  --fg-muted: #53637c;
+  --fg-line: #d5e3f5;
+  --fg-edge: #b8cde9;
+  --fg-accent: #1d67d6;
+  --fg-accent-deep: #1452b0;
+  --fg-accent-soft: #e0ecff;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #ff8a1c;
+  --fg-warm-deep: #d06b0a;
+  --fg-warm-soft: #fff0dc;
+  --fg-xp: #13c2e0;
+  --fg-hud: #0d1b33;
+  --fg-hud-ink: #eaf3ff;
+  --fg-hud-muted: #8fa6c7;
+  --fg-hud-line: #1d3052;
+  --fg-heat-0: #e0e9f5;
+  --fg-heat-1: #a9d2f7;
+  --fg-heat-2: #4f9cf0;
+  --fg-heat-3: #1d67d6;
+}
+html[data-mode='game'][data-palette='ocean'].dark {
+  --fg-paper: #0b1320;
+  --fg-card: #121d2e;
+  --fg-sunk: #0e1826;
+  --fg-ink: #e8f1ff;
+  --fg-muted: #93a6c1;
+  --fg-line: #1f2d42;
+  --fg-edge: #060a12;
+  --fg-accent: #5aa2ff;
+  --fg-accent-deep: #2f74d6;
+  --fg-accent-soft: #16294a;
+  --fg-on-accent: #06101f;
+  --fg-warm: #ffa94d;
+  --fg-warm-deep: #cc7a24;
+  --fg-warm-soft: #33250f;
+  --fg-xp: #3ddcf5;
+  --fg-hud: #070d18;
+  --fg-hud-ink: #e8f1ff;
+  --fg-hud-muted: #93a6c1;
+  --fg-hud-line: #1a2940;
+  --fg-heat-0: #141f30;
+  --fg-heat-1: #1a3a66;
+  --fg-heat-2: #2f74d6;
+  --fg-heat-3: #5aa2ff;
+}
+html[data-mode='game'][data-palette='candy'] {
+  --fg-paper: #fff3f8;
+  --fg-card: #ffffff;
+  --fg-sunk: #fbe4ef;
+  --fg-ink: #3a2340;
+  --fg-muted: #7d6082;
+  --fg-line: #f5d7e6;
+  --fg-edge: #eabfd6;
+  --fg-accent: #c92a74;
+  --fg-accent-deep: #9c1d58;
+  --fg-accent-soft: #ffe0ee;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #f08a4b;
+  --fg-warm-deep: #c96a2e;
+  --fg-warm-soft: #ffeadb;
+  --fg-xp: #b98cff;
+  --fg-hud: #3a2340;
+  --fg-hud-ink: #fff0f7;
+  --fg-hud-muted: #c8a6cc;
+  --fg-hud-line: #523558;
+  --fg-heat-0: #f6e2ec;
+  --fg-heat-1: #f7b8d6;
+  --fg-heat-2: #e86aa6;
+  --fg-heat-3: #c92a74;
+}
+html[data-mode='game'][data-palette='candy'].dark {
+  --fg-paper: #1a1220;
+  --fg-card: #241a2b;
+  --fg-sunk: #1e1525;
+  --fg-ink: #fbeef6;
+  --fg-muted: #c3a6c6;
+  --fg-line: #3a2b42;
+  --fg-edge: #0d0910;
+  --fg-accent: #ff7ab8;
+  --fg-accent-deep: #d64a8e;
+  --fg-accent-soft: #3d1d33;
+  --fg-on-accent: #1f0e19;
+  --fg-warm: #ffae6b;
+  --fg-warm-deep: #d0813f;
+  --fg-warm-soft: #372516;
+  --fg-xp: #c9a2ff;
+  --fg-hud: #120c17;
+  --fg-hud-ink: #fbeef6;
+  --fg-hud-muted: #c3a6c6;
+  --fg-hud-line: #2e2236;
+  --fg-heat-0: #251b2c;
+  --fg-heat-1: #5a2848;
+  --fg-heat-2: #b24382;
+  --fg-heat-3: #ff7ab8;
+}
+html[data-mode='minimal'][data-palette='sage'] {
+  --fg-paper: #f1f3ec;
+  --fg-card: #fbfcf8;
+  --fg-sunk: #e5e9dd;
+  --fg-ink: #1f2620;
+  --fg-muted: #5b675c;
+  --fg-line: #dbe0d2;
+  --fg-edge: #dbe0d2;
+  --fg-accent: #3f6e4f;
+  --fg-accent-deep: #2f5540;
+  --fg-accent-soft: #e2ede3;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #b0702a;
+  --fg-warm-deep: #8d5820;
+  --fg-warm-soft: #f3e7d4;
+  --fg-xp: #3f6e4f;
+  --fg-hud: #fbfcf8;
+  --fg-hud-ink: #1f2620;
+  --fg-hud-muted: #5b675c;
+  --fg-hud-line: #dbe0d2;
+  --fg-heat-0: #e2e6da;
+  --fg-heat-1: #bcd3bf;
+  --fg-heat-2: #7fa98a;
+  --fg-heat-3: #3f6e4f;
+}
+html[data-mode='minimal'][data-palette='sage'].dark {
+  --fg-paper: #111512;
+  --fg-card: #181d19;
+  --fg-sunk: #141915;
+  --fg-ink: #e8ede6;
+  --fg-muted: #9ba89c;
+  --fg-line: #262e27;
+  --fg-edge: #262e27;
+  --fg-accent: #8fc29d;
+  --fg-accent-deep: #6a9d78;
+  --fg-accent-soft: #1f2d23;
+  --fg-on-accent: #0f1a12;
+  --fg-warm: #e0a65e;
+  --fg-warm-deep: #b8823f;
+  --fg-warm-soft: #2e2518;
+  --fg-xp: #8fc29d;
+  --fg-hud: #181d19;
+  --fg-hud-ink: #e8ede6;
+  --fg-hud-muted: #9ba89c;
+  --fg-hud-line: #262e27;
+  --fg-heat-0: #1c221d;
+  --fg-heat-1: #2a4332;
+  --fg-heat-2: #4f7c5c;
+  --fg-heat-3: #8fc29d;
+}
+html[data-mode='minimal'][data-palette='slate'] {
+  --fg-paper: #eef1f4;
+  --fg-card: #fbfcfd;
+  --fg-sunk: #e2e7ec;
+  --fg-ink: #1c232b;
+  --fg-muted: #58636f;
+  --fg-line: #d7dde4;
+  --fg-edge: #d7dde4;
+  --fg-accent: #3d5a80;
+  --fg-accent-deep: #2e4563;
+  --fg-accent-soft: #e1e8f1;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #b5652b;
+  --fg-warm-deep: #8f4f20;
+  --fg-warm-soft: #f3e4d8;
+  --fg-xp: #3d5a80;
+  --fg-hud: #fbfcfd;
+  --fg-hud-ink: #1c232b;
+  --fg-hud-muted: #58636f;
+  --fg-hud-line: #d7dde4;
+  --fg-heat-0: #dde3ea;
+  --fg-heat-1: #b3c3d6;
+  --fg-heat-2: #7690b1;
+  --fg-heat-3: #3d5a80;
+}
+html[data-mode='minimal'][data-palette='slate'].dark {
+  --fg-paper: #0f1318;
+  --fg-card: #161b22;
+  --fg-sunk: #12171d;
+  --fg-ink: #e6ebf0;
+  --fg-muted: #97a3b0;
+  --fg-line: #242c36;
+  --fg-edge: #242c36;
+  --fg-accent: #8fb0d9;
+  --fg-accent-deep: #6a8cb8;
+  --fg-accent-soft: #1c2838;
+  --fg-on-accent: #0d1520;
+  --fg-warm: #e39a61;
+  --fg-warm-deep: #b87843;
+  --fg-warm-soft: #2f2319;
+  --fg-xp: #8fb0d9;
+  --fg-hud: #161b22;
+  --fg-hud-ink: #e6ebf0;
+  --fg-hud-muted: #97a3b0;
+  --fg-hud-line: #242c36;
+  --fg-heat-0: #1a2029;
+  --fg-heat-1: #243549;
+  --fg-heat-2: #45628a;
+  --fg-heat-3: #8fb0d9;
+}
+html[data-mode='minimal'][data-palette='sand'] {
+  --fg-paper: #f5ece0;
+  --fg-card: #fffaf3;
+  --fg-sunk: #ecdfcd;
+  --fg-ink: #2b211b;
+  --fg-muted: #6e5f54;
+  --fg-line: #e4d5c1;
+  --fg-edge: #e4d5c1;
+  --fg-accent: #a84b28;
+  --fg-accent-deep: #8a3c1f;
+  --fg-accent-soft: #f7e1d6;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #8a6d1f;
+  --fg-warm-deep: #6e5718;
+  --fg-warm-soft: #f0e8cf;
+  --fg-xp: #a84b28;
+  --fg-hud: #fffaf3;
+  --fg-hud-ink: #2b211b;
+  --fg-hud-muted: #6e5f54;
+  --fg-hud-line: #e4d5c1;
+  --fg-heat-0: #e8dccb;
+  --fg-heat-1: #eab9a2;
+  --fg-heat-2: #d27d5a;
+  --fg-heat-3: #a84b28;
+}
+html[data-mode='minimal'][data-palette='sand'].dark {
+  --fg-paper: #16110d;
+  --fg-card: #1f1813;
+  --fg-sunk: #1a1410;
+  --fg-ink: #f2e9df;
+  --fg-muted: #b0a193;
+  --fg-line: #33291f;
+  --fg-edge: #33291f;
+  --fg-accent: #e58a63;
+  --fg-accent-deep: #c06b45;
+  --fg-accent-soft: #3a2218;
+  --fg-on-accent: #1a0f0a;
+  --fg-warm: #d6b45a;
+  --fg-warm-deep: #a98a3a;
+  --fg-warm-soft: #2e2714;
+  --fg-xp: #e58a63;
+  --fg-hud: #1f1813;
+  --fg-hud-ink: #f2e9df;
+  --fg-hud-muted: #b0a193;
+  --fg-hud-line: #33291f;
+  --fg-heat-0: #231b15;
+  --fg-heat-1: #4f2d1f;
+  --fg-heat-2: #a3593a;
+  --fg-heat-3: #e58a63;
+}
+html[data-mode='minimal'][data-palette='ink'] {
+  --fg-paper: #f6f6f4;
+  --fg-card: #ffffff;
+  --fg-sunk: #ececea;
+  --fg-ink: #111111;
+  --fg-muted: #5e5e5e;
+  --fg-line: #e2e2df;
+  --fg-edge: #e2e2df;
+  --fg-accent: #1a1a1a;
+  --fg-accent-deep: #000000;
+  --fg-accent-soft: #e8e8e6;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #b3432f;
+  --fg-warm-deep: #8f3322;
+  --fg-warm-soft: #f6e0da;
+  --fg-xp: #1a1a1a;
+  --fg-hud: #ffffff;
+  --fg-hud-ink: #111111;
+  --fg-hud-muted: #5e5e5e;
+  --fg-hud-line: #e2e2df;
+  --fg-heat-0: #e6e6e3;
+  --fg-heat-1: #bdbdbd;
+  --fg-heat-2: #7a7a7a;
+  --fg-heat-3: #1a1a1a;
+}
+html[data-mode='minimal'][data-palette='ink'].dark {
+  --fg-paper: #0e0e0e;
+  --fg-card: #171717;
+  --fg-sunk: #131313;
+  --fg-ink: #ededed;
+  --fg-muted: #9a9a9a;
+  --fg-line: #262626;
+  --fg-edge: #262626;
+  --fg-accent: #f2f2f2;
+  --fg-accent-deep: #cfcfcf;
+  --fg-accent-soft: #2a2a2a;
+  --fg-on-accent: #111111;
+  --fg-warm: #e0805a;
+  --fg-warm-deep: #b8603c;
+  --fg-warm-soft: #2e1f18;
+  --fg-xp: #f2f2f2;
+  --fg-hud: #171717;
+  --fg-hud-ink: #ededed;
+  --fg-hud-muted: #9a9a9a;
+  --fg-hud-line: #262626;
+  --fg-heat-0: #1c1c1c;
+  --fg-heat-1: #3d3d3d;
+  --fg-heat-2: #8a8a8a;
+  --fg-heat-3: #f2f2f2;
+}
+html[data-mode='minimal'][data-palette='dusk'] {
+  --fg-paper: #f3f1f6;
+  --fg-card: #fdfcfe;
+  --fg-sunk: #e8e4ee;
+  --fg-ink: #221f33;
+  --fg-muted: #625c7a;
+  --fg-line: #dfd9e8;
+  --fg-edge: #dfd9e8;
+  --fg-accent: #4f4a8c;
+  --fg-accent-deep: #3b3770;
+  --fg-accent-soft: #e6e4f3;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #b5566e;
+  --fg-warm-deep: #914257;
+  --fg-warm-soft: #f6e1e6;
+  --fg-xp: #4f4a8c;
+  --fg-hud: #fdfcfe;
+  --fg-hud-ink: #221f33;
+  --fg-hud-muted: #625c7a;
+  --fg-hud-line: #dfd9e8;
+  --fg-heat-0: #e4e0eb;
+  --fg-heat-1: #c4c0e0;
+  --fg-heat-2: #8a84c2;
+  --fg-heat-3: #4f4a8c;
+}
+html[data-mode='minimal'][data-palette='dusk'].dark {
+  --fg-paper: #121119;
+  --fg-card: #1a1824;
+  --fg-sunk: #15141e;
+  --fg-ink: #ebe8f3;
+  --fg-muted: #a19cb5;
+  --fg-line: #2a2738;
+  --fg-edge: #2a2738;
+  --fg-accent: #a9a3e6;
+  --fg-accent-deep: #8680c9;
+  --fg-accent-soft: #25233d;
+  --fg-on-accent: #14122a;
+  --fg-warm: #e591a6;
+  --fg-warm-deep: #bf6d83;
+  --fg-warm-soft: #36202a;
+  --fg-xp: #a9a3e6;
+  --fg-hud: #1a1824;
+  --fg-hud-ink: #ebe8f3;
+  --fg-hud-muted: #a19cb5;
+  --fg-hud-line: #2a2738;
+  --fg-heat-0: #1d1b28;
+  --fg-heat-1: #312e55;
+  --fg-heat-2: #5f5aa3;
+  --fg-heat-3: #a9a3e6;
+}
+
 html,
 body {
   background: var(--fg-paper);
@@ -217,7 +836,7 @@ body {
   background-size: 6px 6px;
 }
 [data-mode='game'] body {
-  font-weight: 600;
+  font-weight: var(--fg-body-weight);
 }
 
 @layer components {
@@ -308,12 +927,8 @@ body {
   }
   .h-display {
     font-family: var(--fg-font-display);
-    letter-spacing: -0.01em;
-    font-weight: 400;
-  }
-  [data-mode='game'] .h-display {
-    font-weight: 900;
-    letter-spacing: -0.03em;
+    letter-spacing: var(--fg-display-tracking);
+    font-weight: var(--fg-display-weight);
   }
   .hud-label {
     font-family: var(--fg-font-label);

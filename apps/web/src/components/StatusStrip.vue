@@ -43,7 +43,7 @@ const sub = computed(() => (props.glass ? 'text-white/60' : isGame.value ? 'text
 
 <template>
   <div v-if="p" class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl px-3 py-2.5 sm:px-4" :class="shell">
-    <RouterLink to="/stats" class="flex min-w-0 flex-1 items-center gap-3 sm:min-w-56" :title="`${p.xp} XP total`">
+    <RouterLink to="/stats?tab=badges" class="flex min-w-0 flex-1 items-center gap-3 sm:min-w-56" :title="`${p.xp} XP total`">
       <span
         class="num grid h-9 min-w-9 shrink-0 place-items-center rounded-xl px-2 text-sm"
         :class="isGame && !glass ? 'bg-accent text-on-accent shadow-[inset_0_-3px_0_var(--fg-accent-deep)]' : 'bg-accent-soft text-accent'"
