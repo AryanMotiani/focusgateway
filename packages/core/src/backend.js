@@ -367,7 +367,7 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     },
     'setup.step': (s, { step }) => {
       if (
-        !['recoverySaved', 'pinExplained', 'failsafeDryRun', 'emergencyHelp', 'dohReviewed', 'firstRule', 'extensionChecked'].includes(step)
+        !['recoverySaved', 'pinExplained', 'failsafeDryRun', 'emergencyHelp', 'dohReviewed', 'firstRule', 'extensionChecked', 'uiMode'].includes(step)
       )
         fail('VALIDATION', 'Unknown step.')
       if (step === 'failsafeDryRun' && !s.onboarding.steps.failsafeDryRunDone) fail('VALIDATION', 'Finish the Failsafe practice run first.')
@@ -746,7 +746,13 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         if (v < s.settings.failsafeWaitSeconds) await checkPin(s, pin)
         s.settings.failsafeWaitSeconds = v
       }
-      for (const k of ['theme', 'weekStartsOn', 'notifications']) if (k in patch) s.settings[k] = patch[k]
+      for (const k of ['theme', 'weekStartsOn', 'notifications', 'sounds']) if (k in patch) s.settings[k] = patch[k]
+      if ('uiMode' in patch) s.settings.uiMode = patch.uiMode === 'minimal' ? 'minimal' : 'game'
+      if ('weeklyFocusGoalMin' in patch) {
+        const v = Math.round(Number(patch.weeklyFocusGoalMin))
+        if (!(v >= 30 && v <= 5000)) fail('VALIDATION', 'Weekly focus goal must be 30 to 5000 minutes.')
+        s.settings.weeklyFocusGoalMin = v
+      }
       if (patch.lofi) s.settings.lofi = { ...s.settings.lofi, ...patch.lofi, mix: { ...s.settings.lofi.mix, ...(patch.lofi.mix || {}) } }
       return s.settings
     },

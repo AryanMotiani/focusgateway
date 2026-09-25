@@ -13,7 +13,10 @@ export function defaultState() {
       theme: 'system',
       weekStartsOn: 1,
       notifications: true,
-      lofi: { volume: 0.6, scene: 'rain', mix: { rain: 0.5, cafe: 0, fire: 0, noise: 0 } },
+      uiMode: 'game', // 'game' | 'minimal'
+      sounds: true,
+      weeklyFocusGoalMin: 300,
+      lofi: { volume: 0.6, scene: 'night', style: 'music-classic', objects: true, mix: { rain: 0.5, cafe: 0, fire: 0, noise: 0 } },
     },
     customSites: [],
     rules: [],
