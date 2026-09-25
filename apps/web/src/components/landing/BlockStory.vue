@@ -4,7 +4,7 @@
 // reduced motion, it is a plain list of steps, each with its own picture.
 import { computed, ref } from 'vue'
 import StoryScene from './StoryScene.vue'
-import { usePinProgress, useMedia, PINNABLE } from './motion.js'
+import { usePinProgress, useMedia, vReveal, vSplit, PINNABLE } from './motion.js'
 
 const STEPS = [
   {
@@ -52,8 +52,8 @@ function jump(i) {
     <div class="sticky">
       <div class="lp-wrap grid-2">
         <div class="copy">
-          <span class="lp-eyebrow">How it blocks</span>
-          <h2 class="lp-h2 heading">A blocker you can't <span class="lp-italic">talk your way</span> out of.</h2>
+          <span v-reveal class="lp-eyebrow">How it blocks</span>
+          <h2 v-split class="lp-h2 heading">A blocker you can't <span class="lp-italic">talk your way</span> out of.</h2>
 
           <ol class="steps">
             <li v-for="(s, i) in STEPS" :key="s.title" :class="{ on: active === i, past: active > i }">
@@ -80,7 +80,13 @@ function jump(i) {
           </div>
         </div>
 
-        <div v-if="pinned" class="visual" aria-hidden="true">
+        <div v-if="pinned" v-reveal:right="100" class="visual" aria-hidden="true">
+          <!-- the step name, huge and rolling behind the window as you scroll -->
+          <div class="ghost lp-serif">
+            <div class="ghost-roll" :style="{ transform: `translate3d(0, ${-Math.max(0, active)}em, 0)` }">
+              <span v-for="s in STEPS" :key="s.kicker">{{ s.kicker }}</span>
+            </div>
+          </div>
           <div class="window">
             <div class="w-chrome">
               <i></i><i></i><i></i><span class="w-url">{{ URLS[Math.max(0, active)] }}</span>
@@ -193,6 +199,9 @@ li.on .num,
   text-transform: uppercase;
   color: var(--lp-faint);
 }
+li.on .kicker {
+  color: var(--lp-accent);
+}
 .step-title {
   margin-top: 2px;
   font-size: 18px;
@@ -232,6 +241,39 @@ li.on .num,
 /* ------------------------------------------------ the window */
 .visual {
   position: relative;
+}
+.ghost {
+  position: absolute;
+  z-index: 0;
+  right: -12px;
+  top: -0.78em;
+  height: 1em;
+  overflow: hidden;
+  font-size: clamp(6rem, 11vw, 10.5rem);
+  line-height: 1;
+  font-weight: 600;
+  font-style: italic;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 1;
+  letter-spacing: -0.05em;
+  color: var(--lp-accent);
+  opacity: 0.16;
+  pointer-events: none;
+  padding-inline: 0.1em;
+}
+.ghost-roll {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  transition: transform 0.8s var(--lp-spring);
+}
+.ghost-roll span {
+  height: 1em;
+  display: block;
+}
+.visual .window {
+  z-index: 1;
 }
 .window {
   position: relative;
@@ -284,11 +326,13 @@ li.on .num,
   transition:
     opacity 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
     transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
-  transform: translateY(40px) scale(0.98);
+  transform: perspective(900px) translate3d(0, 50px, 0) rotateX(-10deg) scale(0.97);
+  transform-origin: 50% 100%;
   pointer-events: none;
 }
 .scene.after {
-  transform: translateY(-40px) scale(0.98);
+  transform: perspective(900px) translate3d(0, -50px, 0) rotateX(10deg) scale(0.97);
+  transform-origin: 50% 0;
 }
 .scene.on {
   opacity: 1;

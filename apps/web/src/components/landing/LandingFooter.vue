@@ -5,7 +5,7 @@ import Arrow from './Arrow.vue'
 import Shot from './Shot.vue'
 import logo from '../../assets/logo.svg'
 import { REPO_URL, RELEASES_URL, PRIVACY_URL } from '../../config.js'
-import { vReveal } from './motion.js'
+import { vReveal, vSplit } from './motion.js'
 
 defineProps({ started: { type: Boolean, default: false } })
 const year = new Date().getFullYear()
@@ -14,14 +14,14 @@ const year = new Date().getFullYear()
 <template>
   <section class="cta-wrap">
     <div class="lp-wrap">
-      <div v-reveal class="cta">
-        <div class="cta-pic" aria-hidden="true">
+      <div v-reveal:scale class="cta">
+        <div v-reveal:right="250" class="cta-pic" aria-hidden="true">
           <Shot name="room-morning" alt="" sizes="(max-width: 900px) 100vw, 600px" />
         </div>
         <div class="cta-copy">
-          <h2 class="lp-h2">Tonight, the internet <span class="lp-italic">can wait.</span></h2>
-          <p class="lp-lead">Free forever. No account, no email, no catch. Your room is ready.</p>
-          <div class="btns">
+          <h2 v-split="200" class="lp-h2">Tonight, the internet <span class="lp-italic">can wait.</span></h2>
+          <p v-reveal="350" class="lp-lead">Free forever. No account, no email, no catch. Your room is ready.</p>
+          <div v-reveal="450" class="btns">
             <RouterLink :to="started ? '/' : '/welcome'" class="lp-btn lp-btn-primary">
               {{ started ? 'Open your study room' : 'Start free, no account' }} <Arrow />
             </RouterLink>
@@ -89,7 +89,7 @@ const year = new Date().getFullYear()
   border-radius: 24px;
   overflow: hidden;
   aspect-ratio: 1280 / 800;
-  transform: rotate(2deg);
+  rotate: 2deg;
   box-shadow: var(--lp-shadow-lg);
 }
 .cta-pic img {
@@ -187,7 +187,7 @@ nav a:hover {
   }
   .cta-pic {
     order: 0;
-    transform: none;
+    rotate: none;
   }
   .cta-copy {
     padding: 20px 8px 16px;

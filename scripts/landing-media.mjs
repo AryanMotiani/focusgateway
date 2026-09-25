@@ -299,6 +299,25 @@ async function step(label, fn) {
   }
 }
 
+/**
+ * Gets the shop on screen. The router sends unknown routes back to the room, so a hash that
+ * still says #/shop means the page exists. Otherwise it tries the shop tab in decorate mode.
+ */
+async function openShop(page) {
+  if (new URL(page.url()).hash.startsWith('#/shop')) return true
+  await page.goto(BASE + '#/')
+  await page.waitForLoadState('networkidle')
+  await page.waitForTimeout(1200)
+  await quiet(page)
+  await page.keyboard.press('d')
+  await page.waitForTimeout(900)
+  const tab = page.getByRole('tab', { name: /shop/i }).or(page.getByRole('button', { name: /^shop$/i }))
+  if (!(await tab.count())) return false
+  await tab.first().click()
+  await page.waitForTimeout(900)
+  return true
+}
+
 // ------------------------------------------------------------ screenshots
 async function screenshots(browser, base, level) {
   const shots = [
@@ -312,6 +331,9 @@ async function screenshots(browser, base, level) {
     { name: 'room-drawer', route: '/', state: { mode: 'game', scene: 'scene-night' }, action: 'drawer' },
     { name: 'calm-today', route: '/today', state: { mode: 'minimal' } },
     { name: 'calm-room', route: '/', state: { mode: 'minimal', scene: 'scene-morning' } },
+    // the coin shop: its own page if the app has one, else the shop tab of the decorate panel.
+    // Optional, skipped quietly when neither exists yet.
+    { name: 'shop', route: '/shop', state: { mode: 'game', scene: 'scene-night' }, action: 'shop', optional: true },
   ]
   const made = []
   for (const shot of shots) {
@@ -323,6 +345,11 @@ async function screenshots(browser, base, level) {
       await page.waitForLoadState('networkidle')
       await page.waitForTimeout(1500)
       await quiet(page)
+      if (shot.action === 'shop' && !(await openShop(page))) {
+        console.log(`> ${shot.name}: no shop page or shop tab yet, skipped`)
+        await context.close()
+        return
+      }
       if (shot.action === 'decorate') {
         await page.keyboard.press('d')
         await page.waitForTimeout(900)

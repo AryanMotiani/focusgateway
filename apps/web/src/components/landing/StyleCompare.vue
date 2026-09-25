@@ -1,20 +1,39 @@
 <script setup>
 // Game or Calm: the same Today screen in both styles, one on top of the other. Drag the
-// handle (or use the buttons, or the arrow keys) to wipe between them.
-import { ref } from 'vue'
+// handle (or use the buttons, or the arrow keys) to wipe between them. The first time it comes
+// into view it wipes once each way by itself, so it is clear the handle moves.
+import { onBeforeUnmount, ref, watch } from 'vue'
 import Icon from '../Icon.vue'
 import Shot from './Shot.vue'
-import { vReveal } from './motion.js'
+import { useInView, useMedia, REDUCED, vReveal, vSplit } from './motion.js'
 
 const split = ref(50)
 const box = ref(null)
 const dragging = ref(false)
+const seen = useInView(box, { threshold: 0.6 })
+const reduced = useMedia(REDUCED)
+let touched = false
+const timers = []
+watch(seen, (v) => {
+  if (!v || reduced.value) return
+  ;[
+    [500, 84],
+    [1500, 16],
+    [2500, 50],
+  ].forEach(([ms, to]) => timers.push(setTimeout(() => !touched && (split.value = to), ms)))
+})
+onBeforeUnmount(() => timers.forEach(clearTimeout))
 
 function setFrom(e) {
   const r = box.value.getBoundingClientRect()
   split.value = Math.min(100, Math.max(0, ((e.clientX - r.left) / r.width) * 100))
 }
+function pick(v) {
+  touched = true
+  split.value = v
+}
 function down(e) {
+  touched = true
   dragging.value = true
   box.value.setPointerCapture?.(e.pointerId)
   setFrom(e)
@@ -30,25 +49,25 @@ function up() {
 <template>
   <section class="lp-section">
     <div class="lp-wrap grid">
-      <div v-reveal class="copy">
+      <div v-reveal:left class="copy">
         <span class="lp-eyebrow">Two moods</span>
-        <h2 class="lp-h2">Game or Calm. <span class="lp-italic">Same app.</span></h2>
+        <h2 v-split="150" class="lp-h2">Game or Calm. <span class="lp-italic">Same app.</span></h2>
         <p class="lp-lead">
           Some nights you want XP, levels and a streak flame. Some nights you want quiet. Switch any time in Settings, nothing is lost.
         </p>
         <div class="modes">
-          <button class="mode" :class="{ on: split >= 60 }" @click="split = 100">
+          <button class="mode" :class="{ on: split >= 60 }" @click="pick(100)">
             <span class="m-icon game"><Icon name="sparkles" :size="18" /></span>
             <span><b>Game</b><small>XP, levels, badges, bold and bouncy</small></span>
           </button>
-          <button class="mode" :class="{ on: split <= 40 }" @click="split = 0">
+          <button class="mode" :class="{ on: split <= 40 }" @click="pick(0)">
             <span class="m-icon calm"><Icon name="wave" :size="18" /></span>
             <span><b>Calm</b><small>Soft colours, serif type, no numbers shouting</small></span>
           </button>
         </div>
       </div>
 
-      <div v-reveal="120" class="compare-wrap">
+      <div v-reveal:tilt="120" class="compare-wrap">
         <div
           ref="box"
           class="compare"
@@ -70,6 +89,7 @@ function up() {
             min="0"
             max="100"
             step="1"
+            @input="pick(split)"
             aria-label="Wipe between the Game and Calm styles"
           />
           <span class="handle" aria-hidden="true"><Icon name="chevronLeft" :size="14" /><Icon name="chevronRight" :size="14" /></span>
@@ -102,14 +122,19 @@ function up() {
   align-items: center;
   gap: 14px;
   padding: 14px 16px;
-  border-radius: 18px;
+  border-radius: 12px;
   border: 1px solid var(--lp-line);
   background: var(--lp-surface);
   text-align: left;
   cursor: pointer;
   transition:
     border-color 0.3s,
-    box-shadow 0.3s;
+    box-shadow 0.3s,
+    transform 0.25s var(--lp-ease);
+}
+.mode:hover {
+  border-color: var(--lp-accent);
+  transform: translateY(-2px);
 }
 .mode.on {
   border-color: var(--lp-accent);

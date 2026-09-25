@@ -1,10 +1,11 @@
 <script setup>
 // "A closer look": real screenshots on a rail. On big screens the section pins and the rail
-// slides sideways as you scroll down. On phones and with reduced motion it is a swipeable
-// row that snaps to each card.
+// slides sideways as you scroll down, each card turned a little in 3D until it reaches the
+// middle and settles flat. On phones and with reduced motion it is a swipeable row that snaps
+// to each card.
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Shot from './Shot.vue'
-import { usePinProgress, useMedia, PINNABLE, vReveal } from './motion.js'
+import { usePinProgress, useMedia, clamp, PINNABLE, vReveal, vSplit } from './motion.js'
 
 const CARDS = [
   { name: 'today', tag: 'Today', title: 'Your day on one page', text: 'Tasks due, what is blocked right now, a focus timer and habits.' },
@@ -50,6 +51,12 @@ function measure() {
 usePinProgress(root, (p) => {
   if (!pinned.value || !track.value) return
   track.value.style.transform = `translate3d(${(-p * distance.value).toFixed(1)}px, 0, 0)`
+  const mid = window.innerWidth / 2
+  for (const pic of track.value.querySelectorAll('.pic')) {
+    const r = pic.getBoundingClientRect()
+    const d = clamp((r.left + r.width / 2 - mid) / window.innerWidth, -0.8, 0.8)
+    pic.style.transform = `perspective(1400px) rotateY(${(-d * 26).toFixed(2)}deg) scale(${(1 - Math.abs(d) * 0.1).toFixed(3)})`
+  }
 })
 let ro
 onMounted(() => {
@@ -65,12 +72,12 @@ onBeforeUnmount(() => ro?.disconnect())
 <template>
   <section ref="root" class="rail" :class="{ pinned }" :style="pinned ? { height: `calc(100vh + ${distance}px)` } : null">
     <div class="sticky">
-      <div v-reveal class="lp-wrap head">
+      <div class="lp-wrap head">
         <div>
-          <span class="lp-eyebrow">A closer look</span>
-          <h2 class="lp-h2">Made to be <span class="lp-italic">opened every day.</span></h2>
+          <span v-reveal class="lp-eyebrow">A closer look</span>
+          <h2 v-split class="lp-h2">Made to be <span class="lp-italic">opened every day.</span></h2>
         </div>
-        <p class="lp-lead side">Real screens from the app, with a few months of study in them.</p>
+        <p v-reveal:right="200" class="lp-lead side">Real screens from the app, with a few months of study in them.</p>
       </div>
       <div class="viewport">
         <div
@@ -81,7 +88,7 @@ onBeforeUnmount(() => ro?.disconnect())
           aria-label="Screenshots of the app"
           role="region"
         >
-          <figure v-for="c in CARDS" :key="c.name" class="rcard">
+          <figure v-for="(c, i) in CARDS" :key="c.name" v-reveal:right="(i % 3) * 90" class="rcard">
             <div class="pic">
               <Shot :name="c.name" :alt="`${c.tag}: ${c.title}`" sizes="(max-width: 700px) 86vw, 640px" />
             </div>
@@ -142,10 +149,6 @@ onBeforeUnmount(() => ro?.disconnect())
 .rcard {
   flex: 0 0 auto;
   width: min(640px, 52vw, calc((100vh - 360px) * 1.6));
-  transition: transform 0.4s ease;
-}
-.rcard:hover {
-  transform: translateY(-4px);
 }
 .pic {
   border-radius: 20px;
@@ -154,12 +157,18 @@ onBeforeUnmount(() => ro?.disconnect())
   box-shadow: var(--lp-shadow-md);
   background: var(--lp-surface-2);
   aspect-ratio: 1280 / 800;
+  transform-origin: 50% 50%;
+  will-change: transform;
 }
 .pic img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.8s var(--lp-ease);
+}
+.rcard:hover .pic img {
+  transform: scale(1.04);
 }
 figcaption {
   margin-top: 16px;
@@ -200,7 +209,6 @@ figcaption b {
 .rail:not(.pinned) .rcard {
   scroll-snap-align: start;
   width: min(560px, 84vw);
-  transform: none;
 }
 @media (min-width: 640px) {
   .rail:not(.pinned) .track {

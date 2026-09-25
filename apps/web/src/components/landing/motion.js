@@ -1,7 +1,7 @@
 // Small motion helpers for the landing page. One passive scroll and resize listener feeds
 // every subscriber once per animation frame. Everything else is CSS reading custom properties,
 // so the only work per frame is a getBoundingClientRect and a style write per section.
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const subscribers = new Set()
 let queued = false
@@ -115,8 +115,10 @@ export const PINNABLE = '(min-width: 900px) and (min-height: 560px) and (prefers
 /** Media files live in public/media, so they work under the GitHub Pages subpath too. */
 export const media = (file) => `${import.meta.env.BASE_URL}media/${file}`
 
-// v-reveal: fades and lifts an element in the first time it scrolls into view.
-// v-reveal="120" delays it by 120 ms, for simple staggers.
+// ------------------------------------------------------------------ reveal on enter
+// v-reveal fades and lifts an element in the first time it scrolls into view.
+// The argument picks the move: v-reveal:left, :right, :scale, :tilt or :clip (default rises).
+// The value is a delay in ms, for staggers: v-reveal:left="120".
 let revealer = null
 function revealObserver() {
   if (revealer || typeof IntersectionObserver === 'undefined') return revealer
@@ -132,15 +134,94 @@ function revealObserver() {
   )
   return revealer
 }
+function watchReveal(el) {
+  const io = revealObserver()
+  if (io) io.observe(el)
+  else el.classList.add('is-in')
+}
 export const vReveal = {
   mounted(el, binding) {
     el.classList.add('lp-reveal')
+    if (binding.arg) el.dataset.reveal = binding.arg
     if (binding.value) el.style.setProperty('--d', binding.value + 'ms')
-    const io = revealObserver()
-    if (io) io.observe(el)
-    else el.classList.add('is-in')
+    watchReveal(el)
   },
   unmounted(el) {
     revealer?.unobserve(el)
   },
+}
+
+// v-split: wraps every word of a static heading in a mask, so the words slide up into view one
+// after another when it scrolls in. v-split.now plays straight away (the hero). The value is
+// a start delay in ms. Only for elements whose text never changes after mount.
+function splitWords(node, words) {
+  for (const child of [...node.childNodes]) {
+    if (child.nodeType === 3) {
+      const parts = child.textContent.split(/(\s+)/)
+      if (parts.every((t) => !t.trim())) continue
+      const frag = document.createDocumentFragment()
+      for (const part of parts) {
+        if (!part) continue
+        if (!part.trim()) {
+          frag.appendChild(document.createTextNode(' '))
+          continue
+        }
+        const mask = document.createElement('span')
+        mask.className = 'lp-w'
+        const inner = document.createElement('span')
+        inner.className = 'lp-wi'
+        inner.textContent = part
+        inner.style.setProperty('--wi', words.length)
+        words.push(inner)
+        mask.appendChild(inner)
+        frag.appendChild(mask)
+      }
+      child.replaceWith(frag)
+    } else if (child.nodeType === 1 && !['svg', 'br', 'img'].includes(child.tagName.toLowerCase())) {
+      splitWords(child, words)
+    }
+  }
+}
+export const vSplit = {
+  mounted(el, binding) {
+    const label = el.textContent.replace(/\s+/g, ' ').trim()
+    splitWords(el, [])
+    el.setAttribute('aria-label', label)
+    for (const c of el.children) c.setAttribute('aria-hidden', 'true')
+    el.classList.add('lp-split')
+    if (binding.value) el.style.setProperty('--d', binding.value + 'ms')
+    if (binding.modifiers.now) requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('is-in')))
+    else watchReveal(el)
+  },
+  unmounted(el) {
+    revealer?.unobserve(el)
+  },
+}
+
+// ------------------------------------------------------------------ numbers
+const ease = (k) => 1 - Math.pow(1 - k, 3)
+
+/** Animates a number from `from` to `to` over `ms`, calling set(value) every frame. */
+export function countTo(set, from, to, ms = 1200) {
+  const t0 = performance.now()
+  let raf = 0
+  const step = (now) => {
+    const k = Math.min(1, (now - t0) / ms)
+    set(from + (to - from) * ease(k))
+    if (k < 1) raf = requestAnimationFrame(step)
+  }
+  raf = requestAnimationFrame(step)
+  return () => cancelAnimationFrame(raf)
+}
+
+/** A ref that glides toward whatever `source()` returns, for counters that tick instead of jump. */
+export function useTween(source, ms = 600) {
+  const shown = ref(source())
+  let stop = null
+  watch(source, (to) => {
+    stop?.()
+    stop = countTo((v) => (shown.value = v), shown.value, to, ms)
+  })
+  onBeforeUnmount(() => stop?.())
+  return shown
 }

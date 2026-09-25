@@ -1,10 +1,11 @@
 <script setup>
 // "See it in 60 seconds": a real recording of the app (scripts/landing-media.mjs).
 // It plays muted and looped while on screen, unless the visitor prefers reduced motion,
-// then it waits for a click. Controls are always there.
+// then it waits for a click. Controls are always there. The player grows from a smaller card to
+// full size as it scrolls up to the middle of the screen.
 import { ref, watch } from 'vue'
 import Icon from '../Icon.vue'
-import { media, useInView, useMedia, REDUCED, vReveal } from './motion.js'
+import { clamp, media, useInView, useMedia, useViewportOffset, REDUCED, vReveal, vSplit } from './motion.js'
 
 const video = ref(null)
 const box = ref(null)
@@ -17,6 +18,16 @@ function onMeta() {
   const d = Math.round(video.value?.duration || 0)
   if (d) length.value = `${Math.floor(d / 60)}:${String(d % 60).padStart(2, '0')}`
 }
+
+useViewportOffset(box, (o) => {
+  const el = box.value
+  if (!el) return
+  if (reduced.value) return (el.style.transform = '')
+  // -1 just below the screen, 0 in the middle: grow over the first 60% of the way in
+  const k = clamp((o + 1) / 0.75)
+  el.style.transform = `translate3d(0, ${((1 - k) * 60).toFixed(1)}px, 0) scale(${(0.82 + 0.18 * k).toFixed(4)})`
+  el.style.opacity = (0.35 + 0.65 * k).toFixed(3)
+})
 
 watch(onScreen, (v) => {
   const el = video.value
@@ -37,12 +48,14 @@ function start() {
 <template>
   <section id="video" class="lp-section">
     <div class="lp-wrap">
-      <div v-reveal class="head">
-        <span class="lp-eyebrow">See it in action</span>
-        <h2 class="lp-h2">A study night, <span class="lp-italic">in under a minute.</span></h2>
-        <p class="lp-lead">Add a task, tick it off, check a habit, peek at your year, move a plant. That is the whole loop.</p>
+      <div class="head">
+        <span v-reveal class="lp-eyebrow">See it in action</span>
+        <h2 v-split class="lp-h2">A study night, <span class="lp-italic">in under a minute.</span></h2>
+        <p v-reveal="200" class="lp-lead">
+          Add a task, tick it off, check a habit, peek at your year, move a plant. That is the whole loop.
+        </p>
       </div>
-      <div ref="box" v-reveal="100" class="player">
+      <div ref="box" class="player">
         <video
           ref="video"
           :poster="media('demo-poster.webp')"
@@ -90,6 +103,8 @@ function start() {
   background: #120f24;
   box-shadow: var(--lp-shadow-lg);
   border: 1px solid var(--lp-line);
+  transform-origin: 50% 0;
+  will-change: transform;
 }
 .player::before {
   content: '';

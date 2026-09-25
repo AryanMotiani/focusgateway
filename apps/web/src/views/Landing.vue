@@ -13,6 +13,8 @@ import { REPO_URL } from '../config.js'
 import Icon from '../components/Icon.vue'
 import logo from '../assets/logo.svg'
 import HeroSection from '../components/landing/HeroSection.vue'
+import BigStatement from '../components/landing/BigStatement.vue'
+import RewardLoop from '../components/landing/RewardLoop.vue'
 import BlockStory from '../components/landing/BlockStory.vue'
 import FeatureBento from '../components/landing/FeatureBento.vue'
 import ScreenRail from '../components/landing/ScreenRail.vue'
@@ -79,8 +81,9 @@ function go(id) {
           <span>FocusGateway</span>
         </RouterLink>
         <nav class="links" aria-label="Page">
-          <button @click="go('features')">Features</button>
           <button @click="go('how')">How it works</button>
+          <button @click="go('rewards')">Rewards</button>
+          <button @click="go('features')">Features</button>
           <a :href="REPO_URL" target="_blank" rel="noopener"><Icon name="github" :size="15" /> Open source</a>
         </nav>
         <div class="actions">
@@ -103,7 +106,9 @@ function go(id) {
 
     <main>
       <HeroSection :started="started" />
+      <BigStatement />
       <BlockStory />
+      <RewardLoop />
       <FeatureBento />
       <ScreenRail />
       <StyleCompare />
@@ -133,10 +138,17 @@ function go(id) {
   border-bottom-color: var(--lp-line);
 }
 .nav-in {
+  animation: nav-in 0.8s var(--lp-ease) both;
   height: 68px;
   display: flex;
   align-items: center;
   gap: 24px;
+}
+@keyframes nav-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0);
+  }
 }
 .brand {
   display: inline-flex;
@@ -157,7 +169,7 @@ function go(id) {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: 7px;
   font-size: 14.5px;
   font-weight: 550;
   color: var(--lp-muted);
@@ -182,18 +194,22 @@ function go(id) {
   height: 40px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  border-radius: 8px;
   border: 1px solid var(--lp-line);
   background: var(--lp-surface);
   color: var(--lp-ink);
   cursor: pointer;
   transition:
     border-color 0.2s,
+    background-color 0.2s,
+    color 0.2s,
     transform 0.2s;
 }
 .theme:hover {
-  border-color: var(--lp-line-strong);
-  transform: rotate(-12deg);
+  border-color: var(--lp-accent);
+  background: var(--lp-accent-soft);
+  color: var(--lp-accent);
+  transform: translateY(-1px);
 }
 .spin-enter-active,
 .spin-leave-active {

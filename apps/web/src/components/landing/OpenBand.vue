@@ -1,15 +1,30 @@
 <script setup>
 // The contrasting band: open source, local first, and honest about what software can do.
+// The zeros count down to zero when the band comes into view.
+import { onBeforeUnmount, reactive, ref, watch } from 'vue'
 import Icon from '../Icon.vue'
 import { REPO_URL, PRIVACY_URL } from '../../config.js'
-import { vReveal } from './motion.js'
+import { countTo, useInView, useMedia, REDUCED, vReveal, vSplit } from './motion.js'
 
-const STATS = [
-  ['0', 'accounts to make'],
-  ['0', 'servers holding your data'],
-  ['0', 'trackers or ads'],
-  ['MIT', 'licence, every line public'],
-]
+const STATS = reactive([
+  { n: 0, from: 12, label: 'accounts to make' },
+  { n: 0, from: 38, label: 'servers holding your data' },
+  { n: 0, from: 99, label: 'trackers or ads' },
+  { n: 'MIT', label: 'licence, every line public' },
+])
+const statsEl = ref(null)
+const seen = useInView(statsEl, { threshold: 0.4 })
+const reduced = useMedia(REDUCED)
+const stops = []
+if (!reduced.value) STATS.forEach((s) => s.from && (s.n = s.from))
+watch(seen, (v) => {
+  if (!v) return
+  STATS.forEach((s, i) => {
+    if (!s.from) return
+    setTimeout(() => stops.push(countTo((x) => (s.n = Math.round(x)), s.from, 0, 1500)), i * 120)
+  })
+})
+onBeforeUnmount(() => stops.forEach((f) => f()))
 const PILLARS = [
   ['shield', 'Local first', 'Tasks, habits and history live in your browser. Nothing is uploaded, ever.'],
   ['github', 'Open source', 'Read the code before you give anything admin rights. You should, with any program.'],
@@ -24,26 +39,26 @@ const PILLARS = [
 <template>
   <section id="open-source" class="band-wrap">
     <div class="lp-wrap">
-      <div class="band">
+      <div v-reveal:clip class="band">
         <div class="stars" aria-hidden="true"></div>
         <div v-reveal class="top">
           <div>
             <span class="lp-eyebrow eb">Open source, local first</span>
-            <h2 class="lp-h2 h">Your study habits are <span class="lp-italic">nobody else's business.</span></h2>
+            <h2 v-split="250" class="lp-h2 h">Your study habits are <span class="lp-italic">nobody else's business.</span></h2>
           </div>
           <div class="btns">
             <a :href="REPO_URL" target="_blank" rel="noopener" class="lp-btn light"><Icon name="github" :size="18" /> Read the code</a>
             <a :href="PRIVACY_URL" target="_blank" rel="noopener" class="lp-btn outline">Privacy policy</a>
           </div>
         </div>
-        <dl class="stats">
-          <div v-for="([n, l], i) in STATS" :key="l" v-reveal="i * 80" class="stat">
-            <dt class="lp-serif">{{ n }}</dt>
-            <dd>{{ l }}</dd>
+        <dl ref="statsEl" class="stats">
+          <div v-for="(st, i) in STATS" :key="st.label" v-reveal="i * 80" class="stat">
+            <dt class="lp-serif">{{ st.n }}</dt>
+            <dd>{{ st.label }}</dd>
           </div>
         </dl>
         <div class="pillars">
-          <div v-for="([icon, t, d], i) in PILLARS" :key="t" v-reveal="i * 80" class="pillar">
+          <div v-for="([icon, t, d], i) in PILLARS" :key="t" v-reveal:scale="i * 100" class="pillar">
             <span class="p-icon"><Icon :name="icon" :size="18" /></span>
             <h3>{{ t }}</h3>
             <p>{{ d }}</p>
@@ -106,18 +121,18 @@ const PILLARS = [
   flex-wrap: wrap;
 }
 .light {
-  background: #fff;
-  color: #16122b;
-}
-.light:hover {
-  transform: translateY(-2px);
+  --b-bg: #fff;
+  --b-ink: #16122b;
+  --b-bg-hover: #ffc27a;
+  --b-ink-hover: #16122b;
 }
 .outline {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.25);
-}
-.outline:hover {
-  border-color: rgba(255, 255, 255, 0.6);
+  --b-bg: transparent;
+  --b-ink: #fff;
+  --b-line: rgba(255, 255, 255, 0.25);
+  --b-bg-hover: rgba(255, 255, 255, 0.12);
+  --b-ink-hover: #fff;
+  --b-line-hover: rgba(255, 255, 255, 0.7);
 }
 .stats {
   margin-top: 56px;
@@ -129,6 +144,7 @@ const PILLARS = [
   padding: 28px 20px 0 0;
 }
 .stat dt {
+  font-variant-numeric: tabular-nums;
   font-size: clamp(2.6rem, 5vw, 4rem);
   line-height: 1;
   font-weight: 600;

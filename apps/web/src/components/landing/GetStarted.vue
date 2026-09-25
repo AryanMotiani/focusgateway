@@ -2,24 +2,27 @@
 // Get started in three steps, with the button that fits this visitor's browser and computer.
 import Icon from '../Icon.vue'
 import Arrow from './Arrow.vue'
-import { vReveal } from './motion.js'
+import { useInView, vReveal, vSplit } from './motion.js'
+import { ref } from 'vue'
 import { extensionLink, agentLink, osName } from './platform.js'
 
 defineProps({ started: { type: Boolean, default: false } })
 const ext = extensionLink()
 const agent = agentLink()
+const list = ref(null)
+const drawn = useInView(list, { threshold: 0.3 })
 </script>
 
 <template>
   <section id="start" class="lp-section">
     <div class="lp-wrap">
-      <div v-reveal class="head">
-        <span class="lp-eyebrow">Get started</span>
-        <h2 class="lp-h2">Two minutes. <span class="lp-italic">Three steps.</span></h2>
+      <div class="head">
+        <span v-reveal class="lp-eyebrow">Get started</span>
+        <h2 v-split class="lp-h2">Two minutes. <span class="lp-italic">Three steps.</span></h2>
       </div>
 
-      <ol class="steps">
-        <li v-reveal class="step">
+      <ol ref="list" class="steps" :class="{ drawn }">
+        <li v-reveal:left class="step">
           <span class="n">1</span>
           <h3 class="t">Open the app</h3>
           <p class="d">It runs right here in your browser. Set a PIN, add tonight's tasks, pick a scene.</p>
@@ -27,7 +30,7 @@ const agent = agentLink()
             {{ started ? 'Open your study room' : 'Start free' }} <Arrow />
           </RouterLink>
         </li>
-        <li v-reveal="100" class="step">
+        <li v-reveal="140" class="step">
           <span class="n">2</span>
           <h3 class="t">Add the extension</h3>
           <p class="d">So the blocks really block. Free, and it keeps everything on this computer.</p>
@@ -38,7 +41,7 @@ const agent = agentLink()
             ><Icon name="puzzle" :size="16" /> {{ ext.label }}</RouterLink
           >
         </li>
-        <li v-reveal="200" class="step">
+        <li v-reveal:right="280" class="step">
           <span class="n">3</span>
           <h3 class="t">Lock it down <span class="opt">optional</span></h3>
           <p class="d">
@@ -78,6 +81,12 @@ const agent = agentLink()
   right: 16%;
   border-top: 2px dashed var(--lp-line-strong);
   z-index: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 1.4s var(--lp-ease) 0.3s;
+}
+.steps.drawn::before {
+  transform: none;
 }
 .step {
   position: relative;
@@ -153,6 +162,11 @@ const agent = agentLink()
     right: auto;
     border-top: 0;
     border-left: 2px dashed var(--lp-line-strong);
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  .steps.drawn::before {
+    transform: none;
   }
 }
 </style>

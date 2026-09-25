@@ -5,7 +5,7 @@
 import { onBeforeUnmount, reactive, ref, watch } from 'vue'
 import Icon from '../Icon.vue'
 import Shot from './Shot.vue'
-import { useInView, vReveal } from './motion.js'
+import { countTo, useInView, vReveal, vSplit } from './motion.js'
 
 const grid = ref(null)
 const seen = useInView(grid, { threshold: 0.15 })
@@ -30,13 +30,7 @@ const later = (fn, ms) => timers.push(setTimeout(fn, ms))
 let roomTimer = null
 watch(seen, (v) => {
   if (!v) return
-  const t0 = performance.now()
-  const count = (now) => {
-    const k = Math.min(1, (now - t0) / 1400)
-    streak.value = Math.round(23 * (1 - Math.pow(1 - k, 3)))
-    if (k < 1) requestAnimationFrame(count)
-  }
-  requestAnimationFrame(count)
+  countTo((v) => (streak.value = Math.round(v)), 0, 23, 1400)
   later(() => (xp.value = 0.62), 300)
   later(() => {
     xp.value = 0.8
@@ -65,15 +59,15 @@ const year = (() => {
 <template>
   <section id="features" class="lp-section">
     <div class="lp-wrap">
-      <div v-reveal class="head">
-        <span class="lp-eyebrow">Features</span>
-        <h2 class="lp-h2">Everything you need to <span class="lp-italic">get it done.</span></h2>
-        <p class="lp-lead">And nothing that turns productivity into another app to scroll.</p>
+      <div class="head">
+        <span v-reveal class="lp-eyebrow">Features</span>
+        <h2 v-split class="lp-h2">Everything you need to <span class="lp-italic">get it done.</span></h2>
+        <p v-reveal="200" class="lp-lead">And nothing that turns productivity into another app to scroll.</p>
       </div>
 
       <div ref="grid" class="bento" :class="{ live: seen }">
         <!-- the study room -->
-        <article v-reveal class="tile t-room">
+        <article v-reveal:clip class="tile t-room">
           <div class="room-pics">
             <Shot name="room-morning" alt="The study room in the morning" sizes="(max-width: 900px) 100vw, 760px" />
             <Shot
@@ -92,7 +86,7 @@ const year = (() => {
         </article>
 
         <!-- streak -->
-        <article v-reveal="80" class="tile t-streak">
+        <article v-reveal:right="120" class="tile t-streak">
           <div class="streak">
             <span class="flame-wrap"><Icon name="flame" :size="30" /></span>
             <span class="big">{{ streak }}</span>
@@ -102,7 +96,7 @@ const year = (() => {
         </article>
 
         <!-- level -->
-        <article v-reveal="160" class="tile t-level">
+        <article v-reveal:right="220" class="tile t-level">
           <div class="lvl-row">
             <span class="lvl">LV 14</span>
             <span class="lvl-name">Scholar</span>
@@ -113,7 +107,7 @@ const year = (() => {
         </article>
 
         <!-- heatmap -->
-        <article v-reveal class="tile t-heat">
+        <article v-reveal:left class="tile t-heat">
           <div class="t-top">
             <h3 class="t-title">Habits with a year of memory</h3>
             <span class="bchip">82% this year</span>
@@ -124,7 +118,7 @@ const year = (() => {
         </article>
 
         <!-- habit check -->
-        <article v-reveal="80" class="tile t-habits">
+        <article v-reveal:right="100" class="tile t-habits">
           <h3 class="t-title">Tick them off</h3>
           <div class="habits">
             <button
@@ -144,28 +138,28 @@ const year = (() => {
         </article>
 
         <!-- gated windows -->
-        <article v-reveal class="tile t-gate">
+        <article v-reveal:scale class="tile t-gate">
           <span class="icon-bubble accent"><Icon name="unlock" :size="20" /></span>
           <h3 class="t-title">Task-gated windows</h3>
           <p class="t-text">Instagram from 4 to 7, once homework is ticked off. Not done? It stays shut.</p>
         </article>
 
         <!-- hard blocks -->
-        <article v-reveal="80" class="tile t-hard">
+        <article v-reveal:scale="90" class="tile t-hard">
           <span class="icon-bubble night"><Icon name="moon" :size="20" /></span>
           <h3 class="t-title">Hard blocks</h3>
           <p class="t-text">Sleep, class, exam week. No tasks, no way around it. Just rest.</p>
         </article>
 
         <!-- music -->
-        <article v-reveal="160" class="tile t-music">
+        <article v-reveal:scale="180" class="tile t-music">
           <div class="eq" aria-hidden="true"><i v-for="b in 9" :key="b" :style="{ '--b': b }"></i></div>
           <h3 class="t-title">Music that never gets blocked</h3>
           <p class="t-text">Generative lofi, built in. Still playing when YouTube is off limits.</p>
         </article>
 
         <!-- accountability -->
-        <article v-reveal="240" class="tile t-stats">
+        <article v-reveal class="tile t-stats">
           <h3 class="t-title">An honest mirror</h3>
           <ul class="bars">
             <li><span>Done on time</span><b style="--w: 0.86; --c: var(--lp-green)"></b></li>
@@ -211,11 +205,16 @@ const year = (() => {
   flex-direction: column;
   transition:
     box-shadow 0.3s,
-    transform 0.3s;
+    opacity 0.9s var(--lp-ease),
+    transform 1.1s var(--lp-ease),
+    clip-path 1.2s var(--lp-ease);
+  transition-delay: 0s, var(--d, 0ms), var(--d, 0ms), var(--d, 0ms);
 }
 .tile.is-in:hover {
   box-shadow: var(--lp-shadow-md);
-  transform: translateY(-3px);
+  transform: translateY(-4px);
+  transition-duration: 0.3s;
+  transition-delay: 0s;
 }
 .t-title {
   font-weight: 700;
