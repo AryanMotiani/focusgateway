@@ -155,6 +155,8 @@ async function seed() {
   while (over(progressOf(s)) && s.tasks.length > 50) s.tasks.splice(Math.floor(rnd() * s.tasks.length * 0.6), 1)
   for (let i = s.focus.history.length; progressOf(s).level < TARGET_LEVEL && i < 400; i++)
     s.focus.history.push({ id: 'f' + i, startedAt: now - i * DAY, endedAt: now - i * DAY + 50 * 6e4, focusedMin: 50, completed: true })
+  // the starter gift is already claimed, so its welcome card does not cover the room
+  if (s.shop) s.shop.giftAt = s.shop.giftAt || now - DAY
   return s
 }
 
@@ -280,6 +282,9 @@ async function contextFor(browser, state, level, extra = {}) {
     sessionStorage.setItem('fg-seeded', '1')
     localStorage.setItem('focusgateway:seen-level', String(lvl))
     localStorage.setItem('focusgateway:room-drawer', 'false')
+    // no first-run tours in the marketing media
+    const pages = ['room', 'today', 'tasks', 'schedule', 'blocking', 'habits', 'stats', 'settings', 'install', 'decorate', 'shop']
+    localStorage.setItem('focusgateway:tours-seen', JSON.stringify(pages))
   }, level)
   return context
 }

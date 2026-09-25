@@ -239,13 +239,18 @@ useFrame(() => {
   max-width: 13ch;
   font-size: clamp(3rem, 8.2vw, 6.9rem);
 }
-/* the second line drops in from above while the first rises from below */
+/* the second line slides in sideways, so the two lines never cross each other mid-animation */
 .then :deep(.lp-wi) {
-  transform: translate3d(0, -108%, 0) rotate(-4deg);
-  transform-origin: 100% 0;
+  transform: translate3d(-70%, 0, 0);
+  opacity: 0;
+  transition:
+    transform 1s var(--lp-ease),
+    opacity 0.6s ease;
+  transition-delay: calc(var(--d, 0ms) + 220ms + var(--wi) * 70ms);
 }
 .title.is-in .then :deep(.lp-wi) {
   transform: none;
+  opacity: 1;
 }
 .mark {
   position: relative;
