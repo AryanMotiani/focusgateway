@@ -427,7 +427,7 @@ async function video(browser, base, level) {
 
   // add a task in the drawer, then complete it for the XP pop
   await step('video: open tasks', async () => {
-    await glide(page.getByRole('button', { name: /^Tasks/ }))
+    await glide(page.getByRole('tab', { name: /Tasks/ }).first())
     await wait(900)
   })
   const title = 'Finish biology notes'
@@ -444,7 +444,7 @@ async function video(browser, base, level) {
     await wait(2200)
   })
   await step('video: habits tab', async () => {
-    await glide(page.getByRole('button', { name: /^Habits/ }))
+    await glide(page.getByRole('tab', { name: /Habits/ }).first())
     await wait(1400)
     const check = page.locator('[aria-label="Room drawer"] button', { hasText: 'Read 10 pages' })
     if (await check.count()) {
@@ -453,7 +453,7 @@ async function video(browser, base, level) {
     }
   })
   await step('video: progress tab', async () => {
-    await glide(page.getByRole('button', { name: /^Progress/ }))
+    await glide(page.getByRole('tab', { name: /Progress/ }).first())
     await wait(2200)
   })
 
