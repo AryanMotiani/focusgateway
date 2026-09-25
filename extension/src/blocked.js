@@ -67,7 +67,7 @@ async function render() {
     box.append(card)
     if (!b.locked && b.kind !== 'focus' && b.ruleId) {
       failsafe.hidden = false
-      failsafe.href = `app/index.html#/?failsafe=${encodeURIComponent(b.ruleId)}`
+      failsafe.href = `app/index.html#/today?failsafe=${encodeURIComponent(b.ruleId)}`
     }
   }
 }

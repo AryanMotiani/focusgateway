@@ -6,9 +6,11 @@ const routes = [
   { path: '/home', component: () => import('./views/Landing.vue'), meta: { bare: true, public: true, title: 'FocusGateway' } },
   { path: '/welcome', component: () => import('./views/Onboarding.vue'), meta: { bare: true, public: true, title: 'Set up' } },
   { path: '/install', component: () => import('./views/Install.vue'), meta: { public: true, title: 'Install' } },
+  // The study room is home. /room stays public so people can try it before setting anything up.
   { path: '/room', component: () => import('./views/Room.vue'), meta: { bare: true, public: true, title: 'Study room' } },
   { path: '/recover', component: () => import('./views/Recover.vue'), meta: { bare: true, public: true, title: 'Forgot PIN' } },
-  { path: '/', component: () => import('./views/Dashboard.vue'), meta: { title: 'Today' } },
+  { path: '/', component: () => import('./views/Room.vue'), meta: { bare: true, title: 'Study room' } },
+  { path: '/today', component: () => import('./views/Dashboard.vue'), meta: { title: 'Today' } },
   { path: '/tasks', component: () => import('./views/Tasks.vue'), meta: { title: 'Tasks' } },
   { path: '/schedule', component: () => import('./views/Schedule.vue'), meta: { title: 'Schedule' } },
   { path: '/blocking', component: () => import('./views/Blocking.vue'), meta: { title: 'Blocking' } },
@@ -25,6 +27,8 @@ export const router = createRouter({
 })
 
 router.beforeEach((to) => {
+  // Older blocked pages link to /?failsafe=… ; the Failsafe flow lives on Today now.
+  if (to.path === '/' && to.query.failsafe) return { path: '/today', query: to.query }
   if (to.meta.public) return true
   if (!store.state) return '/home'
   if (!store.state.onboarding.completed) {

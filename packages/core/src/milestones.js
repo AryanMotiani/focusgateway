@@ -26,20 +26,25 @@ export function bestTaskStreak(state, now) {
   return best
 }
 
-export function bestHabitStreak(state) {
+/** Longest run of scheduled days one habit was done. */
+export function habitBestStreak(h, logsAll) {
+  const logs = logsAll?.[h.id] || {}
+  const keys = Object.keys(logs)
+    .filter((k) => logs[k])
+    .sort()
   let best = 0
-  for (const h of state.habits || []) {
-    const logs = state.habitLogs?.[h.id] || {}
-    const keys = Object.keys(logs).filter((k) => logs[k]).sort()
-    if (!keys.length) continue
-    let run = 0
-    for (let day = fromDateKey(keys[0]); day <= fromDateKey(keys.at(-1)); day = addDays(day, 1)) {
-      if (!isHabitDue(h, day)) continue
-      if (logs[dateKey(day)]) best = Math.max(best, ++run)
-      else run = 0
-    }
+  let run = 0
+  if (!keys.length) return 0
+  for (let day = fromDateKey(keys[0]); day <= fromDateKey(keys.at(-1)); day = addDays(day, 1)) {
+    if (!isHabitDue(h, day)) continue
+    if (logs[dateKey(day)]) best = Math.max(best, ++run)
+    else run = 0
   }
   return best
+}
+
+export function bestHabitStreak(state) {
+  return Math.max(0, ...(state.habits || []).map((h) => habitBestStreak(h, state.habitLogs)))
 }
 
 function perfectWeeks(state, now) {
@@ -62,7 +67,14 @@ export const MILESTONES = [
   ...tiers('habit', 'bestHabitStreak', (n) => `Habit kept ${n} times in a row`, 'times', [7, 30, 100], 'target'),
   ...tiers('focus', 'focusHours', (n) => `${n} hours focused`, 'hours', [1, 10, 50, 100, 250], 'clock'),
   ...tiers('windows', 'windowsUnlocked', (n) => `${n} windows unlocked by finishing`, 'windows', [5, 25, 100], 'unlock'),
-  ...tiers('resisted', 'failsafeResisted', (n) => (n === 1 ? 'Walked away from Failsafe' : `Walked away ${n} times`), 'times', [1, 10, 25], 'shield'),
+  ...tiers(
+    'resisted',
+    'failsafeResisted',
+    (n) => (n === 1 ? 'Walked away from Failsafe' : `Walked away ${n} times`),
+    'times',
+    [1, 10, 25],
+    'shield',
+  ),
   ...tiers('perfect', 'perfectWeeks', (n) => (n === 1 ? 'A perfect week' : `${n} perfect weeks`), 'weeks', [1, 4, 12], 'sparkles'),
 ]
 
@@ -81,5 +93,10 @@ export function milestoneMetrics(state, now) {
 
 export function computeMilestones(state, now) {
   const m = milestoneMetrics(state, now)
-  return MILESTONES.map((x) => ({ ...x, value: m[x.metric], achieved: m[x.metric] >= x.target, progress: Math.min(1, m[x.metric] / x.target) }))
+  return MILESTONES.map((x) => ({
+    ...x,
+    value: m[x.metric],
+    achieved: m[x.metric] >= x.target,
+    progress: Math.min(1, m[x.metric] / x.target),
+  }))
 }

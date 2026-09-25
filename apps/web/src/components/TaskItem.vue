@@ -1,10 +1,11 @@
 <script setup>
 import { computed, ref, onBeforeUnmount } from 'vue'
-import { taskColor, forwardsLeft, FORWARD_LIMITS } from '@focusgateway/core'
+import { taskColor, forwardsLeft, FORWARD_LIMITS, XP } from '@focusgateway/core'
 import { store, call, attempt, toast } from '../lib/store.js'
 import { deadlineLabel, humanDuration } from '../lib/format.js'
 import { deleteTask } from '../lib/actions.js'
 import Icon from './Icon.vue'
+import { popXp, playTick, isGame } from '../lib/rewards.js'
 
 const props = defineProps({ task: Object, compact: Boolean, showRule: { type: Boolean, default: true } })
 const emit = defineEmits(['edit', 'add-subtask'])
@@ -30,11 +31,21 @@ const canForward = computed(
 const COLORS = { green: 'bg-good', yellow: 'bg-caution', red: 'bg-bad' }
 const PRI = { high: 'text-bad', medium: 'text-caution', low: 'text-muted' }
 
-async function toggle() {
+// What finishing this task is worth right now (shown as a reward tag in game mode)
+const reward = computed(() =>
+  props.task.parentId ? XP.subtask : XP.task[props.task.priority] + (props.task.deadline >= store.now ? XP.onTimeBonus : 0),
+)
+const RAR = { low: 'rar-low', medium: 'rar-medium', high: 'rar-high' }
+
+async function toggle(e) {
   if (done.value) return attempt(() => call('tasks.reopen', { id: props.task.id }))
+  const el = e?.currentTarget
+  const worth = reward.value
   popping.value = true
   setTimeout(() => (popping.value = false), 500)
   const r = await attempt(() => call('tasks.complete', { id: props.task.id }))
+  playTick()
+  popXp(el, worth)
   if (r?.next) toast('Nice. The next one is scheduled.', 'success')
 }
 async function forward() {
@@ -61,11 +72,15 @@ onBeforeUnmount(() => running.value && stopTimer())
 </script>
 
 <template>
-  <div class="group rounded-2xl border border-line bg-card transition hover:shadow-sm" :class="{ 'opacity-60': forwarded }">
-    <div class="flex items-start gap-3 p-3 sm:p-3.5">
+  <div
+    class="group relative overflow-hidden rounded-2xl border border-line bg-card transition hover:shadow-sm game:border-2 game:border-b-4 game:border-b-edge"
+    :class="{ 'opacity-60': forwarded }"
+  >
+    <span v-if="isGame && !compact" class="absolute inset-y-0 left-0 w-1.5 bg-(--rar)" :class="RAR[task.priority]" aria-hidden="true" />
+    <div class="flex items-start gap-3 p-3 sm:p-3.5" :class="isGame && !compact && 'pl-4 sm:pl-5'">
       <button
         class="relative mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 transition"
-        :class="[done ? 'border-good bg-good text-white' : 'border-line hover:border-good', popping && 'scale-125']"
+        :class="[done ? 'border-good bg-good text-white' : 'border-line hover:border-good', popping && 'scale-125', isGame && 'rounded-lg']"
         :aria-label="done ? 'Mark as not done' : 'Mark as done'"
         @click="toggle"
       >
@@ -128,6 +143,7 @@ onBeforeUnmount(() => running.value && stopTimer())
             }}</span
           >
           <span v-for="t in task.tags" :key="t" class="chip">{{ t }}</span>
+          <span v-if="isGame && !done" class="num ml-auto text-[11px] text-xp" :title="`Worth ${reward} XP`">+{{ reward }} XP</span>
           <button v-if="subtasks.length" class="text-muted hover:text-ink" @click="open = !open">
             {{ subDone }}/{{ subtasks.length }} subtasks {{ open ? '▴' : '▾' }}
           </button>

@@ -55,7 +55,8 @@ export function yearGrid(state, now, { kind = 'tasks', habit = null, weeks = 53 
   out.forEach((col, i) => {
     const c = col.find(Boolean) || { ts: addDays(first, i * 7) }
     const m = new Date(c.ts).getMonth()
-    if (i === 0 || m !== new Date(out[i - 1].find(Boolean)?.ts ?? addDays(first, (i - 1) * 7)).getMonth()) months.push({ index: i, month: m })
+    if (i === 0 || m !== new Date(out[i - 1].find(Boolean)?.ts ?? addDays(first, (i - 1) * 7)).getMonth())
+      months.push({ index: i, month: m })
   })
   return { weeks: out, months }
 }

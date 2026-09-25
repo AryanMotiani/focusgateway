@@ -1,10 +1,20 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { store } from '../lib/store.js'
 import { REPO_URL } from '../config.js'
 import RoomScene from '../components/RoomScene.vue'
 import Icon from '../components/Icon.vue'
 import logo from '../assets/logo.svg'
+
+const now = ref(new Date())
+let clockInterval
+onMounted(() => {
+  clockInterval = setInterval(() => {
+    now.value = new Date()
+  }, 1000)
+})
+onUnmounted(() => clearInterval(clockInterval))
+const liveTime = computed(() => now.value.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }))
 
 const started = computed(() => store.state?.onboarding?.completed)
 const FEATURES = [
@@ -75,7 +85,7 @@ const STEPS = [
         >
           <div>
             <p class="text-xs text-white/60 uppercase">Focus · round 2 of 4</p>
-            <p class="font-mono text-3xl font-semibold">18:42</p>
+            <p class="font-mono text-3xl font-semibold">{{ liveTime }}</p>
           </div>
           <span class="rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#120f24] transition group-hover:scale-105"
             >Enter the study room →</span

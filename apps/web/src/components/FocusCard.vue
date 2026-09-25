@@ -89,7 +89,7 @@ const siteNames = computed(() => siteIds.value.map((id) => store.state.customSit
           class="rounded-full border px-3 py-1 text-xs font-medium transition"
           :class="
             f.work === p.work && f.brk === p.brk && f.n === p.n
-              ? 'border-accent bg-accent text-white dark:text-[#120f24]'
+              ? 'border-accent bg-accent text-on-accent'
               : dark
                 ? 'border-white/20 hover:border-white/50'
                 : 'border-line hover:border-accent'

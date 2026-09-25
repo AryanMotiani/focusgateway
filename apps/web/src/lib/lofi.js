@@ -1,3 +1,4 @@
+import { reactive } from 'vue'
 // Generative lofi + ambience, synthesized live with the Web Audio API.
 // No audio files, no streaming, no copyright issues, and it keeps playing even
 // when YouTube or Spotify are blocked.
@@ -92,9 +93,15 @@ export function createLofi() {
   let mix = { rain: 0.5, cafe: 0, fire: 0, noise: 0 }
   const listeners = new Set()
 
-  // sequencer state
-  const bpm = 74
-  const step = 60 / bpm / 4 // 16th note
+  // sequencer state. Each unlockable music style changes tempo, groove and density.
+  const STYLES = {
+    'music-classic': { bpm: 74, swing: 0.18, drums: 'lofi', melody: 0.09, keysGain: 0.07 },
+    'music-jazz': { bpm: 64, swing: 0.24, drums: 'brush', melody: 0.16, keysGain: 0.08 },
+    'music-bossa': { bpm: 86, swing: 0.08, drums: 'bossa', melody: 0.1, keysGain: 0.065 },
+    'music-ambient': { bpm: 56, swing: 0, drums: 'none', melody: 0.05, keysGain: 0.09 },
+  }
+  let style = STYLES['music-classic']
+  let step = 60 / style.bpm / 4 // 16th note
   let nextTime = 0
   let stepIndex = 0
   let progression = PROGRESSIONS[0]
@@ -287,9 +294,28 @@ export function createLofi() {
     s.stop(time + 0.1)
   }
 
+  function drums(s16, t) {
+    if (style.drums === 'none') return
+    if (style.drums === 'bossa') {
+      if (s16 === 0 || s16 === 6 || s16 === 8 || s16 === 14) kick(t)
+      if ([3, 6, 10, 12].includes(s16)) noiseHit(t, { freq: 2600, q: 3, gain: 0.08, decay: 0.05 })
+      if (s16 % 2 === 0) noiseHit(t, { freq: 9000, type: 'highpass', gain: 0.025, decay: 0.04 })
+      return
+    }
+    if (style.drums === 'brush') {
+      if (s16 === 0 || (s16 === 10 && Math.random() < 0.3)) kick(t)
+      if (s16 === 4 || s16 === 12) noiseHit(t, { freq: 1400, q: 0.5, gain: 0.08, decay: 0.3 })
+      if (s16 % 2 === 0) noiseHit(t, { freq: 6000, type: 'highpass', gain: 0.02, decay: 0.12 })
+      return
+    }
+    if (s16 === 0 || s16 === 7 || (s16 === 10 && Math.random() < 0.4)) kick(t)
+    if (s16 === 4 || s16 === 12) noiseHit(t, { freq: 1800, q: 0.8, gain: 0.16, decay: 0.18 })
+    if (s16 % 2 === 0) noiseHit(t, { freq: 8000, type: 'highpass', gain: s16 % 4 === 0 ? 0.05 : 0.03, decay: 0.05 })
+  }
+
   function scheduleStep(i, time) {
     const s16 = i % 16
-    const swing = s16 % 2 === 1 ? step * 0.18 : 0
+    const swing = s16 % 2 === 1 ? step * style.swing : 0
     const t = time + swing
     if (s16 === 0) {
       bar++
@@ -297,13 +323,12 @@ export function createLofi() {
     }
     const chord = progression[Math.floor(i / 16) % progression.length]
     if (musicOn) {
-      if (s16 === 0) chord.forEach((n, k) => keys(n, t + k * 0.018, step * 15, 0.07))
-      if (s16 === 10 && Math.random() < 0.5) chord.slice(1).forEach((n, k) => keys(n, t + k * 0.015, step * 6, 0.04))
-      if (s16 === 0 || s16 === 10) bass(chord[0], t, step * (s16 === 0 ? 8 : 5))
-      if (s16 === 0 || s16 === 7 || (s16 === 10 && Math.random() < 0.4)) kick(t)
-      if (s16 === 4 || s16 === 12) noiseHit(t, { freq: 1800, q: 0.8, gain: 0.16, decay: 0.18 })
-      if (s16 % 2 === 0) noiseHit(t, { freq: 8000, type: 'highpass', gain: s16 % 4 === 0 ? 0.05 : 0.03, decay: 0.05 })
-      if (Math.random() < 0.09 && s16 % 2 === 0) {
+      const ambient = style.drums === 'none'
+      if (s16 === 0) chord.forEach((n, k) => keys(n, t + k * (ambient ? 0.12 : 0.018), step * (ambient ? 16 : 15), style.keysGain))
+      if (!ambient && s16 === 10 && Math.random() < 0.5) chord.slice(1).forEach((n, k) => keys(n, t + k * 0.015, step * 6, 0.04))
+      if (s16 === 0 || (!ambient && s16 === 10)) bass(chord[0], t, step * (s16 === 0 ? 8 : 5))
+      drums(s16, t)
+      if (Math.random() < style.melody && s16 % 2 === 0) {
         const root = chord[0] + 24
         const n = root + PENTA[Math.floor(Math.random() * PENTA.length)] + (Math.random() < 0.3 ? 12 : 0)
         keys(n, t, step * (2 + Math.floor(Math.random() * 4)), 0.05)
@@ -331,6 +356,7 @@ export function createLofi() {
         timer = setInterval(scheduler, 25)
       }
       playing = true
+      lofiState.playing = true
     },
     async stop() {
       if (!ctx) return
@@ -338,6 +364,7 @@ export function createLofi() {
       clearInterval(timer)
       timer = null
       playing = false
+      lofiState.playing = false
       setTimeout(() => !playing && ctx.suspend(), 900)
     },
     setVolume(v) {
@@ -356,6 +383,10 @@ export function createLofi() {
       listeners.add(cb)
       return () => listeners.delete(cb)
     },
+    setStyle(id) {
+      style = STYLES[id] || STYLES['music-classic']
+      step = 60 / style.bpm / 4
+    },
     get playing() {
       return playing
     },
@@ -368,6 +399,19 @@ export function createLofi() {
 }
 
 // One shared instance so music keeps playing while you move between pages.
+/** Reactive mirror so every screen shows the same play state. */
+export const lofiState = reactive({ playing: false })
+
+/** Start with the user's saved room settings (volume, ambience mix, style). */
+export async function playWithSettings(settings = {}) {
+  const p = lofi()
+  const l = settings.lofi || {}
+  p.setVolume(l.volume ?? 0.6)
+  p.setMix(l.mix || { rain: 0.5 })
+  if (l.style) p.setStyle?.(l.style)
+  await p.start()
+}
+
 let shared = null
 export function lofi() {
   return (shared ||= createLofi())

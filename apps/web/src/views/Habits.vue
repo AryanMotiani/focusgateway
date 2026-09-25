@@ -1,19 +1,37 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
-import { addDays, startOfDay, dateKey, isHabitDue, isHabitDone, habitStreak, habitRate } from '@focusgateway/core'
+import {
+  addDays,
+  startOfDay,
+  dateKey,
+  isHabitDue,
+  isHabitDone,
+  habitStreak,
+  habitRate,
+  habitBestStreak,
+  yearGrid,
+  XP,
+} from '@focusgateway/core'
 import { store, call, attempt } from '../lib/store.js'
 import { askYesNo } from '../lib/dialogs.js'
 import { DAY_NAMES, daysLabel } from '../lib/format.js'
 import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import DayPicker from '../components/DayPicker.vue'
+import YearHeatmap from '../components/viz/YearHeatmap.vue'
+import { popXp, playHabit, isGame } from '../lib/rewards.js'
 
 const COLORS = { violet: '#7c6cf2', amber: '#e09a3e', green: '#2fa877', rose: '#e0607a', sky: '#3b9bd9', slate: '#6b7280' }
 const EMOJI = ['💧', '📚', '🏃', '🧘', '🛏️', '🥗', '✍️', '🎸', '🧹', '💊', '🌱', '📵']
 const habits = computed(() => store.state.habits.filter((h) => !h.archived))
 const archived = computed(() => store.state.habits.filter((h) => h.archived))
 const week = computed(() => Array.from({ length: 7 }, (_, i) => addDays(startOfDay(store.now), i - 6)))
-const month = computed(() => Array.from({ length: 30 }, (_, i) => addDays(startOfDay(store.now), i - 29)))
+// HabitKit style year grid per habit; fewer weeks on narrow screens
+const WEEKS = window.innerWidth < 640 ? 22 : 53
+const minute = computed(() => Math.floor(store.now / 60000) * 60000)
+const grids = computed(() =>
+  Object.fromEntries(habits.value.map((h) => [h.id, yearGrid(store.state, minute.value, { kind: 'habit', habit: h, weeks: WEEKS })])),
+)
 const form = ref(null)
 
 function openForm(h) {
@@ -40,7 +58,15 @@ async function remove(h) {
     form.value = null
   }
 }
-const toggle = (h, d) => attempt(() => call('habits.toggle', { id: h.id, date: dateKey(d) }))
+async function toggle(h, d, e) {
+  const was = isHabitDone(store.state.habitLogs, h.id, d)
+  const el = e?.currentTarget
+  await attempt(() => call('habits.toggle', { id: h.id, date: dateKey(d) })).catch(() => null)
+  if (!was && isHabitDone(store.state.habitLogs, h.id, d)) {
+    playHabit()
+    popXp(el, XP.habit)
+  }
+}
 const doneToday = computed(
   () => habits.value.filter((h) => isHabitDue(h, store.now) && isHabitDone(store.state.habitLogs, h.id, store.now)).length,
 )
@@ -52,7 +78,9 @@ const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.n
     <header class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h1 class="h-display text-4xl">Habits</h1>
-        <p class="text-sm text-muted">Small things, every day. {{ doneToday }} of {{ dueToday }} done today.</p>
+        <p class="text-sm text-muted">
+          Small things, every day. {{ doneToday }} of {{ dueToday }} done today.<template v-if="isGame"> +{{ XP.habit }} XP each.</template>
+        </p>
       </div>
       <button class="btn btn-primary" @click="openForm()"><Icon name="plus" :size="16" /> New habit</button>
     </header>
@@ -66,13 +94,16 @@ const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.n
             }}</span>
             <span class="min-w-0">
               <span class="block truncate font-semibold">{{ h.name }}</span>
-              <span class="text-xs text-muted"
-                >{{ daysLabel(h.days) }} · {{ habitStreak(h, store.state.habitLogs, store.now) }} day streak<template
-                  v-if="habitRate(h, store.state.habitLogs, store.now) !== null"
+              <span class="text-xs text-muted">{{ daysLabel(h.days) }}</span>
+              <span class="mt-1 flex flex-wrap gap-1.5 text-[11px] font-bold">
+                <span class="chip" :style="{ background: COLORS[h.color] + '22', color: COLORS[h.color] }"
+                  ><Icon name="flame" :size="12" /> {{ habitStreak(h, store.state.habitLogs, store.now) }}-day streak</span
                 >
-                  · {{ Math.round(habitRate(h, store.state.habitLogs, store.now) * 100) }}% this month</template
-                ></span
-              >
+                <span class="chip">Best: {{ habitBestStreak(h, store.state.habitLogs) }}</span>
+                <span v-if="habitRate(h, store.state.habitLogs, store.now, 365) !== null" class="chip"
+                  >{{ Math.round(habitRate(h, store.state.habitLogs, store.now, 365) * 100) }}%</span
+                >
+              </span>
             </span>
           </button>
           <div class="flex gap-1.5">
@@ -82,7 +113,7 @@ const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.n
               class="flex w-9 flex-col items-center gap-1 text-[10px] text-muted"
               :disabled="!isHabitDue(h, d)"
               :aria-label="`${h.name} on ${new Date(d).toDateString()}`"
-              @click="toggle(h, d)"
+              @click="toggle(h, d, $event)"
             >
               <span>{{ DAY_NAMES[(new Date(d).getDay() + 6) % 7].slice(0, 2) }}</span>
               <span
@@ -102,19 +133,8 @@ const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.n
             </button>
           </div>
         </div>
-        <div class="mt-3 flex gap-[3px]" aria-hidden="true">
-          <span
-            v-for="d in month"
-            :key="d"
-            class="h-2 flex-1 rounded-sm"
-            :style="{
-              background: isHabitDone(store.state.habitLogs, h.id, d)
-                ? COLORS[h.color]
-                : isHabitDue(h, d) && d >= startOfDay(h.createdAt)
-                  ? 'var(--fg-sunk)'
-                  : 'transparent',
-            }"
-          />
+        <div class="mt-4">
+          <YearHeatmap :grid="grids[h.id]" :color="COLORS[h.color]" label="done" />
         </div>
       </article>
 

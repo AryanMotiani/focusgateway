@@ -18,11 +18,7 @@ const presets = [
         type="button"
         :aria-pressed="model.includes(i + 1)"
         class="h-10 w-11 rounded-xl border text-sm font-semibold transition"
-        :class="
-          model.includes(i + 1)
-            ? 'border-accent bg-accent text-white dark:text-[#120f24]'
-            : 'border-line bg-card text-muted hover:border-accent'
-        "
+        :class="model.includes(i + 1) ? 'border-accent bg-accent text-on-accent' : 'border-line bg-card text-muted hover:border-accent'"
         @click="toggle(i + 1)"
       >
         {{ n }}

@@ -367,7 +367,16 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     },
     'setup.step': (s, { step }) => {
       if (
-        !['recoverySaved', 'pinExplained', 'failsafeDryRun', 'emergencyHelp', 'dohReviewed', 'firstRule', 'extensionChecked', 'uiMode'].includes(step)
+        ![
+          'recoverySaved',
+          'pinExplained',
+          'failsafeDryRun',
+          'emergencyHelp',
+          'dohReviewed',
+          'firstRule',
+          'extensionChecked',
+          'uiMode',
+        ].includes(step)
       )
         fail('VALIDATION', 'Unknown step.')
       if (step === 'failsafeDryRun' && !s.onboarding.steps.failsafeDryRunDone) fail('VALIDATION', 'Finish the Failsafe practice run first.')

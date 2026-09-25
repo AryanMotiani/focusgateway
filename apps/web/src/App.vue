@@ -2,11 +2,15 @@
 import { computed, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { store, blocks, useLocalInstead } from './lib/store.js'
-import { lofi } from './lib/lofi.js'
 import Icon from './components/Icon.vue'
 import logo from './assets/logo.svg'
 import Toasts from './components/Toasts.vue'
 import DialogHost from './components/DialogHost.vue'
+import StatusStrip from './components/StatusStrip.vue'
+import TodayRail from './components/TodayRail.vue'
+import Celebrate from './components/Celebrate.vue'
+import { startRewardWatch, isGame } from './lib/rewards.js'
+import { lofiState } from './lib/lofi.js'
 
 const route = useRoute()
 const menu = ref(false)
@@ -19,21 +23,25 @@ watchEffect(() => {
   const t = store.state?.settings?.theme || 'system'
   const dark = t === 'dark' || (t === 'system' && systemDark.value)
   document.documentElement.classList.toggle('dark', dark)
+  // game (bold, pressable, vivid) or minimal (calm, editorial): picked in onboarding, changeable in Settings
+  document.documentElement.dataset.mode = store.state?.settings?.uiMode === 'minimal' ? 'minimal' : 'game'
 })
+startRewardWatch()
 
+// The study room is home. Everything else is one click away and shares the status strip.
 const nav = [
-  { to: '/', label: 'Today', icon: 'home' },
-  { to: '/tasks', label: 'Tasks', icon: 'list' },
-  { to: '/schedule', label: 'Schedule', icon: 'calendar' },
-  { to: '/blocking', label: 'Blocking', icon: 'shield' },
-  { to: '/habits', label: 'Habits', icon: 'target' },
-  { to: '/room', label: 'Study room', icon: 'headphones' },
-  { to: '/stats', label: 'Accountability', icon: 'chart' },
-  { to: '/settings', label: 'Settings', icon: 'settings' },
+  { to: '/', label: 'Study room', short: 'Room', icon: 'headphones' },
+  { to: '/today', label: 'Today', short: 'Today', icon: 'home' },
+  { to: '/tasks', label: 'Tasks', short: 'Tasks', icon: 'list' },
+  { to: '/schedule', label: 'Schedule', short: 'Plan', icon: 'calendar' },
+  { to: '/blocking', label: 'Blocking', short: 'Blocks', icon: 'shield' },
+  { to: '/habits', label: 'Habits', short: 'Habits', icon: 'target' },
+  { to: '/stats', label: 'Accountability', short: 'Stats', icon: 'chart' },
+  { to: '/settings', label: 'Settings', short: 'Settings', icon: 'settings' },
 ]
-const mobileNav = [nav[0], nav[1], nav[3], nav[4], nav[5]]
+const mobileNav = [nav[0], nav[1], nav[2], nav[5], nav[6]]
 const activeCount = computed(() => blocks.value.blocks.length)
-const music = lofi()
+const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.path))
 </script>
 
 <template>
@@ -50,28 +58,30 @@ const music = lofi()
 
   <template v-else>
     <RouterView v-if="route.meta.bare" />
-    <div v-else class="min-h-screen lg:grid lg:grid-cols-[248px_1fr]">
+    <div v-else class="min-h-screen lg:flex">
       <!-- sidebar -->
-      <aside class="sticky top-0 hidden h-screen flex-col border-r border-line px-4 py-5 lg:flex">
+      <aside class="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line px-4 py-5 lg:flex">
         <RouterLink to="/" class="mb-6 flex items-center gap-2.5 px-2">
           <img :src="logo" alt="" class="h-8 w-8" />
-          <span class="text-[17px] font-semibold tracking-tight">FocusGateway</span>
+          <span class="text-[17px] font-semibold tracking-tight game:font-black">FocusGateway</span>
         </RouterLink>
         <nav class="flex flex-1 flex-col gap-0.5" aria-label="Main">
           <RouterLink
             v-for="n in nav"
             :key="n.to"
             :to="n.to"
-            class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-sunk hover:text-ink"
-            exact-active-class="!bg-accent-soft !text-accent"
+            class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted transition hover:bg-sunk hover:text-ink game:font-bold"
+            :exact-active-class="
+              isGame ? '!bg-accent !text-on-accent shadow-[inset_0_-3px_0_var(--fg-accent-deep)]' : '!bg-accent-soft !text-accent'
+            "
           >
             <Icon :name="n.icon" /> {{ n.label }}
             <span
               v-if="n.to === '/blocking' && activeCount"
-              class="ml-auto rounded-full bg-accent px-2 text-[11px] font-bold text-white dark:text-[#120f24]"
+              class="ml-auto rounded-full bg-accent px-2 text-[11px] font-bold text-on-accent"
               >{{ activeCount }}</span
             >
-            <span v-if="n.to === '/room' && music.playing" class="ml-auto h-2 w-2 animate-pulse rounded-full bg-warm" />
+            <span v-if="n.to === '/' && lofiState.playing" class="ml-auto h-2 w-2 animate-pulse rounded-full bg-warm" />
           </RouterLink>
         </nav>
         <div class="space-y-2">
@@ -106,9 +116,15 @@ const music = lofi()
         >
       </div>
 
-      <main class="mx-auto w-full max-w-5xl px-4 pt-5 pb-28 sm:px-6 lg:px-10 lg:pt-10 lg:pb-12">
-        <RouterView />
-      </main>
+      <div class="min-w-0 flex-1">
+        <div class="sticky top-[57px] z-20 bg-paper/85 px-4 pt-3 pb-2 backdrop-blur sm:px-6 lg:top-0 lg:px-10 lg:pt-5">
+          <div class="mx-auto max-w-5xl"><StatusStrip /></div>
+        </div>
+        <main class="mx-auto w-full max-w-5xl px-4 pt-4 pb-28 sm:px-6 lg:px-10 lg:pt-6 lg:pb-12">
+          <RouterView />
+        </main>
+      </div>
+      <TodayRail v-if="showRail" />
 
       <!-- mobile bottom nav -->
       <nav
@@ -122,7 +138,7 @@ const music = lofi()
           class="flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-muted"
           exact-active-class="!text-accent"
         >
-          <Icon :name="n.icon" :size="20" /> {{ n.label === 'Study room' ? 'Room' : n.label }}
+          <Icon :name="n.icon" :size="20" /> {{ n.short }}
         </RouterLink>
       </nav>
     </div>
@@ -130,4 +146,5 @@ const music = lofi()
 
   <Toasts />
   <DialogHost />
+  <Celebrate />
 </template>

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { computeXp, levelInfo, xpToReach, xpForTask } from '../src/progress.js'
 import { UNLOCKS, unlockedAt, nextUnlocks } from '../src/unlocks.js'
-import { computeMilestones, bestTaskStreak } from '../src/milestones.js'
+import { computeMilestones, bestTaskStreak, habitBestStreak } from '../src/milestones.js'
 import { yearGrid, taskBoxes, weekRings } from '../src/visuals.js'
 import { defaultState } from '../src/state.js'
 
@@ -76,9 +76,21 @@ describe('milestones', () => {
   })
 })
 
+describe('habit best streak', () => {
+  it('counts the longest run of scheduled days for one habit', () => {
+    const h = { id: 'h', days: [1, 2, 3, 4, 5, 6, 7], createdAt: at(1, 0) }
+    const logs = { h: { '2026-09-01': true, '2026-09-02': true, '2026-09-03': true, '2026-09-05': true } }
+    expect(habitBestStreak(h, logs)).toBe(3)
+    expect(habitBestStreak(h, {})).toBe(0)
+  })
+})
+
 describe('visuals', () => {
   it('builds a year grid of weeks with shade levels', () => {
-    const s = { ...defaultState(), tasks: [task({ deadline: at(21, 22), completedAt: at(21, 12) }), task({ deadline: at(21, 23), status: 'todo' })] }
+    const s = {
+      ...defaultState(),
+      tasks: [task({ deadline: at(21, 22), completedAt: at(21, 12) }), task({ deadline: at(21, 23), status: 'todo' })],
+    }
     const g = yearGrid(s, at(21, 23, 30), { kind: 'tasks' })
     expect(g.weeks.length).toBe(53)
     const today = g.weeks.at(-1).find((c) => c && c.date === '2026-09-21')
@@ -100,7 +112,11 @@ describe('visuals', () => {
   })
 
   it('closes weekly rings against goals', () => {
-    const s = { ...defaultState(), tasks: [task({ deadline: at(21, 22), completedAt: at(21, 12) })], settings: { ...defaultState().settings, weeklyFocusGoalMin: 300 } }
+    const s = {
+      ...defaultState(),
+      tasks: [task({ deadline: at(21, 22), completedAt: at(21, 12) })],
+      settings: { ...defaultState().settings, weeklyFocusGoalMin: 300 },
+    }
     const r = weekRings(s, at(23, 12))
     expect(r.tasks).toMatchObject({ value: 1, goal: 1 })
     expect(r.focus.goal).toBe(300)

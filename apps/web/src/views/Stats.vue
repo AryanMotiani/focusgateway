@@ -3,9 +3,29 @@ import { computed, ref } from 'vue'
 import { computeStats, fromDateKey } from '@focusgateway/core'
 import { store } from '../lib/store.js'
 import { dateTime } from '../lib/format.js'
+import { yearGrid, taskBoxes, weekRings, taskStreak, bestTaskStreak } from '@focusgateway/core'
 import BarChart from '../components/BarChart.vue'
+import YearHeatmap from '../components/viz/YearHeatmap.vue'
+import TaskBoxes from '../components/viz/TaskBoxes.vue'
+import WeekRings from '../components/viz/WeekRings.vue'
+import BadgeGrid from '../components/viz/BadgeGrid.vue'
+import LevelCard from '../components/viz/LevelCard.vue'
+import Icon from '../components/Icon.vue'
+import { milestones, isGame } from '../lib/rewards.js'
 
 const range = ref('week')
+// visuals refresh once a minute, that is plenty for day-level data
+const minute = computed(() => Math.floor(store.now / 60000) * 60000)
+const heat = computed(() => yearGrid(store.state, minute.value, { kind: 'tasks' }))
+const boxes = computed(() => taskBoxes(store.state, minute.value, 14))
+const rings = computed(() => weekRings(store.state, minute.value))
+const streak = computed(() => taskStreak(store.state, minute.value))
+const best = computed(() => bestTaskStreak(store.state, minute.value))
+const clearRate = computed(() => {
+  const cells = heat.value.weeks.flat().filter((c) => c && c.total)
+  return cells.length ? Math.round((cells.filter((c) => c.ratio === 1).length / cells.length) * 100) : 0
+})
+const earned = computed(() => milestones.value.filter((m) => m.achieved).length)
 const stats = computed(() => computeStats(store.state, store.now, { range: range.value }))
 const SECTIONS = [
   ['windows', 'Task-Gated windows'],
@@ -82,7 +102,11 @@ const BAD = new Set([
     <header class="flex flex-wrap items-end justify-between gap-3">
       <div>
         <h1 class="h-display text-4xl">Accountability</h1>
-        <p class="text-sm text-muted">An honest mirror. No points, no guilt, just what happened.</p>
+        <p class="text-sm text-muted">
+          {{
+            isGame ? 'Your trophy room. Every box is a promise you kept, or did not.' : 'An honest mirror. No guilt, just what happened.'
+          }}
+        </p>
       </div>
       <div class="flex rounded-xl border border-line bg-card p-0.5 text-sm">
         <button
@@ -101,6 +125,44 @@ const BAD = new Set([
       </div>
     </header>
 
+    <LevelCard />
+
+    <section class="card p-4 sm:p-5">
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 class="h-display text-xl">Every day, cleared or not</h2>
+        <div class="flex flex-wrap gap-2 text-xs font-bold">
+          <span class="chip !bg-warm-soft !text-warm"><Icon name="flame" :size="13" /> {{ streak }} day streak</span>
+          <span class="chip">Best: {{ best }}</span>
+          <span class="chip">{{ clearRate }}% days cleared</span>
+        </div>
+      </div>
+      <YearHeatmap :grid="heat" label="tasks done" />
+    </section>
+
+    <div class="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      <section class="card p-4 sm:p-5">
+        <h2 class="h-display mb-1 text-xl">Task boxes</h2>
+        <p class="mb-4 text-xs text-muted">Last 14 days. One box per task, the bottom edge shows priority.</p>
+        <TaskBoxes :days="boxes" />
+      </section>
+      <section class="card p-4 sm:p-5">
+        <h2 class="h-display mb-4 text-xl">This week</h2>
+        <WeekRings :rings="rings" />
+        <p class="mt-3 text-center text-[11px] text-muted">Change the weekly focus goal in Settings.</p>
+      </section>
+    </div>
+
+    <section class="card p-4 sm:p-5">
+      <div class="mb-4 flex items-baseline justify-between">
+        <h2 class="h-display text-xl">Badges</h2>
+        <span class="text-sm text-muted"
+          ><b class="num text-ink">{{ earned }}</b> / {{ milestones.length }} earned</span
+        >
+      </div>
+      <BadgeGrid :milestones="milestones" />
+    </section>
+
+    <h2 class="h-display pt-2 text-2xl">The numbers</h2>
     <div class="grid gap-4 md:grid-cols-3">
       <section v-for="c in charts" :key="c.title" class="card p-4">
         <h2 class="mb-3 text-sm font-semibold">{{ c.title }} <span class="font-normal text-muted">· 14 days</span></h2>

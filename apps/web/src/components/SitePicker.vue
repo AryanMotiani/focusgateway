@@ -67,9 +67,7 @@ function quickAdd() {
             type="button"
             :title="s.domains.join(', ')"
             class="rounded-full border px-3 py-1 text-sm transition"
-            :class="
-              model.includes(s.id) ? 'border-accent bg-accent text-white dark:text-[#120f24]' : 'border-line bg-card hover:border-accent'
-            "
+            :class="model.includes(s.id) ? 'border-accent bg-accent text-on-accent' : 'border-line bg-card hover:border-accent'"
             @click="toggle(s.id)"
           >
             {{ s.name }}

@@ -1,12 +1,30 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/inter';
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+@import '@fontsource-variable/nunito';
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/barlow-condensed/700.css';
+@import '@fontsource/barlow-condensed/800.css';
 @import '@fontsource/instrument-serif';
 
+/*
+  Two looks, one set of components.
+    html[data-mode='game']     tactile, bright, chunky (Duolingo-like) with HUD touches
+    html[data-mode='minimal']  calm paper notebook
+  Each has a light and a dark palette (.dark on <html>).
+  Components only use the tokens below, never raw colours.
+*/
+
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant game (&:where([data-mode='game'], [data-mode='game'] *));
+@custom-variant minimal (&:where([data-mode='minimal'], [data-mode='minimal'] *));
 
 @theme {
-  --font-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-sans: var(--fg-font-sans);
+  --font-display: var(--fg-font-display);
+  --font-label: var(--fg-font-label);
+  --font-num: var(--fg-font-num);
+  --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --color-paper: var(--fg-paper);
   --color-card: var(--fg-card);
@@ -14,56 +32,177 @@
   --color-ink: var(--fg-ink);
   --color-muted: var(--fg-muted);
   --color-line: var(--fg-line);
+  --color-edge: var(--fg-edge);
   --color-accent: var(--fg-accent);
+  --color-accent-deep: var(--fg-accent-deep);
   --color-accent-soft: var(--fg-accent-soft);
+  --color-on-accent: var(--fg-on-accent);
   --color-warm: var(--fg-warm);
+  --color-warm-deep: var(--fg-warm-deep);
   --color-warm-soft: var(--fg-warm-soft);
   --color-good: var(--fg-good);
+  --color-good-deep: var(--fg-good-deep);
   --color-good-soft: var(--fg-good-soft);
   --color-caution: var(--fg-caution);
   --color-caution-soft: var(--fg-caution-soft);
   --color-bad: var(--fg-bad);
   --color-bad-soft: var(--fg-bad-soft);
+  --color-xp: var(--fg-xp);
+  --color-hud: var(--fg-hud);
+  --color-hud-ink: var(--fg-hud-ink);
+  --color-hud-muted: var(--fg-hud-muted);
+  --color-hud-line: var(--fg-hud-line);
+  --color-heat-0: var(--fg-heat-0);
+  --color-heat-1: var(--fg-heat-1);
+  --color-heat-2: var(--fg-heat-2);
+  --color-heat-3: var(--fg-heat-3);
 }
 
+/* ---------- Minimal (default) light ---------- */
 :root {
-  --fg-paper: #f6f3ee;
-  --fg-card: #ffffff;
-  --fg-sunk: #efeae2;
-  --fg-ink: #1d1a2e;
-  --fg-muted: #6b6780;
-  --fg-line: #e4dfd6;
-  --fg-accent: #6152e8;
-  --fg-accent-soft: #ebe8ff;
-  --fg-warm: #d98a2b;
-  --fg-warm-soft: #fbeedc;
-  --fg-good: #1f9d6a;
-  --fg-good-soft: #dcf5ea;
-  --fg-caution: #b7791f;
-  --fg-caution-soft: #fdf1d8;
-  --fg-bad: #d23f58;
-  --fg-bad-soft: #fde4e8;
+  --fg-font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fg-font-display: 'Instrument Serif', Georgia, serif;
+  --fg-font-label: 'Geist Variable', system-ui, sans-serif;
+  --fg-font-num: 'Geist Mono Variable', ui-monospace, monospace;
+  --fg-radius: 14px;
+  --fg-paper: #f4efe6;
+  --fg-card: #fffdf8;
+  --fg-sunk: #ece5d8;
+  --fg-ink: #23202c;
+  --fg-muted: #6f6880;
+  --fg-line: #e2dacb;
+  --fg-edge: #e2dacb;
+  --fg-accent: #5b4bd6;
+  --fg-accent-deep: #4536b5;
+  --fg-accent-soft: #ece7fa;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #c47413;
+  --fg-warm-deep: #9e5b0b;
+  --fg-warm-soft: #f8ead3;
+  --fg-good: #22885c;
+  --fg-good-deep: #1a6b48;
+  --fg-good-soft: #dcf1e5;
+  --fg-caution: #a86b12;
+  --fg-caution-soft: #f8ecd2;
+  --fg-bad: #c93a52;
+  --fg-bad-soft: #f9e0e4;
+  --fg-xp: #5b4bd6;
+  --fg-hud: #fffdf8;
+  --fg-hud-ink: #23202c;
+  --fg-hud-muted: #6f6880;
+  --fg-hud-line: #e2dacb;
+  --fg-heat-0: #e7e0d2;
+  --fg-heat-1: #c9c1ef;
+  --fg-heat-2: #8f80e6;
+  --fg-heat-3: #5b4bd6;
+  --fg-texture: radial-gradient(rgba(35, 32, 44, 0.05) 1px, transparent 1px);
   color-scheme: light;
 }
-
 .dark {
-  --fg-paper: #110e22;
-  --fg-card: #1a1631;
-  --fg-sunk: #151129;
-  --fg-ink: #f3efe7;
-  --fg-muted: #a29db9;
-  --fg-line: #2c2750;
-  --fg-accent: #9d92ff;
-  --fg-accent-soft: #2a2456;
-  --fg-warm: #f6b25e;
-  --fg-warm-soft: #3a2a17;
-  --fg-good: #4fd19a;
-  --fg-good-soft: #133528;
-  --fg-caution: #f2c14e;
-  --fg-caution-soft: #3a2f12;
-  --fg-bad: #ff7189;
-  --fg-bad-soft: #3d1621;
+  --fg-paper: #121019;
+  --fg-card: #1b1824;
+  --fg-sunk: #16131f;
+  --fg-ink: #efeaf2;
+  --fg-muted: #a39db3;
+  --fg-line: #2c2838;
+  --fg-edge: #2c2838;
+  --fg-accent: #a497ff;
+  --fg-accent-deep: #7d6ef0;
+  --fg-accent-soft: #28233f;
+  --fg-on-accent: #16131f;
+  --fg-warm: #f0a954;
+  --fg-warm-deep: #c7822f;
+  --fg-warm-soft: #33261a;
+  --fg-good: #52d39b;
+  --fg-good-deep: #2f9e6e;
+  --fg-good-soft: #15302a;
+  --fg-caution: #f0c25a;
+  --fg-caution-soft: #342a14;
+  --fg-bad: #ff7a8e;
+  --fg-bad-soft: #3a1822;
+  --fg-xp: #a497ff;
+  --fg-hud: #1b1824;
+  --fg-hud-ink: #efeaf2;
+  --fg-hud-muted: #a39db3;
+  --fg-hud-line: #2c2838;
+  --fg-heat-0: #211d2c;
+  --fg-heat-1: #36305e;
+  --fg-heat-2: #5c50b8;
+  --fg-heat-3: #a497ff;
+  --fg-texture: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   color-scheme: dark;
+}
+
+/* ---------- Game light ---------- */
+[data-mode='game'] {
+  --fg-font-sans: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
+  --fg-font-display: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
+  --fg-font-label: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --fg-font-num: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  --fg-radius: 18px;
+  --fg-paper: #fff7ec;
+  --fg-card: #ffffff;
+  --fg-sunk: #f7ecdc;
+  --fg-ink: #2b2a33;
+  --fg-muted: #7d7688;
+  --fg-line: #eee2d0;
+  --fg-edge: #e0d0b9;
+  --fg-accent: #7a4dff;
+  --fg-accent-deep: #5a31db;
+  --fg-accent-soft: #efe8ff;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #ff8a00;
+  --fg-warm-deep: #d66f00;
+  --fg-warm-soft: #fff0dc;
+  --fg-good: #2fbe5a;
+  --fg-good-deep: #219a45;
+  --fg-good-soft: #ddf7e4;
+  --fg-caution: #e19b00;
+  --fg-caution-soft: #fff3d1;
+  --fg-bad: #ff4b5c;
+  --fg-bad-soft: #ffe3e6;
+  --fg-xp: #f2b705;
+  --fg-hud: #1a1830;
+  --fg-hud-ink: #f3f0ff;
+  --fg-hud-muted: #9b96bd;
+  --fg-hud-line: #2e2b4d;
+  --fg-heat-0: #f1e6d6;
+  --fg-heat-1: #cbb8ff;
+  --fg-heat-2: #9a74ff;
+  --fg-heat-3: #7a4dff;
+  --fg-texture: none;
+}
+[data-mode='game'].dark {
+  --fg-paper: #13121c;
+  --fg-card: #1c1a29;
+  --fg-sunk: #181624;
+  --fg-ink: #f1edfa;
+  --fg-muted: #9d97b5;
+  --fg-line: #2d2a3e;
+  --fg-edge: #0c0b13;
+  --fg-accent: #9b7bff;
+  --fg-accent-deep: #6a45e0;
+  --fg-accent-soft: #2a2444;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #ffa53a;
+  --fg-warm-deep: #c97417;
+  --fg-warm-soft: #33241a;
+  --fg-good: #3fd675;
+  --fg-good-deep: #25a352;
+  --fg-good-soft: #15301f;
+  --fg-caution: #ffc44d;
+  --fg-caution-soft: #362a12;
+  --fg-bad: #ff6475;
+  --fg-bad-soft: #3a1720;
+  --fg-xp: #ffc933;
+  --fg-hud: #0f0e18;
+  --fg-hud-ink: #f3f0ff;
+  --fg-hud-muted: #9b96bd;
+  --fg-hud-line: #28253f;
+  --fg-heat-0: #211f30;
+  --fg-heat-1: #3b2f7a;
+  --fg-heat-2: #6a45e0;
+  --fg-heat-3: #a58bff;
 }
 
 html,
@@ -72,17 +211,23 @@ body {
   color: var(--fg-ink);
 }
 body {
-  font-family: var(--font-sans);
+  font-family: var(--fg-font-sans);
   -webkit-font-smoothing: antialiased;
+  background-image: var(--fg-texture);
+  background-size: 6px 6px;
+}
+[data-mode='game'] body {
+  font-weight: 600;
 }
 
 @layer components {
+  /* Buttons: flat in minimal, pressable with a bottom edge in game mode */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-card px-4 py-2.5 text-sm font-semibold text-ink transition
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-line bg-card px-4 py-2.5 text-sm font-semibold text-ink transition
       hover:-translate-y-px hover:shadow-sm active:translate-y-0 disabled:pointer-events-none disabled:opacity-50;
   }
   .btn-primary {
-    @apply border-accent bg-accent text-white dark:text-[#120f24];
+    @apply border-accent bg-accent text-on-accent;
   }
   .btn-ghost {
     @apply border-transparent bg-transparent hover:bg-sunk hover:shadow-none;
@@ -93,22 +238,184 @@ body {
   .btn-sm {
     @apply rounded-lg px-3 py-1.5 text-xs;
   }
-  .card {
-    @apply rounded-2xl border border-line bg-card;
+  [data-mode='game'] .btn {
+    border-width: 2px;
+    border-bottom-width: 4px;
+    border-color: var(--fg-line);
+    border-bottom-color: var(--fg-edge);
+    border-radius: 16px;
+    font-weight: 800;
+    transition:
+      transform 0.1s ease,
+      border-bottom-width 0.1s ease,
+      filter 0.15s ease;
   }
+  [data-mode='game'] .btn:hover {
+    transform: none;
+    filter: brightness(1.04);
+    box-shadow: none;
+  }
+  [data-mode='game'] .btn:active {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+  }
+  [data-mode='game'] .btn-primary {
+    border-color: var(--fg-accent);
+    border-bottom-color: var(--fg-accent-deep);
+  }
+  [data-mode='game'] .btn-danger {
+    border-color: var(--fg-bad);
+    border-bottom-color: color-mix(in srgb, var(--fg-bad) 70%, black);
+  }
+  [data-mode='game'] .btn-ghost {
+    border-color: transparent;
+  }
+  [data-mode='game'] .btn-sm {
+    border-radius: 12px;
+    border-bottom-width: 3px;
+  }
+
+  /* Surfaces */
+  .card {
+    @apply border border-line bg-card;
+    border-radius: var(--fg-radius);
+  }
+  [data-mode='game'] .card {
+    border-width: 2px;
+    border-bottom-width: 4px;
+    border-bottom-color: var(--fg-edge);
+  }
+
   .input {
     @apply w-full rounded-xl border border-line bg-card px-3 py-2.5 text-sm text-ink outline-none transition placeholder:text-muted
       focus:border-accent focus:ring-4 focus:ring-accent/15;
   }
+  [data-mode='game'] .input {
+    border-width: 2px;
+    border-radius: 14px;
+    font-weight: 600;
+  }
+
+  /* Type roles */
   .label {
     @apply mb-1.5 block text-xs font-semibold tracking-wide text-muted uppercase;
+  }
+  [data-mode='game'] .label {
+    font-family: var(--fg-font-label);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+  }
+  .h-display {
+    font-family: var(--fg-font-display);
+    letter-spacing: -0.01em;
+    font-weight: 400;
+  }
+  [data-mode='game'] .h-display {
+    font-weight: 900;
+    letter-spacing: -0.03em;
+  }
+  .hud-label {
+    font-family: var(--fg-font-label);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  [data-mode='minimal'] .hud-label {
+    letter-spacing: 0.06em;
+    font-weight: 600;
+  }
+  .num {
+    font-family: var(--fg-font-num);
+    font-variant-numeric: tabular-nums;
+  }
+  [data-mode='game'] .num {
+    font-weight: 800;
+    letter-spacing: 0.02em;
   }
   .chip {
     @apply inline-flex items-center gap-1 rounded-full bg-sunk px-2.5 py-0.5 text-xs font-medium text-muted;
   }
-  .h-display {
-    @apply font-display tracking-tight;
+  [data-mode='game'] .chip {
+    font-weight: 800;
   }
+
+  /* Priority as "rarity": low common blue, medium rare violet, high legendary gold */
+  .rar-low {
+    --rar: #38a8f5;
+  }
+  .rar-medium {
+    --rar: #9a7bff;
+  }
+  .rar-high {
+    --rar: #f2a900;
+  }
+
+  /* XP / progress bars */
+  .xpbar {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--fg-sunk);
+    overflow: hidden;
+  }
+  .xpbar > i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--fg-accent);
+    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  [data-mode='game'] .xpbar {
+    height: 12px;
+  }
+  [data-mode='game'] .xpbar > i {
+    background: linear-gradient(90deg, var(--fg-accent), color-mix(in srgb, var(--fg-accent) 55%, white));
+    box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--fg-accent-deep) 80%, transparent);
+  }
+}
+
+/* Reward pop that floats up from where you clicked */
+@keyframes xp-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 4px) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -6px) scale(1.08);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -42px) scale(1);
+  }
+}
+.xp-pop {
+  position: fixed;
+  z-index: 70;
+  pointer-events: none;
+  font-family: var(--fg-font-num);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--fg-xp);
+  text-shadow: 0 2px 0 color-mix(in srgb, var(--fg-ink) 25%, transparent);
+  animation: xp-pop 1.1s ease-out forwards;
+}
+@keyframes pop-in {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.pop-in {
+  animation: pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 :focus-visible {

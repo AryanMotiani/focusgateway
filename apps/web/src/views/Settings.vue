@@ -165,6 +165,48 @@ async function revoke(o) {
       </div>
       <div class="flex flex-wrap items-center justify-between gap-3 p-5">
         <div>
+          <h2 class="font-semibold">Style</h2>
+          <p class="text-sm text-muted">Game: XP pops, levels and sounds. Calm: the same features, quiet and minimal.</p>
+        </div>
+        <div class="flex rounded-xl border border-line p-0.5 text-sm">
+          <button
+            v-for="[m, l] in [
+              ['game', 'Game'],
+              ['minimal', 'Calm'],
+            ]"
+            :key="m"
+            class="rounded-lg px-3 py-1.5"
+            :class="(s.settings.uiMode || 'game') === m ? 'bg-accent-soft font-semibold text-accent' : 'text-muted'"
+            @click="set({ uiMode: m })"
+          >
+            {{ l }}
+          </button>
+        </div>
+      </div>
+      <div v-if="(s.settings.uiMode || 'game') === 'game'" class="flex flex-wrap items-center justify-between gap-3 p-5">
+        <div>
+          <h2 class="font-semibold">Sounds</h2>
+          <p class="text-sm text-muted">Soft clicks when you finish a task or habit, a chime when you level up.</p>
+        </div>
+        <label class="flex items-center gap-2 text-sm"
+          ><input type="checkbox" :checked="s.settings.sounds !== false" @change="set({ sounds: $event.target.checked })" /> On</label
+        >
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-3 p-5">
+        <div>
+          <h2 class="font-semibold">Weekly focus goal</h2>
+          <p class="text-sm text-muted">Closes the focus ring on the Accountability page.</p>
+        </div>
+        <select
+          class="input !w-auto"
+          :value="s.settings.weeklyFocusGoalMin || 300"
+          @change="set({ weeklyFocusGoalMin: Number($event.target.value) })"
+        >
+          <option v-for="m in [60, 120, 180, 300, 420, 600, 900, 1200]" :key="m" :value="m">{{ m / 60 }} hours</option>
+        </select>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-3 p-5">
+        <div>
           <h2 class="font-semibold">Notifications</h2>
           <p class="text-sm text-muted">When a block starts or ends (extension only).</p>
         </div>

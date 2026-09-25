@@ -83,6 +83,30 @@ watch(
 )
 const extensionTab = inExtension()
 
+// Look and feel, picked up front so the rest of setup already looks the way you like.
+const uiMode = computed(() => s.value.settings.uiMode || 'game')
+const MODES = [
+  {
+    id: 'game',
+    name: 'Game',
+    icon: 'sparkles',
+    text: 'XP, levels, streak flames and badges. Finishing tasks pops, the room unlocks new scenes.',
+  },
+  {
+    id: 'minimal',
+    name: 'Calm',
+    icon: 'moon',
+    text: 'Quiet and editorial. Same features and progress, no pops or sounds. Numbers stay in the background.',
+  },
+]
+function pickMode(id) {
+  call('settings.update', { patch: { uiMode: id } }).catch((e) => toast(e.message, 'error'))
+}
+async function start() {
+  await call('setup.step', { step: 'uiMode' }).catch(() => {})
+  step.value = 1
+}
+
 const practiced = computed(() => !!s.value.onboarding.steps.failsafeDryRunDone)
 const firstRule = computed(() => s.value.rules[0])
 </script>
@@ -129,7 +153,24 @@ const firstRule = computed(() => s.value.rules[0])
             <b class="text-ink">Already set up on the FocusGateway website?</b> Go back to that tab instead. It reloads by itself; click the
             FocusGateway icon in your toolbar, press <b>Allow</b>, and your PIN and rules move over. No need to do this again.
           </div>
-          <button class="btn btn-primary w-full py-3" @click="step = 1">Start setup</button>
+          <div>
+            <p class="label">Pick a style (change it any time in Settings)</p>
+            <div class="grid gap-2 sm:grid-cols-2">
+              <button
+                v-for="m in MODES"
+                :key="m.id"
+                type="button"
+                class="rounded-2xl border-2 p-4 text-left transition"
+                :class="uiMode === m.id ? 'border-accent bg-accent-soft' : 'border-line hover:border-ink/30'"
+                :aria-pressed="uiMode === m.id"
+                @click="pickMode(m.id)"
+              >
+                <span class="flex items-center gap-2 font-bold"><Icon :name="m.icon" :size="16" class="text-accent" /> {{ m.name }}</span>
+                <span class="mt-1 block text-xs text-muted">{{ m.text }}</span>
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-primary w-full py-3" @click="start">Start setup</button>
         </div>
 
         <!-- 2 -->

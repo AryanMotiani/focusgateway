@@ -9,6 +9,8 @@ import TaskItem from '../components/TaskItem.vue'
 import TaskEditor from '../components/TaskEditor.vue'
 import FocusCard from '../components/FocusCard.vue'
 import FailsafeFlow from '../components/FailsafeFlow.vue'
+import { popXp, playHabit } from '../lib/rewards.js'
+import { XP } from '@focusgateway/core'
 
 const route = useRoute()
 const router = useRouter()
@@ -41,11 +43,20 @@ const nextUp = computed(() => {
   return best
 })
 const taskById = (id) => s.value.tasks.find((t) => t.id === id)
+async function toggleHabit(h, e) {
+  const el = e.currentTarget
+  const was = isHabitDone(s.value.habitLogs, h.id, store.now)
+  await attempt(() => call('habits.toggle', { id: h.id })).catch(() => null)
+  if (!was && isHabitDone(s.value.habitLogs, h.id, store.now)) {
+    playHabit()
+    popXp(el, XP.habit)
+  }
+}
 
 onMounted(() => {
   if (route.query.failsafe) {
     failsafe.value = { type: 'rule', id: String(route.query.failsafe) }
-    router.replace('/')
+    router.replace('/today')
   }
 })
 </script>
@@ -178,7 +189,7 @@ onMounted(() => {
               v-for="h in habits"
               :key="h.id"
               class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-sunk"
-              @click="attempt(() => call('habits.toggle', { id: h.id }))"
+              @click="toggleHabit(h, $event)"
             >
               <span
                 class="grid h-7 w-7 place-items-center rounded-full border-2 text-sm transition"
@@ -198,15 +209,15 @@ onMounted(() => {
 
         <section class="grid grid-cols-3 gap-2 text-center">
           <div class="card p-3">
-            <p class="text-2xl font-semibold">{{ stats.today.focusMin }}</p>
+            <p class="num text-2xl">{{ stats.today.focusMin }}</p>
             <p class="text-xs text-muted">focus min</p>
           </div>
           <div class="card p-3">
-            <p class="text-2xl font-semibold">{{ stats.today.tasksDone }}</p>
+            <p class="num text-2xl">{{ stats.today.tasksDone }}</p>
             <p class="text-xs text-muted">tasks done</p>
           </div>
           <div class="card p-3">
-            <p class="text-2xl font-semibold">{{ stats.today.habitsDone }}/{{ stats.today.habitsDue }}</p>
+            <p class="num text-2xl">{{ stats.today.habitsDone }}/{{ stats.today.habitsDue }}</p>
             <p class="text-xs text-muted">habits</p>
           </div>
         </section>
