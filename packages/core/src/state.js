@@ -1,3 +1,5 @@
+import { defaultRoom, sanitizeRoom } from './room.js'
+
 export const SCHEMA_VERSION = 1
 
 export const DEFAULT_TAGS = ['School', 'Work', 'Personal', 'Fitness', 'Reading']
@@ -17,6 +19,7 @@ export function defaultState() {
       sounds: true,
       weeklyFocusGoalMin: 300,
       lofi: { volume: 0.6, scene: 'night', style: 'music-classic', objects: true, mix: { rain: 0.5, cafe: 0, fire: 0, noise: 0 } },
+      room: defaultRoom(), // avatar + placed decor, see room.js
     },
     customSites: [],
     rules: [],
@@ -43,6 +46,7 @@ export function migrate(saved) {
   }
   out.settings.lofi = { ...base.settings.lofi, ...(saved.settings?.lofi || {}) }
   out.settings.lofi.mix = { ...base.settings.lofi.mix, ...(saved.settings?.lofi?.mix || {}) }
+  out.settings.room = saved.settings?.room ? sanitizeRoom(saved.settings.room, base.settings.room) : base.settings.room
   for (const k of ['customSites', 'rules', 'tasks', 'tags', 'habits', 'overrides', 'log']) {
     if (!Array.isArray(out[k])) out[k] = base[k]
   }

@@ -49,7 +49,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
         <Icon :name="t.icon" :size="15" /><span class="max-sm:hidden">{{ t.label }}</span>
       </button>
     </div>
-    <div v-if="open" class="max-h-[min(62vh,640px)] overflow-y-auto p-4 pt-2">
+    <div v-if="open" class="max-h-[min(50vh,520px)] overflow-y-auto p-4 pt-2">
       <TasksPanel v-if="tab === 'tasks'" dark />
       <HabitsPanel v-else-if="tab === 'habits'" dark />
       <BlocksPanel v-else-if="tab === 'blocks'" dark />
