@@ -1,21 +1,22 @@
 <script setup>
 import { computed } from 'vue'
-import { isHabitDue, isHabitDone, habitStreak, XP } from '@focusgateway/core'
+import { isHabitDue, isHabitDone, habitStreak } from '@focusgateway/core'
 import { store, call, attempt } from '../../lib/store.js'
-import { popXp, playHabit } from '../../lib/rewards.js'
+import { popXp, playHabit, currentXp } from '../../lib/rewards.js'
 import Icon from '../Icon.vue'
 
 const props = defineProps({ dark: Boolean })
 const COLORS = { violet: '#7c6cf2', amber: '#e09a3e', green: '#2fa877', rose: '#e0607a', sky: '#3b9bd9', slate: '#6b7280' }
-const habits = computed(() => (store.state?.habits || []).filter((h) => !h.archived && isHabitDue(h, store.now)))
-const done = (h) => isHabitDone(store.state.habitLogs, h.id, store.now)
+const habits = computed(() => (store.state?.habits || []).filter((h) => !h.archived && isHabitDue(h, store.minute)))
+const done = (h) => isHabitDone(store.state.habitLogs, h.id, store.minute)
 async function toggle(h, e) {
   const el = e.currentTarget
   const was = done(h)
+  const before = currentXp()
   await attempt(() => call('habits.toggle', { id: h.id })).catch(() => null)
   if (!was && done(h)) {
     playHabit()
-    popXp(el, XP.habit)
+    popXp(el, currentXp() - before)
   }
 }
 const sub = computed(() => (props.dark ? 'text-white/55' : 'text-muted'))
@@ -36,7 +37,7 @@ const sub = computed(() => (props.dark ? 'text-white/55' : 'text-muted'))
         <span class="min-w-0">
           <span class="block truncate text-sm font-bold">{{ h.name }}</span>
           <span class="flex items-center gap-1 text-[11px]" :class="done(h) ? 'text-white/85' : sub"
-            ><Icon name="flame" :size="11" /> {{ habitStreak(h, store.state.habitLogs, store.now) }}</span
+            ><Icon name="flame" :size="11" /> {{ habitStreak(h, store.state.habitLogs, store.minute) }}</span
           >
         </span>
       </button>

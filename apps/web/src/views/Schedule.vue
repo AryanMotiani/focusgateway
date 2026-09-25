@@ -12,7 +12,7 @@ const offset = ref(0)
 const editing = ref(null)
 const editingRule = ref(null)
 const over = ref(-1)
-const weekStart = computed(() => addDays(startOfDay(store.now), -(isoWeekday(store.now) - 1) + offset.value * 7))
+const weekStart = computed(() => addDays(startOfDay(store.minute), -(isoWeekday(store.minute) - 1) + offset.value * 7))
 const days = computed(() =>
   Array.from({ length: 7 }, (_, i) => {
     const d = addDays(weekStart.value, i)
@@ -20,7 +20,7 @@ const days = computed(() =>
     return {
       d,
       wd,
-      isToday: d === startOfDay(store.now),
+      isToday: d === startOfDay(store.minute),
       rules: store.state.rules.filter((r) => r.days.includes(wd)).sort((a, b) => a.start - b.start),
       tasks: store.state.tasks
         .filter((t) => !t.parentId && t.deadline >= d && t.deadline < addDays(d, 1))

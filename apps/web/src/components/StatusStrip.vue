@@ -12,7 +12,7 @@ import Icon from './Icon.vue'
 const props = defineProps({ glass: Boolean })
 const player = lofi()
 const p = computed(() => progress.value)
-const streak = computed(() => (store.state ? taskStreak(store.state, store.now) : 0))
+const streak = computed(() => (store.state ? taskStreak(store.state, store.minute) : 0))
 const focus = computed(() => {
   const f = store.state?.focus?.active
   return f ? focusPhase(f, store.now) : null

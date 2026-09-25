@@ -5,7 +5,7 @@ import { computed, ref } from 'vue'
 import { startOfDay, addDays, XP } from '@focusgateway/core'
 import { store, call, attempt, toast } from '../../lib/store.js'
 import { deadlineLabel, endOfToday } from '../../lib/format.js'
-import { popXp, playTick, isGame } from '../../lib/rewards.js'
+import { popXp, playTick, isGame, currentXp } from '../../lib/rewards.js'
 import Icon from '../Icon.vue'
 import TaskEditor from '../TaskEditor.vue'
 
@@ -19,13 +19,13 @@ const PRI = ['low', 'medium', 'high']
 const DOT = { low: '#38a8f5', medium: '#9a7bff', high: '#f2a900' }
 
 const groups = computed(() => {
-  const today = startOfDay(store.now)
+  const today = startOfDay(store.minute)
   const tomorrow = addDays(today, 1)
   const week = addDays(today, 7)
   const open = (store.state?.tasks || []).filter((t) => !t.parentId && t.status !== 'done').sort((a, b) => a.deadline - b.deadline)
   const g = [
-    { key: 'today', label: 'Today', items: open.filter((t) => t.deadline >= store.now && t.deadline < tomorrow) },
-    { key: 'overdue', label: 'Overdue', tone: 'bad', items: open.filter((t) => t.deadline < store.now).reverse() },
+    { key: 'today', label: 'Today', items: open.filter((t) => t.deadline >= store.minute && t.deadline < tomorrow) },
+    { key: 'overdue', label: 'Overdue', tone: 'bad', items: open.filter((t) => t.deadline < store.minute).reverse() },
     { key: 'week', label: 'This week', items: open.filter((t) => t.deadline >= tomorrow && t.deadline < week) },
     { key: 'later', label: 'Later', items: open.filter((t) => t.deadline >= week) },
   ]
@@ -38,7 +38,7 @@ const groups = computed(() => {
     })
 })
 const doneToday = computed(
-  () => (store.state?.tasks || []).filter((t) => !t.parentId && t.status === 'done' && t.completedAt >= startOfDay(store.now)).length,
+  () => (store.state?.tasks || []).filter((t) => !t.parentId && t.status === 'done' && t.completedAt >= startOfDay(store.minute)).length,
 )
 
 async function add() {
@@ -51,11 +51,11 @@ async function add() {
 }
 async function complete(t, e) {
   const el = e.currentTarget
-  const worth = XP.task[t.priority] + (t.deadline >= store.now ? XP.onTimeBonus : 0)
+  const before = currentXp()
   const r = await attempt(() => call('tasks.complete', { id: t.id })).catch(() => null)
   if (r === null) return
   playTick()
-  popXp(el, worth)
+  popXp(el, currentXp() - before)
   if (!isGame.value) toast('Done. Nice.', 'success')
 }
 const cyclePri = () => (priority.value = PRI[(PRI.indexOf(priority.value) + 1) % 3])

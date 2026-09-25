@@ -28,9 +28,9 @@ const top = computed(() =>
 )
 
 const groups = computed(() => {
-  const today = startOfDay(store.now)
+  const today = startOfDay(store.minute)
   const buckets = [
-    ['Overdue', (t) => t.deadline < store.now && t.status !== 'done'],
+    ['Overdue', (t) => t.deadline < store.minute && t.status !== 'done'],
     ['Today', (t) => t.deadline < addDays(today, 1)],
     ['Tomorrow', (t) => t.deadline < addDays(today, 2)],
     ['Next 7 days', (t) => t.deadline < addDays(today, 8)],

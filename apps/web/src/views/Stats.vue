@@ -46,7 +46,7 @@ const RANGES = [
   ['all', 'All time'],
 ]
 // visuals refresh once a minute, that is plenty for day-level data
-const minute = computed(() => Math.floor(store.now / 60000) * 60000)
+const minute = computed(() => store.minute)
 const heat = computed(() => yearGrid(store.state, minute.value, { kind: 'tasks' }))
 const boxes = computed(() => taskBoxes(store.state, minute.value, 14))
 const rings = computed(() => weekRings(store.state, minute.value))
@@ -58,7 +58,7 @@ const clearRate = computed(() => {
 })
 const earned = computed(() => milestones.value.filter((m) => m.achieved).length)
 const nextBadge = computed(() => milestones.value.filter((m) => !m.achieved).sort((a, b) => b.progress - a.progress)[0])
-const stats = computed(() => computeStats(store.state, store.now, { range: range.value }))
+const stats = computed(() => computeStats(store.state, minute.value, { range: range.value }))
 
 // Overview
 const RING_KEYS = [

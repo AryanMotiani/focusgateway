@@ -8,6 +8,9 @@ export const store = reactive({
   pendingApproval: false,
   state: null,
   now: Date.now(),
+  // the same clock at minute resolution, for day-level data (streaks, grids, badges) that
+  // should not recompute every second
+  minute: Math.floor(Date.now() / 60_000) * 60_000,
   clockOffset: 0,
   toasts: [],
 })
@@ -49,7 +52,11 @@ export async function init() {
   await refresh()
   await adoptLocalSetup()
   store.ready = true
-  setInterval(() => (store.now = Date.now() + store.clockOffset), 1000)
+  setInterval(() => {
+    store.now = Date.now() + store.clockOffset
+    const minute = Math.floor(store.now / 60_000) * 60_000
+    if (minute !== store.minute) store.minute = minute
+  }, 1000)
   // Local mode has no background worker, so run housekeeping from the page.
   setInterval(() => (adapter.mode === 'local' ? call('system.tick').catch(() => {}) : refresh()), 30_000)
   setInterval(() => adapter.mode !== 'local' && store.state && !store.state.onboarding.completed && refresh(), 3000)

@@ -9,15 +9,14 @@ import TaskItem from '../components/TaskItem.vue'
 import TaskEditor from '../components/TaskEditor.vue'
 import FocusCard from '../components/FocusCard.vue'
 import FailsafeFlow from '../components/FailsafeFlow.vue'
-import { popXp, playHabit } from '../lib/rewards.js'
-import { XP } from '@focusgateway/core'
+import { popXp, playHabit, currentXp } from '../lib/rewards.js'
 
 const route = useRoute()
 const router = useRouter()
 const editing = ref(null)
 const failsafe = ref(null)
 const s = computed(() => store.state)
-const stats = computed(() => computeStats(s.value, store.now))
+const stats = computed(() => computeStats(s.value, store.minute))
 
 const todayEnd = computed(() => addDays(startOfDay(store.now), 1))
 const pendingIds = computed(() => new Set(blocks.value.blocks.flatMap((b) => b.pendingTaskIds)))
@@ -46,10 +45,11 @@ const taskById = (id) => s.value.tasks.find((t) => t.id === id)
 async function toggleHabit(h, e) {
   const el = e.currentTarget
   const was = isHabitDone(s.value.habitLogs, h.id, store.now)
+  const before = currentXp()
   await attempt(() => call('habits.toggle', { id: h.id })).catch(() => null)
   if (!was && isHabitDone(s.value.habitLogs, h.id, store.now)) {
     playHabit()
-    popXp(el, XP.habit)
+    popXp(el, currentXp() - before)
   }
 }
 
@@ -199,7 +199,7 @@ onMounted(() => {
                 <span v-else>{{ h.emoji }}</span>
               </span>
               <span class="flex-1 text-sm font-medium">{{ h.name }}</span>
-              <span class="text-xs text-muted">{{ habitStreak(h, s.habitLogs, store.now) }}🔥</span>
+              <span class="text-xs text-muted">{{ habitStreak(h, s.habitLogs, store.minute) }}🔥</span>
             </button>
           </div>
           <p v-else class="text-sm text-muted">

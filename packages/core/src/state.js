@@ -1,5 +1,7 @@
-import { DEFAULT_APPEARANCE } from './appearance.js'
+import { DEFAULT_APPEARANCE, appearanceFor } from './appearance.js'
 import { defaultRoom, sanitizeRoom } from './room.js'
+import { DEFAULT_LOFI, sanitizeLofi } from './lofi.js'
+import { defaultStats, backfillStats, sanitizeStats } from './progress.js'
 
 export const SCHEMA_VERSION = 1
 
@@ -20,7 +22,7 @@ export function defaultState() {
       sounds: true,
       weeklyFocusGoalMin: 300,
       appearance: structuredClone(DEFAULT_APPEARANCE), // palette + heading font + body font, per mode
-      lofi: { volume: 0.6, scene: 'night', style: 'music-classic', objects: true, mix: { rain: 0.5, cafe: 0, fire: 0, noise: 0 } },
+      lofi: structuredClone(DEFAULT_LOFI), // study room scene, music and ambience, see lofi.js
       room: defaultRoom(), // avatar + placed decor, see room.js
     },
     customSites: [],
@@ -33,31 +35,45 @@ export function defaultState() {
     overrides: [],
     failsafe: null,
     log: [],
+    stats: defaultStats(0), // running XP and badge counters that survive the capped log, see progress.js
     runtime: { ruleStatus: {} },
     agent: { url: 'http://127.0.0.1:47621', token: null, pairCode: null, lastSyncAt: 0, lastError: null },
   }
 }
 
-/** Fills in any keys missing from older saved states so upgrades never crash. */
-export function migrate(saved) {
+const SETTING_CHOICES = { theme: ['system', 'light', 'dark'], uiMode: ['game', 'minimal'] }
+const inRange = (v, lo, hi, fallback) => {
+  const n = Math.round(Number(v))
+  return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : fallback
+}
+
+/**
+ * Fills in any keys missing from older saved states so upgrades never crash, and cleans
+ * settings so stored or imported data never carries unknown ids or out of range values.
+ * `now` marks when a save without XP counters was upgraded (see progress.js).
+ */
+export function migrate(saved, now = Date.now()) {
   const base = defaultState()
   if (!saved || typeof saved !== 'object') return base
   const out = { ...base, ...saved }
   for (const k of ['onboarding', 'security', 'settings', 'focus', 'runtime', 'agent']) {
     out[k] = { ...base[k], ...(saved[k] || {}) }
   }
-  out.settings.lofi = { ...base.settings.lofi, ...(saved.settings?.lofi || {}) }
-  out.settings.lofi.mix = { ...base.settings.lofi.mix, ...(saved.settings?.lofi?.mix || {}) }
-  const look = saved.settings?.appearance || {}
-  out.settings.appearance = {
-    game: { ...base.settings.appearance.game, ...(look.game || {}) },
-    minimal: { ...base.settings.appearance.minimal, ...(look.minimal || {}) },
-  }
+  out.settings.lofi = sanitizeLofi(saved.settings?.lofi)
+  out.settings.appearance = { game: appearanceFor(saved.settings, 'game'), minimal: appearanceFor(saved.settings, 'minimal') }
+  for (const [k, list] of Object.entries(SETTING_CHOICES)) if (!list.includes(out.settings[k])) out.settings[k] = base.settings[k]
+  for (const k of ['notifications', 'sounds']) out.settings[k] = out.settings[k] !== false
+  out.settings.weekStartsOn = [0, 1, 6, 7].includes(out.settings.weekStartsOn) ? out.settings.weekStartsOn : base.settings.weekStartsOn
+  out.settings.failsafeWaitSeconds = inRange(out.settings.failsafeWaitSeconds, 30, 300, base.settings.failsafeWaitSeconds)
+  out.settings.weeklyFocusGoalMin = inRange(out.settings.weeklyFocusGoalMin, 30, 5000, base.settings.weeklyFocusGoalMin)
   out.settings.room = saved.settings?.room ? sanitizeRoom(saved.settings.room, base.settings.room) : base.settings.room
   for (const k of ['customSites', 'rules', 'tasks', 'tags', 'habits', 'overrides', 'log']) {
     if (!Array.isArray(out[k])) out[k] = base[k]
   }
   if (!out.habitLogs || typeof out.habitLogs !== 'object') out.habitLogs = {}
+  if (!Array.isArray(out.focus.history)) out.focus.history = []
+  // Old saves have no counters yet: start them from what the log and focus history still hold
+  out.stats = saved.stats && typeof saved.stats === 'object' ? sanitizeStats(saved.stats, now) : backfillStats(out, now)
   out.schemaVersion = SCHEMA_VERSION
   return out
 }

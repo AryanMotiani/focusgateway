@@ -2,6 +2,7 @@
 import { addDays, startOfDay, dateKey, fromDateKey } from './time.js'
 import { isHabitDue } from './habits.js'
 import { weekRings, weekStart } from './visuals.js'
+import { taskLedger, backfillStats } from './progress.js'
 
 function dayCleared(tasks, dayStart) {
   const dayEnd = addDays(dayStart, 1)
@@ -78,15 +79,17 @@ export const MILESTONES = [
   ...tiers('perfect', 'perfectWeeks', (n) => (n === 1 ? 'A perfect week' : `${n} perfect weeks`), 'weeks', [1, 4, 12], 'sparkles'),
 ]
 
+// Counters come from state.stats (they never shrink when the log or focus history is
+// trimmed) and follow the same anti-farming rules as XP, see progress.js.
 export function milestoneMetrics(state, now) {
-  const log = state.log || []
+  const stats = state.stats && typeof state.stats === 'object' ? state.stats : backfillStats(state, Infinity)
   return {
-    tasksDone: (state.tasks || []).filter((t) => !t.parentId && t.status === 'done').length,
+    tasksDone: taskLedger(state).counted,
     bestTaskStreak: bestTaskStreak(state, now),
     bestHabitStreak: bestHabitStreak(state),
-    focusHours: Math.floor((state.focus?.history || []).reduce((a, h) => a + (h.focusedMin || 0), 0) / 60),
-    windowsUnlocked: log.filter((e) => e.type === 'window_unlocked').length,
-    failsafeResisted: log.filter((e) => e.type === 'failsafe_resisted').length,
+    focusHours: Math.floor((stats.focus?.minutes || 0) / 60),
+    windowsUnlocked: stats.events?.window_unlocked || 0,
+    failsafeResisted: stats.events?.failsafe_resisted || 0,
     perfectWeeks: perfectWeeks(state, now),
   }
 }

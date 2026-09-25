@@ -148,10 +148,12 @@ describe('room validation', () => {
 })
 
 /** A state with enough finished high priority tasks to be at `level`. */
+const doneTask = (i, priority) => ({ id: 't' + i, title: 'x', status: 'done', priority, createdAt: 0, completedAt: (i + 1) * 86_400_000 })
 function stateAtLevel(level) {
   const s = defaultState()
   const n = Math.ceil(xpToReach(level) / 30)
-  s.tasks = Array.from({ length: n }, (_, i) => ({ id: 't' + i, title: 'x', status: 'done', priority: 'high', completedAt: 1 }))
+  // one task a day, each made well before it was finished, so the anti-farming caps never bite
+  s.tasks = Array.from({ length: n }, (_, i) => doneTask(i, 'high'))
   return s
 }
 function backendWith(state) {
@@ -270,7 +272,7 @@ describe('room locks', () => {
 
   it('lets earned badges be placed', async () => {
     const s = stateAtLevel(1)
-    s.tasks = Array.from({ length: 10 }, (_, i) => ({ id: 't' + i, title: 'x', status: 'done', priority: 'low', completedAt: 1 }))
+    s.tasks = Array.from({ length: 10 }, (_, i) => doneTask(i, 'low'))
     const be = backendWith(s)
     await be.dispatch('setup.pin', { pin: '246810' })
     await be.dispatch('settings.update', { patch: { room: { items: [{ id: 'badge:tasks-10', x: 300, y: 300 }] } } })

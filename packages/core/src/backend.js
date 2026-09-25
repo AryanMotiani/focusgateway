@@ -4,12 +4,13 @@
 // mode). UIs only ever call dispatch(command, payload).
 import { migrate, defaultState, publicState } from './state.js'
 import { computeBlocks, gatedStatus, isLocked, isRuleLive, focusEndsAt, focusPhase } from './engine.js'
-import { rulesOverlap, validateSchedule, nextWindowStart, windowAt } from './schedule.js'
+import { rulesOverlap, validateSchedule, nextWindowStart, windowAt, previousWindow } from './schedule.js'
 import { findSite, parseDomainList, normalizeDomain } from './sites.js'
 import { hashSecret, verifySecret, generateRecoveryCode, normalizeRecoveryCode, randomId } from './crypto.js'
 import { checkConfirmation } from './confirm.js'
 import { sanitizeRoom, roomLockError } from './room.js'
-import { progressOf } from './progress.js'
+import { progressOf, awardEvent, recordFocus } from './progress.js'
+import { mergeLofi } from './lofi.js'
 import { computeMilestones } from './milestones.js'
 import {
   PRIORITIES,
@@ -53,7 +54,7 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
   async function load() {
     if (!state) {
       const saved = await storage.load()
-      state = migrate(saved)
+      state = migrate(saved, now())
       if (!state.createdAt) state.createdAt = now()
     }
     return state
@@ -286,6 +287,7 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       focusedMin: focusedMinutes(f, end),
     })
     if (s.focus.history.length > 1000) s.focus.history.shift()
+    recordFocus(s.stats, s.focus.history.at(-1).focusedMin) // counters outlive the trimmed history
     s.focus.active = null
     log(s, status === 'completed' ? 'focus_completed' : 'focus_stopped_early', { focusId: f.id, reason })
   }
@@ -297,7 +299,7 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
    */
   function sanitizeIncoming(payload, keep) {
     const { overrides, failsafe, runtime, security, agent, onboarding, ...rest } = payload
-    const next = migrate({ ...rest, ...keep })
+    const next = migrate({ ...rest, ...keep }, now())
     next.customSites = next.customSites
       .filter((x) => x && typeof x.id === 'string' && Array.isArray(x.domains))
       .map((x) => ({ ...x, domains: x.domains.map(normalizeDomain).filter(Boolean) }))
@@ -747,7 +749,15 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     'failsafe.cancel': (s) => {
       const f = s.failsafe
       s.failsafe = null
-      if (f && f.target.type !== 'practice') log(s, 'failsafe_resisted', { ruleId: f.target.id, step: f.step })
+      if (!f || f.target.type === 'practice') return null
+      // Walking away only earns XP after the PIN (the cooldown step), once per target per day.
+      // All focus sessions count as one target, so short sessions can not be looped for XP.
+      const id = f.target.type === 'focus' ? 'session' : f.target.id
+      const { xp } =
+        f.step === 'cooldown'
+          ? awardEvent(s.stats, 'failsafe_resisted', `resisted:${f.target.type}:${id}:${dateKey(now())}`, now())
+          : { xp: 0 }
+      log(s, 'failsafe_resisted', { ruleId: f.target.id, step: f.step, xp })
       return null
     },
 
@@ -771,7 +781,11 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         if (r.error) fail('VALIDATION', r.error)
         s.settings.appearance = r.value
       }
-      if (patch.lofi) s.settings.lofi = { ...s.settings.lofi, ...patch.lofi, mix: { ...s.settings.lofi.mix, ...(patch.lofi.mix || {}) } }
+      if ('lofi' in patch) {
+        const r = mergeLofi(s.settings.lofi, patch.lofi, progressOf(s).level)
+        if (r.error) fail('VALIDATION', r.error)
+        s.settings.lofi = r.value
+      }
       if (patch.room) {
         const next = sanitizeRoom(patch.room, s.settings.room)
         // only what changes is checked against the level, so saved choices always stay
@@ -876,17 +890,22 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       // window transitions for accountability stats
       const status = s.runtime.ruleStatus
       for (const rule of s.rules) {
-        let cur
-        if (rule.mode === 'hard') cur = windowAt(rule, t) ? 'active' : 'inactive'
-        else cur = gatedStatus(s, rule, t).status
+        const g = rule.mode === 'gated' ? gatedStatus(s, rule, t) : null
+        const cur = g ? g.status : windowAt(rule, t) ? 'active' : 'inactive'
         const prev = status[rule.id]
+        // Each window occurrence (rule + the day it started) is logged and paid at most once,
+        // so reopening and finishing a task again in the same window earns nothing new.
+        const once = (type, windowStart, fields) => {
+          const key = `${type}:${rule.id}:${dateKey(windowStart ?? t)}`
+          const { fresh, xp } = awardEvent(s.stats, type, key, t)
+          if (fresh) log(s, type, { ruleId: rule.id, title: rule.name, xp, ...fields })
+        }
         if (prev && prev !== cur) {
-          if (rule.mode === 'gated' && cur === 'unlocked') log(s, 'window_unlocked', { ruleId: rule.id, title: rule.name })
-          if (rule.mode === 'gated' && prev === 'extended' && cur === 'inactive')
-            log(s, 'window_unlocked', { ruleId: rule.id, title: rule.name, late: true })
+          if (g && cur === 'unlocked') once('window_unlocked', g.window.start)
+          if (g && prev === 'extended' && cur === 'inactive') once('window_unlocked', previousWindow(rule, t)?.start, { late: true })
           if (rule.mode === 'hard' && prev === 'active' && cur === 'inactive') {
             const used = s.log.some((e) => e.type === 'failsafe_used' && e.ruleId === rule.id && t - e.at < 24 * 3600_000)
-            if (!used) log(s, 'window_respected', { ruleId: rule.id, title: rule.name })
+            if (!used) once('window_respected', t)
           }
         }
         status[rule.id] = cur

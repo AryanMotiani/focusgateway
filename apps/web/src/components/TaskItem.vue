@@ -5,7 +5,7 @@ import { store, call, attempt, toast } from '../lib/store.js'
 import { deadlineLabel, humanDuration } from '../lib/format.js'
 import { deleteTask } from '../lib/actions.js'
 import Icon from './Icon.vue'
-import { popXp, playTick, isGame } from '../lib/rewards.js'
+import { popXp, playTick, isGame, currentXp } from '../lib/rewards.js'
 
 const props = defineProps({ task: Object, compact: Boolean, showRule: { type: Boolean, default: true } })
 const emit = defineEmits(['edit', 'add-subtask'])
@@ -40,12 +40,12 @@ const RAR = { low: 'rar-low', medium: 'rar-medium', high: 'rar-high' }
 async function toggle(e) {
   if (done.value) return attempt(() => call('tasks.reopen', { id: props.task.id }))
   const el = e?.currentTarget
-  const worth = reward.value
+  const before = currentXp()
   popping.value = true
   setTimeout(() => (popping.value = false), 500)
   const r = await attempt(() => call('tasks.complete', { id: props.task.id }))
   playTick()
-  popXp(el, worth)
+  popXp(el, currentXp() - before) // what it really earned: 0 for a task made moments ago
   if (r?.next) toast('Nice. The next one is scheduled.', 'success')
 }
 async function forward() {

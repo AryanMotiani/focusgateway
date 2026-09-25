@@ -96,9 +96,12 @@ const PAIR_KEY = 'focusgateway:pair-link'
 const PAIR_TTL = 30 * 60_000
 const route = useRoute()
 const router = useRouter()
-const pair = ref({ status: 'idle', message: '' }) // idle | waiting | connecting | connected | already | error
+const pair = ref({ status: 'idle', message: '' }) // idle | waiting | connecting | connected | already | error | timeout
+// Stop watching after this long if the agent never answers, and offer a retry instead
+const PAIR_WATCH_MS = 2 * 60_000
 const manualCode = ref('')
 let pollTimer = null
+let lastCode = null
 
 function readPending() {
   try {
@@ -143,11 +146,15 @@ function watchPairing() {
     } else if (a.lastError && (!a.pairing || Date.now() - started > 20_000)) {
       stopPolling()
       pair.value = { status: 'error', message: a.lastError }
+    } else if (Date.now() - started > PAIR_WATCH_MS) {
+      stopPolling()
+      pair.value = { status: 'timeout', message: '' }
     }
   }, 1000)
 }
 
 async function connect(code) {
+  lastCode = code
   pair.value = { status: 'connecting', message: '' }
   try {
     await call('agent.configure', { pairCode: code })
@@ -155,6 +162,16 @@ async function connect(code) {
   } catch (e) {
     pair.value = { status: 'error', message: e.message }
   }
+}
+
+function retryPairing() {
+  if (store.state?.agent?.paired) {
+    pair.value = { status: 'connected', message: '' }
+    return
+  }
+  if (lastCode) return connect(lastCode)
+  pair.value = { status: 'connecting', message: '' }
+  watchPairing()
 }
 
 function tryPendingCode() {
@@ -241,6 +258,14 @@ const agentPaired = computed(() => !!store.state?.agent?.paired)
           The lock agent is paired with this extension. To pair it again, disconnect it first in
           <RouterLink to="/settings" class="text-accent underline">Settings, Lock agent</RouterLink> (needs your PIN).
         </p>
+      </template>
+      <template v-else-if="pair.status === 'timeout'">
+        <p class="flex items-center gap-2 font-semibold"><Icon name="clock" :size="18" /> The lock agent has not answered yet</p>
+        <p class="mt-1 text-sm text-muted">
+          Check that the agent is installed and running on this computer, then try again. If it still does not connect, open the lock agent
+          again for a fresh link or type the code it shows below.
+        </p>
+        <button class="btn btn-primary mt-3" @click="retryPairing">Try again</button>
       </template>
       <template v-else-if="pair.status === 'error'">
         <p class="flex items-center gap-2 font-semibold text-bad"><Icon name="alert" :size="18" /> Could not connect: {{ pair.message }}</p>

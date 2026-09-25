@@ -19,16 +19,16 @@ import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import DayPicker from '../components/DayPicker.vue'
 import YearHeatmap from '../components/viz/YearHeatmap.vue'
-import { popXp, playHabit, isGame } from '../lib/rewards.js'
+import { popXp, playHabit, isGame, currentXp } from '../lib/rewards.js'
 
 const COLORS = { violet: '#7c6cf2', amber: '#e09a3e', green: '#2fa877', rose: '#e0607a', sky: '#3b9bd9', slate: '#6b7280' }
 const EMOJI = ['💧', '📚', '🏃', '🧘', '🛏️', '🥗', '✍️', '🎸', '🧹', '💊', '🌱', '📵']
 const habits = computed(() => store.state.habits.filter((h) => !h.archived))
 const archived = computed(() => store.state.habits.filter((h) => h.archived))
-const week = computed(() => Array.from({ length: 7 }, (_, i) => addDays(startOfDay(store.now), i - 6)))
+const week = computed(() => Array.from({ length: 7 }, (_, i) => addDays(startOfDay(store.minute), i - 6)))
 // HabitKit style year grid per habit; fewer weeks on narrow screens
 const WEEKS = window.innerWidth < 640 ? 22 : 53
-const minute = computed(() => Math.floor(store.now / 60000) * 60000)
+const minute = computed(() => store.minute)
 const grids = computed(() =>
   Object.fromEntries(habits.value.map((h) => [h.id, yearGrid(store.state, minute.value, { kind: 'habit', habit: h, weeks: WEEKS })])),
 )
@@ -61,16 +61,17 @@ async function remove(h) {
 async function toggle(h, d, e) {
   const was = isHabitDone(store.state.habitLogs, h.id, d)
   const el = e?.currentTarget
+  const before = currentXp()
   await attempt(() => call('habits.toggle', { id: h.id, date: dateKey(d) })).catch(() => null)
   if (!was && isHabitDone(store.state.habitLogs, h.id, d)) {
     playHabit()
-    popXp(el, XP.habit)
+    popXp(el, currentXp() - before)
   }
 }
 const doneToday = computed(
-  () => habits.value.filter((h) => isHabitDue(h, store.now) && isHabitDone(store.state.habitLogs, h.id, store.now)).length,
+  () => habits.value.filter((h) => isHabitDue(h, store.minute) && isHabitDone(store.state.habitLogs, h.id, store.minute)).length,
 )
-const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.now)).length)
+const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.minute)).length)
 </script>
 
 <template>
@@ -97,11 +98,11 @@ const dueToday = computed(() => habits.value.filter((h) => isHabitDue(h, store.n
               <span class="text-xs text-muted">{{ daysLabel(h.days) }}</span>
               <span class="mt-1 flex flex-wrap gap-1.5 text-[11px] font-bold">
                 <span class="chip" :style="{ background: COLORS[h.color] + '22', color: COLORS[h.color] }"
-                  ><Icon name="flame" :size="12" /> {{ habitStreak(h, store.state.habitLogs, store.now) }}-day streak</span
+                  ><Icon name="flame" :size="12" /> {{ habitStreak(h, store.state.habitLogs, minute) }}-day streak</span
                 >
                 <span class="chip">Best: {{ habitBestStreak(h, store.state.habitLogs) }}</span>
-                <span v-if="habitRate(h, store.state.habitLogs, store.now, 365) !== null" class="chip"
-                  >{{ Math.round(habitRate(h, store.state.habitLogs, store.now, 365) * 100) }}%</span
+                <span v-if="habitRate(h, store.state.habitLogs, minute, 365) !== null" class="chip"
+                  >{{ Math.round(habitRate(h, store.state.habitLogs, minute, 365) * 100) }}%</span
                 >
               </span>
             </span>

@@ -9,8 +9,9 @@ const soundsOn = () => isGame.value && store.state?.settings?.sounds !== false
 
 export const progress = computed(() => (store.state ? progressOf(store.state) : null))
 // minute resolution: milestones do not need to recompute every second
-const minute = computed(() => Math.floor(store.now / 60000) * 60000)
-export const milestones = computed(() => (store.state ? computeMilestones(store.state, minute.value) : []))
+export const milestones = computed(() => (store.state ? computeMilestones(store.state, store.minute) : []))
+/** Total XP right now, to show what an action really earned (the anti-farming rules can make it 0). */
+export const currentXp = () => progress.value?.xp || 0
 
 export const celebration = reactive({ levelUp: null, badge: null })
 

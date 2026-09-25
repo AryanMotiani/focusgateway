@@ -7,7 +7,7 @@ import Ring from '../viz/Ring.vue'
 import Icon from '../Icon.vue'
 
 const props = defineProps({ dark: Boolean })
-const minute = computed(() => Math.floor(store.now / 60000) * 60000)
+const minute = computed(() => store.minute)
 const rings = computed(() => weekRings(store.state, minute.value))
 const streak = computed(() => taskStreak(store.state, minute.value))
 const next = computed(() => milestones.value.filter((m) => !m.achieved).sort((a, b) => b.progress - a.progress)[0])
