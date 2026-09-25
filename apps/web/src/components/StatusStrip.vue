@@ -1,15 +1,16 @@
 <script setup>
 // The one strip that sits on top of every screen: level + XP, streak, what is blocked
-// right now, the focus timer and the music. It ties all pages together.
+// right now, the focus timer and the music (with the track name). It ties all pages together.
+// bare: inside a study room window, which draws the glass itself.
 import { computed } from 'vue'
-import { focusPhase, taskStreak } from '@focusgateway/core'
+import { focusPhase, taskStreak, trackById, trackStyle } from '@focusgateway/core'
 import { store, blocks } from '../lib/store.js'
 import { progress, isGame } from '../lib/rewards.js'
 import { countdown } from '../lib/format.js'
-import { lofi, lofiState, playWithSettings } from '../lib/lofi.js'
+import { lofi, lofiState, playWithSettings, savedTrack } from '../lib/lofi.js'
 import Icon from './Icon.vue'
 
-const props = defineProps({ glass: Boolean })
+const props = defineProps({ glass: Boolean, bare: Boolean })
 const player = lofi()
 const p = computed(() => progress.value)
 const streak = computed(() => (store.state ? taskStreak(store.state, store.minute) : 0))
@@ -28,21 +29,28 @@ const blockText = computed(() => {
   return `${b.name} · ${countdown(b.until - store.now)}`
 })
 const playing = computed(() => lofiState.playing)
+// what plays, or what will play: the saved track until the music has started once
+const track = computed(() => (lofiState.chosen ? trackById(lofiState.track) : savedTrack(store.state?.settings)))
+const trackTip = computed(() =>
+  playing.value ? `Now playing: ${track.value.name} (${trackStyle(track.value)?.name}). Pause` : `Play ${track.value.name}`,
+)
 function toggleMusic() {
   return player.playing ? player.stop() : playWithSettings(store.state?.settings)
 }
 const shell = computed(() =>
-  props.glass
-    ? 'border border-white/10 bg-[#15121f]/80 text-white backdrop-blur-xl'
-    : isGame.value
-      ? 'bg-hud text-hud-ink border-2 border-hud-line border-b-4 border-b-black/40'
-      : 'card text-ink',
+  props.bare
+    ? 'text-white'
+    : props.glass
+      ? 'border border-white/10 bg-[#15121f]/80 text-white backdrop-blur-xl'
+      : isGame.value
+        ? 'bg-hud text-hud-ink border-2 border-hud-line border-b-4 border-b-black/40'
+        : 'card text-ink',
 )
-const sub = computed(() => (props.glass ? 'text-white/60' : isGame.value ? 'text-hud-muted' : 'text-muted'))
+const sub = computed(() => (props.glass || props.bare ? 'text-white/60' : isGame.value ? 'text-hud-muted' : 'text-muted'))
 </script>
 
 <template>
-  <div v-if="p" class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl px-3 py-2.5 sm:px-4" :class="shell">
+  <div v-if="p" class="flex flex-wrap items-center gap-x-4 gap-y-2" :class="[shell, !bare && 'rounded-2xl px-3 py-2.5 sm:px-4']">
     <RouterLink to="/stats?tab=badges" class="flex min-w-0 flex-1 items-center gap-3 sm:min-w-56" :title="`${p.xp} XP total`">
       <span
         class="num grid h-9 min-w-9 shrink-0 place-items-center rounded-xl px-2 text-sm"
@@ -77,13 +85,18 @@ const sub = computed(() => (props.glass ? 'text-white/60' : isGame.value ? 'text
     <span v-else class="hidden items-center gap-1.5 text-sm sm:flex" :class="sub"><Icon name="unlock" :size="15" /> All clear</span>
 
     <button
-      class="grid h-8 w-8 place-items-center rounded-full transition"
-      :class="glass ? 'bg-white/10 hover:bg-white/20' : isGame ? 'bg-white/10 hover:bg-white/20' : 'bg-sunk hover:bg-line'"
-      :aria-label="playing ? 'Pause music' : 'Play lofi music'"
-      :title="playing ? 'Pause music' : 'Play lofi music'"
+      class="flex h-8 max-w-56 min-w-8 items-center gap-2 rounded-full transition"
+      :class="[
+        glass || bare ? 'bg-white/10 hover:bg-white/20' : isGame ? 'bg-white/10 hover:bg-white/20' : 'bg-sunk hover:bg-line',
+        'justify-center px-2 lg:justify-start lg:pr-3.5',
+      ]"
+      :aria-label="playing ? `Pause music, now playing ${track.name}` : `Play lofi music, ${track.name}`"
+      :title="trackTip"
+      data-status-music
       @click="toggleMusic"
     >
       <Icon :name="playing ? 'pause' : 'music'" :size="15" />
+      <span class="truncate text-xs font-semibold max-lg:hidden">{{ track.name }}</span>
     </button>
   </div>
 </template>

@@ -6,7 +6,8 @@ import { focusPhase } from '@focusgateway/core'
 import { store } from '../../lib/store.js'
 import { countdown } from '../../lib/format.js'
 
-defineProps({ compact: Boolean })
+// size: the clock's font size in px, so it can grow with its window
+defineProps({ compact: Boolean, size: { type: Number, default: 0 } })
 const phase = computed(() => {
   const f = store.state?.focus?.active
   return f ? focusPhase(f, store.now) : null
@@ -25,6 +26,11 @@ const label = computed(() => (phase.value ? (phase.value.phase === 'work' ? `Foc
   </span>
   <div v-else>
     <p v-if="label" class="hud-label text-xs" :class="phase.phase === 'work' ? 'text-accent' : 'text-warm'">{{ label }}</p>
-    <p class="font-display text-5xl leading-none tracking-tight" style="text-shadow: 0 4px 30px rgba(0, 0, 0, 0.35)">{{ text }}</p>
+    <p
+      class="font-display text-5xl leading-none tracking-tight whitespace-nowrap"
+      :style="{ textShadow: '0 4px 30px rgba(0, 0, 0, 0.35)', fontSize: size ? size + 'px' : null }"
+    >
+      {{ text }}
+    </p>
   </div>
 </template>

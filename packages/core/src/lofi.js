@@ -2,6 +2,7 @@
 // backend (settings.update, import) and migrate(). Scenes and music styles are level
 // unlocks from unlocks.js.
 import { UNLOCKS } from './unlocks.js'
+import { trackById } from './tracks.js'
 
 export const LOFI_MIX_KEYS = ['rain', 'cafe', 'fire', 'noise']
 /** Scene names saved before scenes became unlocks. */
@@ -16,6 +17,8 @@ export const DEFAULT_LOFI = {
   style: 'music-classic',
   objects: true,
   mix: { rain: 0.5, cafe: 0, fire: 0, noise: 0 },
+  // track: the last played track id (tracks.js). Left out until one is picked, which means
+  // the style's first track.
 }
 
 export const normalizeScene = (id) => LEGACY_SCENES[id] || id
@@ -37,6 +40,10 @@ export function sanitizeLofi(input, base = DEFAULT_LOFI) {
     mix: {},
   }
   for (const k of LOFI_MIX_KEYS) out.mix[k] = clampUnit(src.mix?.[k], clampUnit(b.mix?.[k], DEFAULT_LOFI.mix[k]))
+  // a track only stays when it is known and belongs to the saved style
+  const fits = (id) => trackById(id)?.style === out.style
+  const track = fits(src.track) ? src.track : fits(b.track) ? b.track : null
+  if (track) out.track = track
   return out
 }
 
@@ -50,7 +57,7 @@ export function mergeLofi(current, patch, level) {
   const cur = sanitizeLofi(current)
   const value = { ...cur, mix: { ...cur.mix } }
   for (const key of Object.keys(patch)) {
-    if (!['volume', 'scene', 'style', 'objects', 'mix'].includes(key)) return { error: `Unknown room setting "${key}".` }
+    if (!['volume', 'scene', 'style', 'objects', 'mix', 'track'].includes(key)) return { error: `Unknown room setting "${key}".` }
   }
   if ('volume' in patch) {
     if (!unit(patch.volume)) return { error: 'Volume must be between 0 and 1.' }
@@ -82,5 +89,17 @@ export function mergeLofi(current, patch, level) {
     if (patch.style !== cur.style && u.level > level) return { error: `${u.name} unlocks at level ${u.level}.` }
     value.style = patch.style
   }
+  if ('track' in patch) {
+    if (patch.track === null) delete value.track
+    else {
+      const t = trackById(patch.track)
+      if (!t) return { error: 'Unknown track.' }
+      const u = MUSIC[t.style]
+      if (patch.track !== cur.track && u.level > level)
+        return { error: `${t.name} is part of ${u.name}, which unlocks at level ${u.level}.` }
+      if (t.style !== value.style) return { error: `${t.name} is not a ${MUSIC[value.style].name} track.` }
+      value.track = patch.track
+    }
+  } else if (value.track && trackById(value.track).style !== value.style) delete value.track
   return { value }
 }
