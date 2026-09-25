@@ -9,7 +9,8 @@ import SitePicker from './SitePicker.vue'
 import Modal from './Modal.vue'
 import Icon from './Icon.vue'
 
-defineProps({ dark: Boolean })
+// compact: one line (start, or the round and stop), for the study room's folded card
+defineProps({ dark: Boolean, compact: Boolean })
 const PRESETS = [
   { label: 'Pomodoro', work: 25, brk: 5, n: 4 },
   { label: 'Deep work', work: 50, brk: 10, n: 2 },
@@ -49,7 +50,19 @@ const siteNames = computed(() => siteIds.value.map((id) => store.state.customSit
 
 <template>
   <div :class="dark ? 'text-white' : ''">
-    <template v-if="active && phase">
+    <template v-if="compact">
+      <div v-if="active && phase" class="flex items-center justify-between gap-3 text-xs">
+        <p class="font-semibold tracking-wide uppercase" :class="phase.phase === 'work' ? 'text-accent' : 'text-warm'">
+          {{ phase.phase === 'work' ? 'Focus' : 'Break' }} · round {{ phase.iteration }} of {{ active.iterations }}
+        </p>
+        <button class="btn btn-sm" :class="dark && '!bg-white/10 !text-white !border-white/20'" @click="stop">Stop early</button>
+      </div>
+      <div v-else class="flex items-center gap-3">
+        <button class="btn btn-primary" :disabled="!siteIds.length" @click="start"><Icon name="play" :size="14" /> Start focus</button>
+        <span class="num text-xs" :class="dark ? 'text-white/60' : 'text-muted'">{{ f.work }} min focus, {{ f.n }} rounds</span>
+      </div>
+    </template>
+    <template v-else-if="active && phase">
       <div class="flex items-center gap-5">
         <div class="relative grid h-28 w-28 shrink-0 place-items-center">
           <svg viewBox="0 0 100 100" class="absolute inset-0 -rotate-90">

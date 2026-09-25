@@ -57,6 +57,9 @@ watch(
   () => drawer.open,
   (v) => remember('focusgateway:room-drawer', v),
 )
+// the left card folds down to the clock, start and the player, so the side walls show
+const cardOpen = ref(recall('focusgateway:room-card', false))
+watch(cardOpen, (v) => remember('focusgateway:room-card', v))
 const custom = ref(false)
 const decorating = ref(false)
 const decorTab = ref('items')
@@ -184,6 +187,8 @@ onBeforeUnmount(() => {
 })
 
 const panels = computed(() => !hidden.value && !decorating.value)
+// on phones the card is in the page flow, so it always shows everything
+const open = computed(() => narrow.value || cardOpen.value)
 const glass = 'rounded-3xl border border-white/10 bg-[#15121f]/85 backdrop-blur-xl'
 const pill = 'rounded-full bg-[#15121f]/75 backdrop-blur hover:bg-[#120f24]/75'
 const chipOn = 'rounded-full bg-white text-[#120f24]'
@@ -351,18 +356,32 @@ const chipOn = 'rounded-full bg-white text-[#120f24]'
     <div
       v-if="panels"
       class="z-10 flex flex-col gap-3"
-      :class="narrow ? 'relative p-3' : 'absolute bottom-5 left-5 w-[360px] max-h-[calc(100dvh-6rem)] overflow-y-auto'"
+      :class="
+        narrow ? 'relative p-3' : ['absolute bottom-5 left-5 max-h-[calc(100dvh-6rem)] overflow-y-auto', open ? 'w-[360px]' : 'w-[330px]']
+      "
     >
       <StatusStrip v-if="onboarded && !wide" glass />
       <div class="p-4" :class="glass">
         <div class="flex items-end justify-between gap-3 whitespace-nowrap">
           <RoomClock />
-          <p class="pb-1 text-right text-xs whitespace-normal text-white/60">
-            {{ store.state?.focus?.active ? 'Deep in it. Keep going.' : 'Put on some beats.' }}
-          </p>
+          <div class="flex flex-col items-end gap-1.5 pb-1">
+            <button
+              v-if="store.state && !narrow"
+              class="flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/80 hover:bg-white/20"
+              :aria-expanded="cardOpen"
+              aria-controls="room-card-more"
+              @click="cardOpen = !cardOpen"
+            >
+              {{ cardOpen ? 'Less' : 'Timer and notes' }}
+              <Icon name="chevronDown" :size="13" class="transition" :class="cardOpen && 'rotate-180'" />
+            </button>
+            <p class="text-right text-xs whitespace-normal text-white/60">
+              {{ store.state?.focus?.active ? 'Deep in it. Keep going.' : 'Put on some beats.' }}
+            </p>
+          </div>
         </div>
-        <div v-if="store.state" class="mt-4 border-t border-white/10 pt-4"><FocusCard dark /></div>
-        <details class="mt-3 rounded-2xl bg-white/5">
+        <div v-if="store.state" class="mt-3 border-t border-white/10 pt-3"><FocusCard dark :compact="!open" /></div>
+        <details v-if="open" id="room-card-more" class="mt-3 rounded-2xl bg-white/5">
           <summary class="cursor-pointer px-3 py-2 text-xs font-bold text-white/75">Scratchpad</summary>
           <textarea
             v-model="note"
@@ -421,7 +440,7 @@ const chipOn = 'rounded-full bg-white text-[#120f24]'
           </div>
         </details>
       </div>
-      <p class="text-[11px] text-white/45 max-lg:hidden">
+      <p v-if="open" class="text-[11px] text-white/45 max-lg:hidden">
         Space play · F full screen · C scene · D decorate · Z hide panels · T H B S drawer
       </p>
     </div>
@@ -430,7 +449,8 @@ const chipOn = 'rounded-full bg-white text-[#120f24]'
       v-if="panels && onboarded && !narrow"
       v-model:open="drawer.open"
       v-model:tab="drawer.tab"
-      class="absolute right-5 bottom-5 z-10 w-[380px] max-lg:w-[330px]"
+      class="absolute right-5 bottom-5 z-10"
+      :class="drawer.open ? 'w-[380px] max-lg:w-[330px]' : ''"
     />
 
     <!-- decorate: the tray and the avatar editor -->

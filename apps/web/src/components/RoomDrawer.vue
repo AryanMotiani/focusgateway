@@ -1,6 +1,7 @@
 <script setup>
 // The study room's side drawer: tasks, habits, blocks and progress without leaving the room.
-// Keys: T H B S switch tabs (and open the drawer), Esc closes.
+// Keys: T H B S switch tabs (and open the drawer), Esc closes. Closed, it is just the tab bar
+// (on wide screens a small pill, so it covers little of the room).
 import { onBeforeUnmount, onMounted } from 'vue'
 import TasksPanel from './panels/TasksPanel.vue'
 import HabitsPanel from './panels/HabitsPanel.vue'
@@ -42,11 +43,20 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
         :key="t.id"
         class="flex flex-1 items-center justify-center gap-1.5 rounded-2xl px-2 py-2 text-xs font-bold transition"
         :class="open && tab === t.id ? 'bg-white text-[#120f24]' : 'text-white/70 hover:bg-white/10 hover:text-white'"
-        :title="`${t.label} (${t.key.toUpperCase()})`"
+        :title="`${t.label} (${t.key.toUpperCase()})${open && tab === t.id ? ', press again to close' : ''}`"
         :aria-pressed="open && tab === t.id"
         @click="open && tab === t.id ? (open = false) : ((tab = t.id), (open = true))"
       >
         <Icon :name="t.icon" :size="15" /><span class="max-sm:hidden">{{ t.label }}</span>
+      </button>
+      <button
+        v-if="open"
+        class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+        aria-label="Fold the drawer (Esc)"
+        title="Fold the drawer (Esc)"
+        @click="open = false"
+      >
+        <Icon name="chevronDown" :size="16" />
       </button>
     </div>
     <div v-if="open" class="max-h-[min(50vh,520px)] overflow-y-auto p-4 pt-2">
@@ -55,9 +65,6 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
       <BlocksPanel v-else-if="tab === 'blocks'" dark />
       <StatsPanel v-else dark />
     </div>
-    <p v-else class="px-4 pb-3 text-[11px] text-white/45">
-      <span class="sm:hidden">Tap a tab to peek at tasks, habits, blocks or progress.</span
-      ><span class="max-sm:hidden">Press T, H, B or S to peek without leaving the room.</span>
-    </p>
+    <p v-else class="px-4 pb-3 text-[11px] text-white/45 sm:hidden">Tap a tab to peek at tasks, habits, blocks or progress.</p>
   </aside>
 </template>

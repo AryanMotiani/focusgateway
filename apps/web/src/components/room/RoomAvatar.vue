@@ -27,6 +27,8 @@ const b = computed(() => BUILDS[a.value.build] || BUILDS.neutral)
 const skin = computed(() => SKIN[a.value.skin] || SKIN.s3)
 const hairC = computed(() => (HEADWEAR.has(a.value.hair) ? WRAP : HAIR)[a.value.hairColor] || HAIR.espresso)
 const top = computed(() => TOP[a.value.topColor] || TOP.green)
+// hair under a hat keeps a natural colour, as the colour choice picks the fabric
+const UNDER = HAIR.espresso
 const hairDark = computed(() => shade(hairC.value[0], -0.18))
 const topDD = computed(() => shade(top.value[1], -0.2))
 const w = computed(() => woodOf(props.wood))
@@ -134,6 +136,19 @@ const hair = computed(() => {
         width,
       }
     })
+
+  // short hair showing below a hat: over the sides and down to a tufted nape
+  const nape = () => {
+    let d = `M${hx - rx - 2} ${hy - 22} L${hx - rx - 3} ${hy + 6} C${hx - rx + 1} ${hy + 22} ${hx - rx * 0.62} ${hy + 30} ${hx - rx * 0.5} ${hy + 32}`
+    const n = 6
+    for (let i = 0; i < n; i++) {
+      const x0 = hx - rx * 0.5 + (rx * (i + 0.5)) / n
+      const x1 = hx - rx * 0.5 + (rx * (i + 1)) / n
+      d += ` Q${x0.toFixed(1)} ${(hy + 41 - Math.abs(i - 2.5) * 1.4).toFixed(1)} ${x1.toFixed(1)} ${hy + 34}`
+    }
+    d += ` C${hx + rx * 0.62} ${hy + 30} ${hx + rx - 1} ${hy + 22} ${hx + rx + 2} ${hy + 6} L${hx + rx + 1} ${hy - 22}Z`
+    return d
+  }
 
   if (s === 'buzz') return { cap: tight, capOpacity: 0.72, ears: true }
   if (s === 'short') return { cap: shortCap, ears: true, strands: true }
@@ -331,62 +346,92 @@ const hair = computed(() => {
     })
     return { cap: null, ears: true, front, noShine: true }
   }
+  // hats: the hat itself is `cap` (in the fabric colour), and `under` is the hair below it,
+  // showing at the sides and the nape
   if (s === 'beanie') {
+    const cuff = hy - 2
     for (const k of [-0.6, -0.3, 0, 0.3, 0.6])
       line(
         front,
-        `M${hx + k * rx} ${hy - ry - 8 + Math.abs(k) * 14} Q${hx + k * rx * 1.12} ${hy - 20} ${hx + k * rx * 1.08} ${hy + 2}`,
+        `M${hx + k * rx} ${hy - ry - 8 + Math.abs(k) * 14} Q${hx + k * rx * 1.12} ${hy - 26} ${hx + k * rx * 1.08} ${cuff - 6}`,
         dk,
         2.5,
-        {
-          op: 0.35,
-        },
+        { op: 0.35 },
       )
+    // the folded cuff, curving down at the back as we look at it from a little above
     fill(
       front,
-      `M${hx - rx - 7} ${hy - 4} Q${hx} ${hy + 6} ${hx + rx + 7} ${hy - 4} L${hx + rx + 6} ${hy + 12} Q${hx} ${hy + 24} ${hx - rx - 6} ${hy + 12}Z`,
+      `M${hx - rx - 6} ${cuff - 12} Q${hx} ${cuff - 2} ${hx + rx + 6} ${cuff - 12} L${hx + rx + 5} ${cuff + 2} Q${hx} ${cuff + 16} ${hx - rx - 5} ${cuff + 2}Z`,
       dk,
     )
     for (let i = 1; i < 10; i++) {
       const x = hx - rx - 6 + ((rx * 2 + 12) * i) / 10
-      line(front, `M${x.toFixed(1)} ${hy + 1 + Math.abs(i - 5) * -0.6} v12`, c0, 2, { op: 0.35 })
+      const t = Math.abs(i - 5) / 5
+      line(front, `M${x.toFixed(1)} ${(cuff - 7 - t * 3).toFixed(1)} v${(12 - t * 2).toFixed(1)}`, c0, 2, { op: 0.35 })
     }
     fill(front, dot(hx + 2, hy - ry - 20, 14), c1)
     line(front, `M${hx - 6} ${hy - ry - 24} l4 4 M${hx + 6} ${hy - ry - 26} l-3 5 M${hx + 2} ${hy - ry - 14} l2 -5`, dk, 2, { op: 0.4 })
-    return { cap: dome(16, hy + 8, 5), ears: true, front, noShine: true }
+    return { cap: dome(16, cuff - 8, 5), under: nape(), ears: true, front, noShine: true }
   }
   if (s === 'cap') {
-    for (const k of [-0.45, 0.5])
-      line(front, `M${hx + 2} ${hy - ry - 9} Q${hx + k * rx * 1.1} ${hy - ry * 0.6} ${hx + k * rx * 1.05} ${hy + 2}`, dk, 2, { op: 0.4 })
-    fill(front, dot(hx + 2, hy - ry - 9, 4.5), dk)
-    // the brim points back, towards us, and down over the neck
-    fill(front, `M${hx - 24} ${hy + 8} C${hx - 30} ${hy + 64} ${hx + 36} ${hy + 64} ${hx + 32} ${hy + 8}Z`, dk)
-    fill(front, `M${hx - 24} ${hy + 4} C${hx - 29} ${hy + 57} ${hx + 35} ${hy + 57} ${hx + 32} ${hy + 4}Z`, c0)
-    line(front, `M${hx - 17} ${hy + 12} C${hx - 20} ${hy + 46} ${hx + 26} ${hy + 46} ${hx + 25} ${hy + 12}`, c1, 1.6, {
-      op: 0.6,
-      dash: '3 4',
-    })
-    line(front, `M${hx - rx - 4} ${hy + 1} Q${hx} ${hy + 10} ${hx + rx + 4} ${hy + 1}`, dk, 3, { op: 0.5 })
-    return { cap: dome(10, hy + 2, 4), ears: true, front, noShine: true }
+    // a backwards baseball cap: a rounded crown on top of the head, the band curving down at
+    // the back, and the brim sticking out towards us (seen from a little above, so it shows
+    // as a short curved visor below the band)
+    const top = hy - ry - 6
+    const band = hy - 6
+    const mid = hy + 4
+    const crown =
+      `M${hx - rx - 3} ${band} C${hx - rx - 5} ${hy - ry * 0.7} ${hx - rx * 0.55} ${top} ${hx + 2} ${top} ` +
+      `C${hx + rx * 0.6} ${top} ${hx + rx + 5} ${hy - ry * 0.7} ${hx + rx + 3} ${band} Q${hx} ${2 * mid - band} ${hx - rx - 3} ${band}Z`
+    // panel seams from the button down to the band
+    for (const k of [-0.62, -0.2, 0.24, 0.66])
+      line(front, `M${hx + 2} ${top + 1} Q${hx + k * rx * 1.02} ${top + 8} ${hx + k * rx * 1.05} ${band + 6 - Math.abs(k) * 4}`, dk, 2, {
+        op: 0.4,
+      })
+    line(front, `M${hx - rx * 0.62} ${hy - ry * 0.5} Q${hx - rx * 0.3} ${top + 6} ${hx + rx * 0.1} ${top + 4}`, c1, 4, { op: 0.6 })
+    fill(front, dot(hx + 2, top + 1, 4.5), dk)
+    // sweatband along the lower edge
+    line(front, `M${hx - rx - 2} ${band - 1} Q${hx} ${2 * mid - band - 2} ${hx + rx + 2} ${band - 1}`, dk, 4, { op: 0.55 })
+    // the brim: its edge (thickness) first, then the top of the visor
+    const brim = (dy, k = 1) =>
+      `M${hx - 32 * k} ${hy + 1} Q${hx - 1} ${hy + 10} ${hx + 32 * k} ${hy + 1} ` +
+      `C${hx + 37 * k} ${hy + 16 + dy} ${hx + 17} ${hy + 23 + dy} ${hx} ${hy + 23 + dy} C${hx - 17} ${hy + 23 + dy} ${hx - 37 * k} ${hy + 16 + dy} ${hx - 32 * k} ${hy + 1}Z`
+    fill(front, brim(10, 0.9), '#000', 0.22)
+    fill(front, brim(3.5), dk)
+    fill(front, brim(0), c0)
+    fill(front, `M${hx - 26} ${hy + 6} Q${hx - 1} ${hy + 14} ${hx + 26} ${hy + 6} Q${hx} ${hy + 20} ${hx - 26} ${hy + 6}Z`, c1, 0.45)
+    line(
+      front,
+      `M${hx - 24} ${hy + 8} C${hx - 24} ${hy + 15} ${hx - 12} ${hy + 18} ${hx} ${hy + 18} C${hx + 12} ${hy + 18} ${hx + 24} ${hy + 15} ${hx + 24} ${hy + 8}`,
+      c1,
+      1.5,
+      {
+        op: 0.7,
+        dash: '3 3',
+      },
+    )
+    return { cap: crown, under: nape(), ears: true, front, noShine: true }
   }
   if (s === 'bandana') {
-    for (let y = hy - ry + 2; y < hy + 16; y += 14)
+    const low = hy + 2
+    for (let y = hy - ry + 2; y < low; y += 14)
       for (let x = hx - rx + 4 + (Math.round(y - hy) % 28 ? 0 : 7); x < hx + rx; x += 14) {
         const e = ((x - hx) / (rx + 2)) ** 2 + ((y - hy) / (ry + 4)) ** 2
         if (e < 1) fill(front, dot(x, y, 1.8), c1, 0.9)
       }
+    // the knot at the back and the two tails, lying over the hair
     fill(
       front,
-      `M${hx - 2} ${hy + 16} Q${hx - 16} ${hy + 34} ${hx - 12} ${hy + 50} L${hx - 1} ${hy + 46} Q${hx - 2} ${hy + 30} ${hx + 5} ${hy + 18}Z`,
+      `M${hx - 2} ${low + 6} Q${hx - 16} ${low + 24} ${hx - 12} ${low + 40} L${hx - 1} ${low + 36} Q${hx - 2} ${low + 20} ${hx + 5} ${low + 8}Z`,
       c0,
     )
     fill(
       front,
-      `M${hx + 8} ${hy + 16} Q${hx + 22} ${hy + 30} ${hx + 24} ${hy + 44} L${hx + 14} ${hy + 44} Q${hx + 12} ${hy + 30} ${hx + 3} ${hy + 18}Z`,
+      `M${hx + 8} ${low + 6} Q${hx + 22} ${low + 20} ${hx + 24} ${low + 34} L${hx + 14} ${low + 34} Q${hx + 12} ${low + 20} ${hx + 3} ${low + 8}Z`,
       dk,
     )
-    fill(front, dot(hx + 4, hy + 15, 8.5), dk)
-    return { cap: dome(7, hy + 8, 3), ears: true, front, noShine: true }
+    fill(front, dot(hx + 4, low + 5, 8.5), dk)
+    return { cap: dome(7, low, 3), under: nape(), ears: true, front, noShine: true }
   }
   if (s === 'hijab') {
     return {
@@ -652,6 +697,17 @@ const ear = computed(() => ({ r: [hx + g.value.rx + 1, hy + 15], l: [hx - g.valu
             :d="`M${hx + g.rx - 8} ${hy + 4} Q${hx + g.rx + 3} ${hy + 24} ${hx + g.rx - 16} ${hy + 40} L${hx + 6} ${hy + 36}Z`"
             :fill="skin[0]"
           />
+          <template v-if="hair.under">
+            <path :d="hair.under" :fill="UNDER[0]" />
+            <path
+              :d="`M${hx - 14} ${hy + 34} q2 -10 -2 -18 M${hx + 12} ${hy + 34} q3 -10 1 -18 M${hx - g.rx + 4} ${hy + 14} q3 -8 1 -14`"
+              :stroke="UNDER[1]"
+              stroke-width="2.2"
+              fill="none"
+              opacity=".6"
+              stroke-linecap="round"
+            />
+          </template>
           <template v-if="hair.ears">
             <ellipse :cx="hx + g.rx - 1" :cy="hy + 4" rx="8" ry="12" :fill="skin[0]" />
             <ellipse :cx="hx + g.rx" :cy="hy + 4" rx="4" ry="7" :fill="skin[1]" />

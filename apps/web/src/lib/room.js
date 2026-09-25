@@ -4,7 +4,7 @@
 import { computed, reactive, watch } from 'vue'
 import { UNLOCKS, MILESTONES, defaultRoom, sanitizeRoom, isUnlocked } from '@focusgateway/core'
 import { ART, badgeArt } from '../components/room/art.js'
-import { store, call } from './store.js'
+import { store, call, toast } from './store.js'
 import { progress, milestones } from './rewards.js'
 
 export const ROOM_W = 1600
@@ -119,11 +119,22 @@ watch(
     pending = true
     clearTimeout(saveT)
     saveT = setTimeout(async () => {
-      synced = JSON.stringify(room)
+      const sent = JSON.stringify(room)
+      synced = sent
       try {
-        await call('settings.update', { patch: { room: JSON.parse(synced) } })
-      } catch {}
-      pending = false
+        await call('settings.update', { patch: { room: JSON.parse(sent) } })
+      } catch (e) {
+        // rejected (for example a locked value): say why, and put the room back to what is
+        // saved, unless newer edits are already waiting to be saved
+        toast(e?.message || 'Could not save the room.', 'error')
+        if (JSON.stringify(room) === sent) {
+          const saved = JSON.stringify(clone(store.state?.settings?.room || defaultRoom()))
+          synced = saved
+          Object.assign(room, JSON.parse(saved))
+        }
+      }
+      // newer edits may have come in while this one was saving: they have their own save
+      if (JSON.stringify(room) === synced) pending = false
     }, 700)
   },
 )
@@ -167,26 +178,62 @@ export function placeItem(id, x, y) {
 export function removeItem(id) {
   const i = room.items.findIndex((it) => it.id === id)
   if (i >= 0) room.items.splice(i, 1)
+  if (selection.id === id) selection.id = null
 }
 
-// a sensible first spot when an item is tapped in the tray instead of dragged
+// the item picked in decorate mode, for the move and remove buttons (and the arrow keys)
+export const selection = reactive({ id: null })
+
+// a sensible first spot when an item is tapped in the tray instead of dragged, and for wall
+// items a couple of other heights to try when that row is full
 const START = { wall: [300, 520], shelf: [1320, 302], desk: [700, 566], sill: [700, 450], floor: [1250, 870], any: [700, 566] }
+const ROWS = { wall: [0, -170, 110] }
+const box = (x, y, m) => ({ x1: x - m.w / 2, x2: x + m.w / 2, y1: y - m.h, y2: y })
+const overlaps = (a, b, gap) => a.x1 < b.x2 + gap && b.x1 < a.x2 + gap && a.y1 < b.y2 + gap && b.y1 < a.y2 + gap
+/** Put an item at the first free spot near the start spot for its surface, and select it. */
 export function quickPlace(id) {
   const meta = itemMeta(id)
   if (!meta) return
   const [sx, sy] = START[meta.surface] || START.any
-  // step sideways until it does not sit on top of something already there
-  for (let k = 0; k < 14; k++) {
-    const dx = (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 70
-    const p = snap(meta, sx + dx, sy)
-    const clash = placedItems.value.some(
-      (o) => o.id !== id && Math.abs(o.y - p.y) < 30 && Math.abs(o.x - p.x) < (o.meta.w + meta.w) / 2 - 6,
-    )
-    if (!clash) return placeItem(id, p.x, p.y)
-  }
+  const others = placedItems.value.filter((o) => o.id !== id).map((o) => box(o.x, o.y, o.meta))
+  const free = (p) => !others.some((o) => overlaps(box(p.x, p.y, meta), o, 4))
+  // step sideways (and for wall items, try other rows) until it does not overlap anything
+  for (const dy of ROWS[meta.surface] || [0])
+    for (let k = 0; k < 16; k++) {
+      const dx = (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 60
+      const p = snap(meta, sx + dx, sy + dy)
+      if (p && free(p)) {
+        placeItem(id, p.x, p.y)
+        selection.id = id
+        return
+      }
+    }
   const p = snap(meta, sx, sy)
   placeItem(id, p.x, p.y)
+  selection.id = id
 }
 
+/** Move a placed item by (dx, dy) room units, staying on a surface it is allowed on. */
+export function nudge(id, dx, dy) {
+  const it = room.items.find((i) => i.id === id)
+  const meta = it && itemMeta(id)
+  if (!meta) return
+  const p = snap(meta, it.x + dx, it.y + dy)
+  if (p) placeItem(id, p.x, p.y)
+}
+/** Which ways an item can be nudged: every item slides sideways, wall and floor items also up and down. */
+export const canNudgeUpDown = (meta) => meta?.surface === 'wall' || meta?.surface === 'floor'
+
 // ---- dragging, shared by the tray and the room
-export const drag = reactive({ id: null, meta: null, clientX: 0, clientY: 0, spot: null, overTray: false, grab: { x: 0, y: 0 } })
+export const drag = reactive({
+  id: null,
+  meta: null,
+  clientX: 0,
+  clientY: 0,
+  startX: 0,
+  startY: 0,
+  fromRoom: false,
+  spot: null,
+  overTray: false,
+  grab: { x: 0, y: 0 },
+})

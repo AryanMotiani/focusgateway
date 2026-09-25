@@ -7,15 +7,16 @@
 //   3. a colour wash for the scene, 4. light: lamp pool, sun shaft, glowing items
 //   5. decorate mode handles
 // Nothing here depends on the clock, so the room does not re-render every second.
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import SceneSky from '../SceneSky.vue'
 import RoomAvatar from './RoomAvatar.vue'
 import { lightOf, sceneOf } from '../../lib/scenes.js'
 import { lofi } from '../../lib/lofi.js'
 import { C } from './palette.js'
 import { DEFAULT_STYLE } from '@focusgateway/core'
-import { wallOf, woodOf, PATTERNS, FLOORS, CURTAINS, LAMPS } from './roomStyle.js'
-import { GLASS, room, placedItems, drag, removeItem, snap, itemMeta, placeItem } from '../../lib/room.js'
+import { luma, wallOf, woodOf, PATTERNS, FLOORS, CURTAINS, LAMPS } from './roomStyle.js'
+import { GLASS, room, placedItems, drag, removeItem, snap, itemMeta, placeItem, selection, nudge, canNudgeUpDown } from '../../lib/room.js'
+import Icon from '../Icon.vue'
 
 const props = defineProps({
   scene: { type: String, default: 'scene-night' },
@@ -61,6 +62,11 @@ const roomFilter = computed(() => {
   return k < 0.999 ? `${base} brightness(${k.toFixed(3)})`.trim() : light.value.filter
 })
 const weather = computed(() => sceneOf(props.scene).weather)
+// how much lamp colour to wash over a dark wall: more the darker the wall and the room
+const wallLift = computed(() => {
+  if (!wall.value.dark || !light.value.lamp) return 0
+  return +(0.1 + (0.45 - luma(wall.value.base)) * 0.5).toFixed(3) * light.value.lamp * (0.6 + 0.4 * style.value.brightness)
+})
 
 // ---- weather in the window (CSS animated, clipped to the glass)
 function rng(seed) {
@@ -143,9 +149,14 @@ function endDrag() {
   window.removeEventListener('pointermove', updateDrag)
   window.removeEventListener('pointerup', endDrag)
   window.removeEventListener('pointercancel', cancelDrag)
+  const moved = Math.hypot(drag.clientX - drag.startX, drag.clientY - drag.startY) > 6
   if (drag.overTray) removeItem(drag.id)
-  else if (drag.spot) placeItem(drag.id, drag.spot.x, drag.spot.y)
-  else emit('drop-outside', drag.id)
+  else if (drag.fromRoom && !moved)
+    selection.id = drag.id // a tap on a placed item picks it
+  else if (drag.spot) {
+    placeItem(drag.id, drag.spot.x, drag.spot.y)
+    selection.id = drag.id
+  } else emit('drop-outside', drag.id)
   Object.assign(drag, { id: null, meta: null, spot: null, overTray: false })
 }
 function cancelDrag() {
@@ -155,10 +166,19 @@ function cancelDrag() {
   Object.assign(drag, { id: null, meta: null, spot: null, overTray: false })
 }
 /** Start dragging `id`. `grab` is where the pointer holds the item, relative to its bottom middle. */
-function startDrag(id, e, grab) {
+function startDrag(id, e, grab, fromRoom = false) {
   const meta = itemMeta(id)
   if (!meta) return
-  Object.assign(drag, { id, meta, grab: grab || { x: 0, y: -meta.h / 2 }, spot: null, overTray: false })
+  Object.assign(drag, {
+    id,
+    meta,
+    grab: grab || { x: 0, y: -meta.h / 2 },
+    spot: null,
+    overTray: false,
+    fromRoom,
+    startX: e.clientX,
+    startY: e.clientY,
+  })
   updateDrag(e)
   window.addEventListener('pointermove', updateDrag)
   window.addEventListener('pointerup', endDrag)
@@ -168,8 +188,96 @@ function grabPlaced(it, e) {
   if (!props.editable) return showTip(it, e)
   e.preventDefault()
   const p = toRoom(e.clientX, e.clientY)
-  startDrag(it.id, e, p ? { x: p.x - it.x, y: p.y - it.y } : null)
+  startDrag(it.id, e, p ? { x: p.x - it.x, y: p.y - it.y } : null, true)
 }
+
+// ---- decorate mode on the room itself: a drag on an empty spot pans the room on phones
+// (the room has touch-action: none while decorating, so a finger never scrolls the page),
+// and a tap on an empty spot drops the selection
+let pan = null
+function panStart(e) {
+  if (!props.editable || drag.id || e.target.closest?.('.sr-hit, .sr-tools')) return
+  const scroller = box.value?.closest('[data-room-scroll]')
+  pan = { x: e.clientX, y: e.clientY, left: scroller?.scrollLeft || 0, scroller, moved: false }
+  window.addEventListener('pointermove', panMove)
+  window.addEventListener('pointerup', panEnd, { once: true })
+  window.addEventListener('pointercancel', panEnd, { once: true })
+}
+function panMove(e) {
+  if (!pan) return
+  if (Math.hypot(e.clientX - pan.x, e.clientY - pan.y) > 6) pan.moved = true
+  if (pan.scroller) pan.scroller.scrollLeft = pan.left - (e.clientX - pan.x)
+}
+function panEnd() {
+  window.removeEventListener('pointermove', panMove)
+  if (pan && !pan.moved) selection.id = null
+  pan = null
+}
+
+// ---- the selected item: its toolbar (move, put away), arrow keys, and keeping it in view
+const picked = computed(() => (props.editable && !drag.id && placedItems.value.find((it) => it.id === selection.id)) || null)
+const view = computed(() => {
+  const [x, y, w, h] = vb.value.split(' ').map(Number)
+  const k = Math.min(size.w / w, size.h / h)
+  return { x, y, k, ox: (size.w - w * k) / 2, oy: (size.h - h * k) / 2 }
+})
+const toPx = (x, y) => ({ left: view.value.ox + (x - view.value.x) * view.value.k, top: view.value.oy + (y - view.value.y) * view.value.k })
+// the part of the room that is on screen (on phones the room scrolls sideways)
+const seen = reactive({ left: 0, width: 0 })
+function onScroll() {
+  const scroller = box.value?.closest('[data-room-scroll]')
+  seen.left = scroller ? scroller.scrollLeft : 0
+  seen.width = scroller ? scroller.clientWidth : size.w
+}
+const tools = computed(() => {
+  const it = picked.value
+  if (!it) return null
+  const top = toPx(it.x, it.y - it.meta.h)
+  const bottom = toPx(it.x, it.y)
+  const above = top.top > 60
+  const upDown = canNudgeUpDown(it.meta)
+  const half = upDown ? 128 : 92
+  const lo = seen.left + half + 6
+  const hi = seen.left + (seen.width || size.w) - half - 6
+  return {
+    left: hi < lo ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, top.left)),
+    top: above ? top.top - 10 : Math.min(size.h - 8, bottom.top + 10),
+    above,
+    upDown,
+  }
+})
+// touch targets: at least 44 px on screen, however small the item is drawn
+const hitPad = (it) => ({
+  x: Math.max(0, (44 / (view.value.k || 1) - it.meta.w) / 2),
+  y: Math.max(0, (44 / (view.value.k || 1) - it.meta.h) / 2),
+})
+const STEP = 20
+const move = (dx, dy) => picked.value && nudge(picked.value.id, dx, dy)
+function onKey(e) {
+  if (!picked.value || e.target.closest?.('input, textarea, select, [contenteditable]')) return
+  const k = { ArrowLeft: [-STEP, 0], ArrowRight: [STEP, 0], ArrowUp: [0, -STEP], ArrowDown: [0, STEP] }[e.key]
+  if (k) {
+    e.preventDefault()
+    if (k[1] && !tools.value.upDown) return
+    move(k[0], k[1])
+  } else if (e.key === 'Delete' || e.key === 'Backspace') {
+    e.preventDefault()
+    removeItem(picked.value.id)
+  }
+}
+// on phones the room scrolls sideways: bring a newly picked item into view
+watch(
+  () => selection.id,
+  async () => {
+    await nextTick()
+    const it = picked.value
+    const scroller = box.value?.closest('[data-room-scroll]')
+    if (!it || !scroller) return
+    const x = toPx(it.x, it.y).left
+    if (x < scroller.scrollLeft + 40 || x > scroller.scrollLeft + scroller.clientWidth - 40)
+      scroller.scrollTo({ left: x - scroller.clientWidth / 2, behavior: reduce ? 'auto' : 'smooth' })
+  },
+)
 defineExpose({ startDrag })
 
 // tap on a badge (or any item) outside decorate mode: show its name for a moment
@@ -189,9 +297,14 @@ onMounted(() => {
   const ro = new ResizeObserver(([e]) => {
     size.w = e.contentRect.width
     size.h = e.contentRect.height
+    onScroll()
   })
   ro.observe(box.value)
   onBeforeUnmount(() => ro.disconnect())
+  const scroller = box.value.closest('[data-room-scroll]')
+  scroller?.addEventListener('scroll', onScroll, { passive: true })
+  onBeforeUnmount(() => scroller?.removeEventListener('scroll', onScroll))
+  document.addEventListener('keydown', onKey)
   if (!reduce)
     offBeat = lofi().onBeat(({ step }) => {
       const el = avatarG.value
@@ -204,17 +317,28 @@ onMounted(() => {
 onBeforeUnmount(() => {
   offBeat?.()
   cancelDrag()
+  panEnd()
+  document.removeEventListener('keydown', onKey)
 })
 watch(
   () => props.editable,
-  (v) => !v && cancelDrag(),
+  (v) => {
+    if (v) return
+    cancelDrag()
+    selection.id = null
+  },
 )
 
 const avatar = computed(() => room.avatar)
 </script>
 
 <template>
-  <div ref="box" class="sr-room overflow-hidden select-none" :class="{ 'sr-contain': fit === 'contain' }">
+  <div
+    ref="box"
+    class="sr-room overflow-hidden select-none"
+    :class="{ 'sr-contain': fit === 'contain', 'sr-editing': editable }"
+    @pointerdown="panStart"
+  >
     <!-- 1. the view out of the window -->
     <svg class="sr-layer" :viewBox="vb" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       <defs>
@@ -291,6 +415,16 @@ const avatar = computed(() => room.avatar)
         fill="url(#sr-paper)"
       />
       <rect width="1600" height="760" fill="url(#sr-wallshade)" pointer-events="none" />
+      <!-- dark walls catch a little lamp light at night, so they read as a room and not a black box -->
+      <path
+        v-if="wallLift"
+        :d="`M0 0 H1600 V746 H0Z M${GLASS.x} ${GLASS.y} v${GLASS.h} h${GLASS.w} v-${GLASS.h}z`"
+        fill-rule="evenodd"
+        :fill="lamp.lift || lamp.pool[0]"
+        :opacity="wallLift"
+        :class="lamp.cycle && 'sr-rgb-fill'"
+        pointer-events="none"
+      />
       <rect y="0" width="1600" height="16" :fill="wall.trim" />
       <rect y="16" width="1600" height="4" :fill="wall.trim2" />
       <!-- wainscot -->
@@ -441,12 +575,24 @@ const avatar = computed(() => room.avatar)
     <!-- 3. colour of the light for this scene, and a soft vignette -->
     <div class="sr-layer sr-tint" :style="{ background: light.tint }" />
 
+    <!-- 4. light. First the lamp lighting up what it falls on (colour dodge keeps shadows dark,
+         so pale light looks crisp instead of foggy), then the pool, window light and glowing things -->
+    <svg v-if="lampOn > 0" class="sr-layer sr-dodge" :viewBox="vb" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <defs>
+        <radialGradient id="sr-lit" cx="930" cy="470" r="440" gradientUnits="userSpaceOnUse">
+          <stop offset="0" :stop-color="lamp.dodge || lamp.pool[0]" stop-opacity=".55" :class="lamp.cycle && 'sr-rgb-stop'" />
+          <stop offset=".5" :stop-color="lamp.dodge || lamp.pool[1]" stop-opacity=".25" :class="lamp.cycle && 'sr-rgb-stop'" />
+          <stop offset="1" :stop-color="lamp.dodge || lamp.pool[1]" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="1600" height="900" fill="url(#sr-lit)" :opacity="Math.min(1, lampOn) * (lamp.dodgeK ?? 1)" />
+    </svg>
     <!-- 4. light: lamp pool, light from the window, glowing things -->
     <svg class="sr-layer sr-glow" :viewBox="vb" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       <defs>
         <radialGradient id="sr-pool" cx="900" cy="500" r="500" gradientUnits="userSpaceOnUse">
-          <stop offset="0" :stop-color="lamp.pool[0]" stop-opacity=".5" :class="lamp.cycle && 'sr-rgb-stop'" />
-          <stop offset=".5" :stop-color="lamp.pool[1]" stop-opacity=".22" :class="lamp.cycle && 'sr-rgb-stop'" />
+          <stop offset="0" :stop-color="lamp.pool[0]" :stop-opacity="lamp.haze ?? 0.42" :class="lamp.cycle && 'sr-rgb-stop'" />
+          <stop offset=".45" :stop-color="lamp.pool[1]" :stop-opacity="(lamp.haze ?? 0.42) * 0.36" :class="lamp.cycle && 'sr-rgb-stop'" />
           <stop offset="1" :stop-color="lamp.pool[1]" stop-opacity="0" />
         </radialGradient>
         <radialGradient id="sr-bulb">
@@ -473,10 +619,10 @@ const avatar = computed(() => room.avatar)
       <g v-for="it in placedItems" :key="'h' + it.id" :class="editable ? 'sr-handle' : ''">
         <rect
           v-if="editable || it.meta.badge"
-          :x="it.x - it.meta.w / 2"
-          :y="it.y - it.meta.h"
-          :width="it.meta.w"
-          :height="it.meta.h"
+          :x="it.x - it.meta.w / 2 - (editable ? hitPad(it).x : 0)"
+          :y="it.y - it.meta.h - (editable ? hitPad(it).y : 0)"
+          :width="it.meta.w + (editable ? hitPad(it).x * 2 : 0)"
+          :height="it.meta.h + (editable ? hitPad(it).y * 2 : 0)"
           :rx="8"
           fill="transparent"
           :stroke="editable ? '#fff' : 'none'"
@@ -507,6 +653,18 @@ const avatar = computed(() => room.avatar)
         </g>
       </g>
       <rect
+        v-if="picked"
+        :x="picked.x - picked.meta.w / 2 - 5"
+        :y="picked.y - picked.meta.h - 5"
+        :width="picked.meta.w + 10"
+        :height="picked.meta.h + 10"
+        rx="10"
+        fill="none"
+        stroke="#ffe08a"
+        stroke-width="3"
+        pointer-events="none"
+      />
+      <rect
         v-if="ghost"
         :x="ghost.x - ghost.meta.w / 2 - 4"
         :y="ghost.y - ghost.meta.h - 4"
@@ -519,6 +677,41 @@ const avatar = computed(() => room.avatar)
         stroke-dasharray="7 5"
       />
     </svg>
+
+    <!-- move and put away buttons for the selected item -->
+    <div
+      v-if="tools"
+      class="sr-tools absolute z-10 flex -translate-x-1/2 items-center gap-0.5 rounded-full border border-white/15 bg-[#1d1830]/95 p-1 text-white shadow-lg"
+      :class="tools.above ? '-translate-y-full' : ''"
+      :style="{ left: tools.left + 'px', top: tools.top + 'px' }"
+      role="toolbar"
+      :aria-label="`Move ${picked.meta.name}`"
+    >
+      <button class="sr-tool" aria-label="Move left" title="Move left (arrow key)" @click="move(-STEP, 0)">
+        <Icon name="chevronLeft" :size="18" />
+      </button>
+      <template v-if="tools.upDown">
+        <button class="sr-tool" aria-label="Move up" title="Move up (arrow key)" @click="move(0, -STEP)">
+          <Icon name="chevronUp" :size="18" />
+        </button>
+        <button class="sr-tool" aria-label="Move down" title="Move down (arrow key)" @click="move(0, STEP)">
+          <Icon name="chevronDown" :size="18" />
+        </button>
+      </template>
+      <button class="sr-tool" aria-label="Move right" title="Move right (arrow key)" @click="move(STEP, 0)">
+        <Icon name="chevronRight" :size="18" />
+      </button>
+      <span class="mx-0.5 h-5 w-px bg-white/20" />
+      <button
+        class="sr-tool"
+        :aria-label="`Put ${picked.meta.name} back in the tray`"
+        title="Put away (Delete)"
+        @click="removeItem(picked.id)"
+      >
+        <Icon name="trash" :size="16" />
+      </button>
+      <button class="sr-tool" aria-label="Done moving" title="Done" @click="selection.id = null"><Icon name="check" :size="17" /></button>
+    </div>
 
     <div
       v-if="tip"
@@ -549,6 +742,20 @@ const avatar = computed(() => room.avatar)
   pointer-events: all;
   touch-action: none;
 }
+/* while decorating a finger drags items (or pans the room, see panStart), never the page */
+.sr-room.sr-editing {
+  touch-action: none;
+}
+.sr-room .sr-tool {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+}
+.sr-room .sr-tool:hover {
+  background: rgb(255 255 255 / 0.12);
+}
 .sr-room .sr-lit {
   transition: filter 1.2s ease;
 }
@@ -564,6 +771,9 @@ const avatar = computed(() => room.avatar)
 }
 .sr-room .sr-glow {
   mix-blend-mode: screen;
+}
+.sr-room .sr-dodge {
+  mix-blend-mode: color-dodge;
 }
 .sr-room.sr-contain .sr-tint::after {
   display: none;

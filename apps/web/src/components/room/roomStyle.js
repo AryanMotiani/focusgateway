@@ -23,8 +23,8 @@ export const WALLS = {
   butter: ['#f0dfa4', '#d4b872'],
   mint: ['#bfe0d2', '#8fbfaa'],
   terracotta: ['#d9967a', '#b36f55'],
-  navy: ['#46557c', '#33405f'],
-  charcoal: ['#57535e', '#403d46'],
+  navy: ['#4d5d86', '#3a4768'],
+  charcoal: ['#5f5a66', '#48444f'],
 }
 
 /** Everything the wall needs from one wall choice. */
@@ -145,15 +145,33 @@ export function woodOf(id) {
 }
 
 // lamp light: pool inner and outer, bulb glow inner and outer, the lit rim of the shade.
-// gain tones down pale light, which would otherwise wash the room out.
+// gain tones down pale light, which would otherwise wash the room out. haze is how strong
+// the soft glow in the air is (pale light looks foggy with much of it), dodge is the colour
+// that lights up surfaces (dodgeK scales it for strong colours), and lift is the colour a dark wall takes on.
 export const LAMPS = {
-  warm: { pool: ['#ffb35c', '#ff9a52'], bulb: ['#fff1c9', '#ffc977'], rim: '#f6dcaa', core: '#fff4d6' },
-  soft: { gain: 0.8, pool: ['#ffe0b8', '#ffd2a0'], bulb: ['#fffaf0', '#ffe6c4'], rim: '#f8eedb', core: '#fffaf0' },
-  cool: { gain: 0.85, pool: ['#a9d4ff', '#86bcff'], bulb: ['#f2f8ff', '#b8dcff'], rim: '#e3f0ff', core: '#f4f9ff' },
-  pink: { pool: ['#ff8fc4', '#ff6fa8'], bulb: ['#ffe6f1', '#ff9fc8'], rim: '#ffd0e4', core: '#fff0f6' },
-  violet: { pool: ['#b48cff', '#9466ff'], bulb: ['#efe6ff', '#c3a6ff'], rim: '#dccbff', core: '#f5efff' },
-  green: { pool: ['#8dffb4', '#5ee39a'], bulb: ['#eafff1', '#a6f5c4'], rim: '#c9f7da', core: '#f0fff5' },
-  rgb: { pool: ['#ff8fb0', '#ff8fb0'], bulb: ['#fff1f6', '#ffb0c8'], rim: '#ffe0ea', core: '#fff6f9', cycle: true },
+  warm: { dodge: '#c99a70', pool: ['#ffb35c', '#ff9a52'], bulb: ['#fff1c9', '#ffc977'], rim: '#f6dcaa', core: '#fff4d6' },
+  soft: {
+    haze: 0.2,
+    pool: ['#ffe0b8', '#ffd2a0'],
+    dodge: '#c2aa90',
+    lift: '#c89a6a',
+    bulb: ['#fffaf0', '#ffe6c4'],
+    rim: '#f8eedb',
+    core: '#fffaf0',
+  },
+  cool: {
+    haze: 0.18,
+    pool: ['#a9d4ff', '#86bcff'],
+    dodge: '#9aaac4',
+    lift: '#7d9cc8',
+    bulb: ['#f2f8ff', '#b8dcff'],
+    rim: '#e3f0ff',
+    core: '#f4f9ff',
+  },
+  pink: { dodge: '#b98aa3', dodgeK: 0.8, pool: ['#ff8fc4', '#ff6fa8'], bulb: ['#ffe6f1', '#ff9fc8'], rim: '#ffd0e4', core: '#fff0f6' },
+  violet: { dodge: '#9d8cbd', dodgeK: 0.7, pool: ['#b48cff', '#9466ff'], bulb: ['#efe6ff', '#c3a6ff'], rim: '#dccbff', core: '#f5efff' },
+  green: { dodge: '#8cb89b', dodgeK: 0.7, pool: ['#8dffb4', '#5ee39a'], bulb: ['#eafff1', '#a6f5c4'], rim: '#c9f7da', core: '#f0fff5' },
+  rgb: { dodgeK: 0.5, pool: ['#ff8fb0', '#ff8fb0'], bulb: ['#fff1f6', '#ffb0c8'], rim: '#ffe0ea', core: '#fff6f9', cycle: true },
 }
 
 export const FAIRY = {
