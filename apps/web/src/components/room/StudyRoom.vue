@@ -413,8 +413,8 @@ const avatar = computed(() => room.avatar)
     <!-- 4. light: lamp pool, light from the window, glowing things -->
     <svg class="sr-layer sr-glow" :viewBox="vb" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       <defs>
-        <radialGradient id="sr-pool" cx="1000" cy="470" r="440" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#ffb35c" stop-opacity=".75" />
+        <radialGradient id="sr-pool" cx="900" cy="500" r="500" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#ffb35c" stop-opacity=".5" />
           <stop offset=".5" stop-color="#ff9a52" stop-opacity=".22" />
           <stop offset="1" stop-color="#ff9a52" stop-opacity="0" />
         </radialGradient>

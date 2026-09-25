@@ -33,7 +33,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
 
 <template>
   <aside
-    class="flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#120f24]/60 text-white backdrop-blur-xl transition-all"
+    class="flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#15121f]/85 text-white backdrop-blur-xl transition-all"
     aria-label="Room drawer"
   >
     <div class="flex items-center gap-1 p-1.5">

@@ -184,8 +184,8 @@ onBeforeUnmount(() => {
 })
 
 const panels = computed(() => !hidden.value && !decorating.value)
-const glass = 'rounded-3xl border border-white/10 bg-[#120f24]/70 backdrop-blur-xl'
-const pill = 'rounded-full bg-[#120f24]/55 backdrop-blur hover:bg-[#120f24]/75'
+const glass = 'rounded-3xl border border-white/10 bg-[#15121f]/85 backdrop-blur-xl'
+const pill = 'rounded-full bg-[#15121f]/75 backdrop-blur hover:bg-[#120f24]/75'
 const chipOn = 'rounded-full bg-white text-[#120f24]'
 </script>
 

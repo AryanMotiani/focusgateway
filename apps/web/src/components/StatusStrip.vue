@@ -33,7 +33,7 @@ function toggleMusic() {
 }
 const shell = computed(() =>
   props.glass
-    ? 'border border-white/10 bg-[#0f0e18]/55 text-white backdrop-blur-xl'
+    ? 'border border-white/10 bg-[#15121f]/80 text-white backdrop-blur-xl'
     : isGame.value
       ? 'bg-hud text-hud-ink border-2 border-hud-line border-b-4 border-b-black/40'
       : 'card text-ink',
