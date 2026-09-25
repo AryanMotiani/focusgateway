@@ -31,6 +31,10 @@ export const test = base.extend({
         `--disable-extensions-except=${EXT}`,
         `--load-extension=${EXT}`,
         `--host-resolver-rules=${FAKE_SITES.map((h) => `MAP ${h} 127.0.0.1`).join(', ')}`,
+        // Newer Chromium auto-upgrades HSTS-preloaded domains (instagram.com,
+        // youtube.com, …) from http to https. Our local fake server speaks
+        // plain HTTP, so the upgrade causes ERR_SSL_PROTOCOL_ERROR.
+        '--disable-features=HttpsUpgrades',
       ],
     })
     await use(context)
