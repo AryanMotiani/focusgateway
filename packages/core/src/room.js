@@ -3,17 +3,24 @@
 // x, y is the middle of its bottom edge (where it touches its surface).
 import { UNLOCKS } from './unlocks.js'
 import { MILESTONES } from './milestones.js'
+import { optionsFor, optionOf, OPTION_FIELDS } from './options.js'
 
 export const ROOM_SIZE = { w: 1600, h: 900 }
 export const ROOM_MAX_ITEMS = 60
 
+const values = (field) => optionsFor(field).map((o) => o.value)
+
+// Every valid value of each avatar field (the levels are in options.js)
 export const AVATAR_OPTIONS = {
-  build: ['neutral', 'masc', 'fem'],
-  skin: ['s1', 's2', 's3', 's4', 's5', 's6'],
-  hair: ['short', 'long', 'ponytail', 'bun', 'curly', 'buzz', 'bob', 'hijab'],
-  hairColor: ['black', 'espresso', 'brown', 'auburn', 'blonde', 'grey', 'pink', 'blue'],
-  top: ['hoodie', 'sweater', 'tshirt'],
-  topColor: ['green', 'navy', 'maroon', 'mustard', 'lavender', 'charcoal', 'cream', 'teal', 'coral'],
+  build: values('build'),
+  skin: values('skin'),
+  hair: values('hair'),
+  hairColor: values('hairColor'),
+  top: values('top'),
+  topColor: values('topColor'),
+  headphonesColor: values('headphonesColor'),
+  glassesStyle: values('glassesStyle'),
+  earrings: values('earrings'),
 }
 
 export const DEFAULT_AVATAR = {
@@ -24,8 +31,34 @@ export const DEFAULT_AVATAR = {
   top: 'hoodie',
   topColor: 'green',
   headphones: false,
+  headphonesColor: 'charcoal',
   glasses: false,
+  glassesStyle: 'classic',
+  earrings: 'none',
 }
+
+// How the room itself looks: walls, floor, curtains, wood and the light.
+export const STYLE_OPTIONS = {
+  wall: values('wall'),
+  pattern: values('pattern'),
+  floor: values('floor'),
+  curtain: values('curtain'),
+  wood: values('wood'),
+  light: values('light'),
+  fairy: values('fairy'),
+}
+
+export const DEFAULT_STYLE = {
+  wall: 'cream',
+  pattern: 'dots',
+  floor: 'oak',
+  curtain: 'teal',
+  wood: 'honey',
+  light: 'warm',
+  brightness: 1, // lamp brightness, 0.3 to 1
+  fairy: 'multi',
+}
+export const BRIGHTNESS_RANGE = [0.3, 1]
 
 // A few level 1 things, placed nicely, for a brand new room. New unlocks go to the tray.
 export const DEFAULT_ROOM_ITEMS = [
@@ -38,11 +71,13 @@ export const DEFAULT_ROOM_ITEMS = [
 ]
 
 export function defaultRoom() {
-  return { avatar: { ...DEFAULT_AVATAR }, items: DEFAULT_ROOM_ITEMS.map((i) => ({ ...i })) }
+  return { avatar: { ...DEFAULT_AVATAR }, style: { ...DEFAULT_STYLE }, items: DEFAULT_ROOM_ITEMS.map((i) => ({ ...i })) }
 }
 
-const OBJECT_IDS = new Set(UNLOCKS.filter((u) => u.kind === 'object').map((u) => u.id))
+const OBJECTS = Object.fromEntries(UNLOCKS.filter((u) => u.kind === 'object').map((u) => [u.id, u]))
+const OBJECT_IDS = new Set(Object.keys(OBJECTS))
 const MILESTONE_IDS = new Set(MILESTONES.map((m) => m.id))
+const MILESTONE_NAME = Object.fromEntries(MILESTONES.map((m) => [m.id, m.name]))
 
 /** Catalog ids and `badge:<milestone id>` are the only things that can be placed. */
 export function isRoomItemId(id) {
@@ -63,6 +98,20 @@ export function sanitizeAvatar(input, base = DEFAULT_AVATAR) {
   for (const k of ['headphones', 'glasses']) if (k in src) out[k] = !!src[k]
   out.headphones = !!out.headphones
   out.glasses = !!out.glasses
+  for (const k of Object.keys(out)) if (!(k in DEFAULT_AVATAR)) delete out[k]
+  return out
+}
+
+export function sanitizeStyle(input, base = DEFAULT_STYLE) {
+  const src = input && typeof input === 'object' ? input : {}
+  const out = { ...DEFAULT_STYLE, ...base }
+  for (const [k, allowed] of Object.entries(STYLE_OPTIONS)) {
+    if (allowed.includes(src[k])) out[k] = src[k]
+    else if (!allowed.includes(out[k])) out[k] = DEFAULT_STYLE[k]
+  }
+  const b = Number('brightness' in src ? src.brightness : out.brightness)
+  out.brightness = Number.isFinite(b) ? Math.round(clamp(b, ...BRIGHTNESS_RANGE) * 100) / 100 : DEFAULT_STYLE.brightness
+  for (const k of Object.keys(out)) if (!(k in DEFAULT_STYLE)) delete out[k]
   return out
 }
 
@@ -83,15 +132,47 @@ export function sanitizeItems(input) {
 }
 
 /**
- * Validates a (partial) room patch against the current room. Unknown avatar values fall
- * back, items are checked, deduplicated, clamped to the room and capped. Levels are not
- * rechecked here: the UI only offers what is unlocked, and a locked item is simply not drawn.
+ * Validates a (partial) room patch against the current room. Unknown avatar and style values
+ * fall back, items are checked, deduplicated, clamped to the room and capped. Levels are
+ * checked separately by `roomLockError` (the backend runs it on every change).
  */
 export function sanitizeRoom(patch, current = defaultRoom()) {
   const cur = current && typeof current === 'object' ? current : defaultRoom()
   const p = patch && typeof patch === 'object' ? patch : {}
   return {
     avatar: sanitizeAvatar(p.avatar, sanitizeAvatar(cur.avatar)),
+    style: sanitizeStyle(p.style, sanitizeStyle(cur.style)),
     items: 'items' in p ? sanitizeItems(p.items) : sanitizeItems(cur.items),
   }
+}
+
+/**
+ * The first locked thing a room change tries to use, as an error message, or null.
+ * Only changes are checked: an avatar or style value that differs from the saved one, or an
+ * item that was not placed before. So what is already saved stays, even if the level drops.
+ * `achieved` is the set of milestone ids earned so far (badges can be placed once earned).
+ */
+export function roomLockError(next, prev, level, achieved = new Set()) {
+  for (const [group, fields] of [
+    ['avatar', AVATAR_OPTIONS],
+    ['style', STYLE_OPTIONS],
+  ]) {
+    for (const field of Object.keys(fields)) {
+      const v = next[group]?.[field]
+      if (v === prev?.[group]?.[field]) continue
+      const o = optionOf(field, v)
+      if (o && o.level > level) return `${OPTION_FIELDS[field]} ${o.name} unlocks at level ${o.level}.`
+    }
+  }
+  const had = new Set((prev?.items || []).map((i) => i.id))
+  for (const it of next.items || []) {
+    if (had.has(it.id)) continue
+    if (it.id.startsWith('badge:')) {
+      if (!achieved.has(it.id.slice(6))) return `Earn the ${MILESTONE_NAME[it.id.slice(6)]} badge to place it.`
+      continue
+    }
+    const u = OBJECTS[it.id]
+    if (u && u.level > level) return `${u.name} unlocks at level ${u.level}.`
+  }
+  return null
 }

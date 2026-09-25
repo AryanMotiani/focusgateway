@@ -1,9 +1,16 @@
 <script setup>
 // Level-up card and the small "new badge" toast. Driven by rewards.celebration.
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
+import { unlockKind } from '@focusgateway/core'
 import { celebration } from '../lib/rewards.js'
 import Icon from './Icon.vue'
-const KIND = { scene: 'New room scene', object: 'New room object', music: 'New music style' }
+// room things first, then avatar and room style options. A big jump shows the first few
+const SHOW = 6
+const unlocks = computed(() => {
+  const all = celebration.levelUp?.unlocks || []
+  const sorted = [...all.filter((u) => u.kind !== 'option'), ...all.filter((u) => u.kind === 'option')]
+  return { list: sorted.slice(0, SHOW), more: Math.max(0, sorted.length - SHOW) }
+})
 let t = null
 watch(
   () => celebration.badge,
@@ -38,11 +45,13 @@ watch(
           <template v-if="celebration.levelUp.unlocks.length">
             <p class="label">Unlocked</p>
             <ul class="space-y-2 text-left">
-              <li v-for="u in celebration.levelUp.unlocks" :key="u.id" class="flex items-center gap-3 rounded-xl bg-sunk px-3 py-2">
-                <Icon name="sparkles" class="text-xp" />
-                <span class="flex-1 text-sm font-bold">{{ u.name }}</span>
-                <span class="text-xs text-muted">{{ KIND[u.kind] }}</span>
+              <li v-for="u in unlocks.list" :key="u.id" class="flex items-center gap-3 rounded-xl bg-sunk px-3 py-2">
+                <Icon name="sparkles" class="shrink-0 text-xp" />
+                <span class="min-w-0 flex-1 text-sm"
+                  ><span class="text-muted">{{ unlockKind(u) }}:</span> <b>{{ u.name }}</b></span
+                >
               </li>
+              <li v-if="unlocks.more" class="px-3 text-xs text-muted">and {{ unlocks.more }} more in the room</li>
             </ul>
             <RouterLink to="/" class="btn btn-primary mt-4 w-full" @click="celebration.levelUp = null">Try it in the room</RouterLink>
           </template>

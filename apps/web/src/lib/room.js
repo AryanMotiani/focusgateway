@@ -44,7 +44,8 @@ export function itemMeta(id) {
   const o = OBJ[id]
   const a = ART[id]
   if (!o || !a) return null
-  return { id, name: o.name, level: o.level, surface: o.surface, w: o.w, h: o.h, svg: a.svg, glow: a.glow, flat: a.flat }
+  const glow = a.glowWith ? a.glowWith(room.style) : a.glow
+  return { id, name: o.name, level: o.level, surface: o.surface, w: o.w, h: o.h, svg: a.svg, glow, flat: a.flat }
 }
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))

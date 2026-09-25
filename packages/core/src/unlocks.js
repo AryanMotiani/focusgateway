@@ -1,3 +1,5 @@
+import { OPTION_UNLOCKS, OPTION_FIELDS } from './options.js'
+
 // Everything a level can unlock. To add more over time, append entries here: the UI,
 // level-up screen and room pick them up automatically. Keep levels spread out so the
 // catalog lasts (level 10 takes about a month of steady use, level 40 about a year).
@@ -61,11 +63,25 @@ export const UNLOCKS = [
   { id: 'music-ambient', kind: 'music', level: 24, name: 'Deep ambient' },
 ]
 
-export const unlockedAt = (level) => UNLOCKS.filter((u) => u.level <= level)
+// Avatar and room style options unlock by level too (see options.js). They join the list
+// here as { id: 'opt:<field>:<value>', kind: 'option', field, value, level, name }.
+export const OPTION_ENTRIES = OPTION_UNLOCKS.filter((o) => o.level > 1).map((o) => ({
+  id: `opt:${o.field}:${o.value}`,
+  kind: 'option',
+  ...o,
+}))
+/** Everything with a level: scenes, decor, music and style options. */
+export const ALL_UNLOCKS = [...UNLOCKS, ...OPTION_ENTRIES]
+
+const KIND = { scene: 'Room scene', object: 'Room object', music: 'Music style' }
+/** What kind of reward this is, for labels like "Hairstyle" or "Room object". */
+export const unlockKind = (u) => (u.kind === 'option' ? OPTION_FIELDS[u.field] : KIND[u.kind]) || ''
+
+export const unlockedAt = (level) => ALL_UNLOCKS.filter((u) => u.level <= level)
 export const isUnlocked = (id, level) => UNLOCKS.some((u) => u.id === id && u.level <= level)
 export const nextUnlocks = (level, n = 3) =>
-  UNLOCKS.filter((u) => u.level > level)
+  ALL_UNLOCKS.filter((u) => u.level > level)
     .sort((a, b) => a.level - b.level)
     .slice(0, n)
-/** Items that became available when going from `from` to `to`. */
-export const newlyUnlocked = (from, to) => UNLOCKS.filter((u) => u.level > from && u.level <= to)
+/** Things that became available when going from `from` to `to`. */
+export const newlyUnlocked = (from, to) => ALL_UNLOCKS.filter((u) => u.level > from && u.level <= to)

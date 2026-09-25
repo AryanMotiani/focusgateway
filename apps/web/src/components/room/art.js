@@ -3,9 +3,11 @@
 // (w, h) of the catalog entry: the bottom middle (w / 2, h) touches the surface.
 //   svg:  the item, lit by the room lighting
 //   glow: optional light it gives off (bulbs, flames, screens), drawn unlit on top
+//   glowWith: the same, but coloured by the room style (lamp light, fairy light colour)
 //   flat: lies on the floor (rugs), drawn under everything else and without a shadow
 // Animated parts use the sr-* classes defined in StudyRoom.vue.
 import { C } from './palette.js'
+import { FAIRY, LAMPS } from './roomStyle.js'
 
 const range = (n) => Array.from({ length: n }, (_, i) => i)
 const wallShadow = (x, y, w, h, r = 4) =>
@@ -68,8 +70,22 @@ function lightsString(w, sag, bulbs) {
   })
   return pts
 }
-const LIGHT_COLORS = ['#ffd27a', '#ff9fb3', '#9fd6ff', '#b8ffb0', '#ffcf8a']
 const lightPts = lightsString(380, 34, 14)
+/** The glowing bulbs of the fairy lights in one of the FAIRY colour sets. */
+export function fairyGlow(id) {
+  const colors = FAIRY[id] || FAIRY.multi
+  const cycle = id === 'rainbow'
+  return lightPts
+    .map(([x, y], i) => {
+      const c = colors[i % colors.length]
+      const rgb = cycle ? ` class="sr-rgb-fill" style="animation-delay:${-i * 2.1}s"` : ''
+      return (
+        `<g class="sr-twinkle" style="animation-delay:${(i % 5) * 0.7}s"><circle cx="${x}" cy="${y + 5}" r="11" fill="${c}" opacity=".22"${rgb}/>` +
+        `<ellipse cx="${x}" cy="${y + 4}" rx="4" ry="5.5" fill="${c}"${rgb}/></g>`
+      )
+    })
+    .join('')
+}
 
 export const ART = {
   'obj-clock': {
@@ -165,9 +181,14 @@ export const ART = {
       `<path d="M54 120 L40 70 L62 30" stroke="${C.tealD}" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` +
       `<circle cx="40" cy="70" r="5" fill="${C.teal}"/><circle cx="62" cy="30" r="5" fill="${C.teal}"/>` +
       `<path d="M62 22 L34 8 L10 44 L40 58 Z" fill="${C.teal}"/><path d="M62 22 L40 58 L34 55 L56 20Z" fill="${C.tealD}" opacity=".5"/>`,
-    glow:
-      `<path d="M10 44 L40 58 L58 132 L-14 132 Z" fill="#ffd89a" opacity=".1"/><path d="M16 48 L36 56 L44 132 L2 132 Z" fill="#ffe3b0" opacity=".12"/>` +
-      `<ellipse cx="25" cy="52" rx="15" ry="6" transform="rotate(25 25 52)" fill="#fff1c4"/>`,
+    glowWith: (style) => {
+      const l = LAMPS[style?.light] || LAMPS.warm
+      const cls = l.cycle ? ' class="sr-rgb-fill"' : ''
+      return (
+        `<path d="M10 44 L40 58 L58 132 L-14 132 Z" fill="${l.pool[0]}" opacity=".1"${cls}/><path d="M16 48 L36 56 L44 132 L2 132 Z" fill="${l.bulb[1]}" opacity=".12"${cls}/>` +
+        `<ellipse cx="25" cy="52" rx="15" ry="6" transform="rotate(25 25 52)" fill="${l.bulb[0]}"/>`
+      )
+    },
   },
   'obj-poster-moon': {
     svg:
@@ -270,12 +291,7 @@ export const ART = {
       `<circle cx="8" cy="8" r="3" fill="${C.metalD}"/><circle cx="372" cy="8" r="3" fill="${C.metalD}"/>` +
       `<path d="M8 8 ${lightPts.map(([x, y]) => `L${x.toFixed(0)} ${(y - 4).toFixed(0)}`).join(' ')} L372 8" fill="none" stroke="#3a3040" stroke-width="1.6" stroke-linejoin="round"/>` +
       lightPts.map(([x, y]) => `<rect x="${x - 2}" y="${y - 5}" width="4" height="5" fill="#3a3040"/>`).join(''),
-    glow: lightPts
-      .map(
-        ([x, y], i) =>
-          `<g class="sr-twinkle" style="animation-delay:${(i % 5) * 0.7}s"><circle cx="${x}" cy="${y + 5}" r="11" fill="${LIGHT_COLORS[i % 5]}" opacity=".22"/><ellipse cx="${x}" cy="${y + 4}" rx="4" ry="5.5" fill="${LIGHT_COLORS[i % 5]}"/></g>`,
-      )
-      .join(''),
+    glowWith: (style) => fairyGlow(style?.fairy),
   },
   'obj-rug-stripe': {
     flat: true,

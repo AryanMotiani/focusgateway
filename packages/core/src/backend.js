@@ -8,7 +8,9 @@ import { rulesOverlap, validateSchedule, nextWindowStart, windowAt } from './sch
 import { findSite, parseDomainList, normalizeDomain } from './sites.js'
 import { hashSecret, verifySecret, generateRecoveryCode, normalizeRecoveryCode, randomId } from './crypto.js'
 import { checkConfirmation } from './confirm.js'
-import { sanitizeRoom } from './room.js'
+import { sanitizeRoom, roomLockError } from './room.js'
+import { progressOf } from './progress.js'
+import { computeMilestones } from './milestones.js'
 import {
   PRIORITIES,
   PRIORITY_RANK,
@@ -770,7 +772,22 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         s.settings.appearance = r.value
       }
       if (patch.lofi) s.settings.lofi = { ...s.settings.lofi, ...patch.lofi, mix: { ...s.settings.lofi.mix, ...(patch.lofi.mix || {}) } }
-      if (patch.room) s.settings.room = sanitizeRoom(patch.room, s.settings.room)
+      if (patch.room) {
+        const next = sanitizeRoom(patch.room, s.settings.room)
+        // only what changes is checked against the level, so saved choices always stay
+        let earned = null // badges, worked out only when a new badge is placed
+        const achieved = {
+          has: (id) =>
+            (earned ??= new Set(
+              computeMilestones(s, now())
+                .filter((m) => m.achieved)
+                .map((m) => m.id),
+            )).has(id),
+        }
+        const err = roomLockError(next, s.settings.room, progressOf(s).level, achieved)
+        if (err) fail('VALIDATION', err)
+        s.settings.room = next
+      }
       return s.settings
     },
     'agent.configure': async (s, { url, pairCode, pin }) => {

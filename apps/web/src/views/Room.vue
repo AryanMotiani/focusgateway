@@ -196,7 +196,7 @@ const chipOn = 'rounded-full bg-white text-[#120f24]'
       v-if="!narrow"
       ref="roomEl"
       class="absolute inset-x-0 top-0 transition-[bottom] duration-300"
-      :class="decorating ? 'bottom-[272px]' : 'bottom-0'"
+      :class="decorating ? (decorTab === 'avatar' || decorTab === 'room' ? 'bottom-[326px]' : 'bottom-[272px]') : 'bottom-0'"
       :scene="ui.scene"
       :rain="ui.mix.rain"
       :fit="decorating ? 'contain' : 'cover'"
@@ -337,6 +337,12 @@ const chipOn = 'rounded-full bg-white text-[#120f24]'
         >
           <Icon name="sparkles" :size="13" /> Change your avatar
         </button>
+        <button
+          class="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold hover:bg-white/20"
+          @click="decorate('room')"
+        >
+          <Icon name="home" :size="13" /> Walls, floor and light
+        </button>
       </div>
       <p v-else class="text-xs text-white/55">Set up FocusGateway to decorate the room and change your avatar.</p>
     </section>
@@ -433,7 +439,9 @@ const chipOn = 'rounded-full bg-white text-[#120f24]'
       v-model:tab="decorTab"
       :start-drag="startDrag"
       class="z-20"
-      :class="narrow ? 'relative m-3' : 'absolute inset-x-5 bottom-4 h-[252px]'"
+      :class="
+        narrow ? 'relative m-3' : ['absolute inset-x-5 bottom-4', decorTab === 'avatar' || decorTab === 'room' ? 'h-[306px]' : 'h-[252px]']
+      "
       @close="decorating = false"
     />
 

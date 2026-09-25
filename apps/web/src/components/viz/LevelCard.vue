@@ -1,12 +1,11 @@
 <script setup>
 // Level, title, XP bar, where the XP came from, and the next rewards on the road.
 import { computed } from 'vue'
-import { nextUnlocks } from '@focusgateway/core'
+import { nextUnlocks, unlockKind } from '@focusgateway/core'
 import { progress, isGame } from '../../lib/rewards.js'
 import Icon from '../Icon.vue'
 const p = computed(() => progress.value)
-const next = computed(() => nextUnlocks(p.value.level, 3))
-const KIND = { scene: 'Room scene', object: 'Room object', music: 'Music style' }
+const next = computed(() => nextUnlocks(p.value.level, 4))
 const SRC = [
   ['tasks', 'Tasks', 'var(--fg-accent)'],
   ['habits', 'Habits', 'var(--fg-good)'],
@@ -50,8 +49,8 @@ const SRC = [
         <ul class="space-y-1.5 text-sm">
           <li v-for="u in next" :key="u.id" class="flex items-center gap-2">
             <Icon name="lock" :size="14" class="opacity-60" />
-            <span class="flex-1"
-              >{{ u.name }} <span class="text-xs opacity-60">· {{ KIND[u.kind] }}</span></span
+            <span class="min-w-0 flex-1 truncate"
+              ><span class="text-xs opacity-60">{{ unlockKind(u) }}:</span> {{ u.name }}</span
             >
             <span class="num text-xs opacity-70">LV {{ u.level }}</span>
           </li>

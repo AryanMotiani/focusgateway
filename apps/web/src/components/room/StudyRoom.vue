@@ -13,6 +13,8 @@ import RoomAvatar from './RoomAvatar.vue'
 import { lightOf, sceneOf } from '../../lib/scenes.js'
 import { lofi } from '../../lib/lofi.js'
 import { C } from './palette.js'
+import { DEFAULT_STYLE } from '@focusgateway/core'
+import { wallOf, woodOf, PATTERNS, FLOORS, CURTAINS, LAMPS } from './roomStyle.js'
 import { GLASS, room, placedItems, drag, removeItem, snap, itemMeta, placeItem } from '../../lib/room.js'
 
 const props = defineProps({
@@ -43,6 +45,21 @@ const vb = computed(() => {
 })
 
 const light = computed(() => lightOf(props.scene))
+// the player's room style: walls, floor, curtains, wood and the lamp
+const style = computed(() => ({ ...DEFAULT_STYLE, ...room.style }))
+const wall = computed(() => wallOf(style.value.wall))
+const wood = computed(() => woodOf(style.value.wood))
+const paper = computed(() => PATTERNS[style.value.pattern]?.(wall.value.ink, wood.value) || null)
+const floor = computed(() => FLOORS[style.value.floor] || FLOORS.oak)
+const curtain = computed(() => CURTAINS[style.value.curtain] || CURTAINS.teal)
+const lamp = computed(() => LAMPS[style.value.light] || LAMPS.warm)
+const lampOn = computed(() => light.value.lamp * style.value.brightness * (lamp.value.gain || 1))
+// a dimmer lamp makes the whole room a little darker, only when the lamp is what lights it
+const roomFilter = computed(() => {
+  const k = 1 - (1 - style.value.brightness) * 0.25 * light.value.lamp
+  const base = light.value.filter === 'none' ? '' : light.value.filter
+  return k < 0.999 ? `${base} brightness(${k.toFixed(3)})`.trim() : light.value.filter
+})
 const weather = computed(() => sceneOf(props.scene).weather)
 
 // ---- weather in the window (CSS animated, clipped to the glass)
@@ -237,48 +254,62 @@ const avatar = computed(() => room.avatar)
     </svg>
 
     <!-- 2. the room -->
-    <svg class="sr-layer sr-lit" :viewBox="vb" preserveAspectRatio="xMidYMid meet" :style="{ filter: light.filter }" aria-hidden="true">
+    <svg class="sr-layer sr-lit" :viewBox="vb" preserveAspectRatio="xMidYMid meet" :style="{ filter: roomFilter }" aria-hidden="true">
       <defs>
-        <pattern id="sr-paper" width="46" height="46" patternUnits="userSpaceOnUse">
-          <circle cx="11" cy="11" r="2.2" fill="#b98f72" opacity=".22" />
-          <circle cx="34" cy="34" r="2.2" fill="#b98f72" opacity=".22" />
+        <pattern v-if="paper" id="sr-paper" :width="paper.w" :height="paper.h" patternUnits="userSpaceOnUse" v-html="paper.svg" />
+        <pattern id="sr-tiles" width="92" height="92" y="762" patternUnits="userSpaceOnUse">
+          <rect width="46" height="46" :fill="floor.alt || floor.top" />
+          <rect x="46" y="46" width="46" height="46" :fill="floor.alt || floor.top" />
+          <path d="M0 1 H92 M0 47 H92 M1 0 V92 M47 0 V92" :stroke="floor.line" stroke-width="2" opacity=".7" />
+        </pattern>
+        <pattern id="sr-speck" width="26" height="26" patternUnits="userSpaceOnUse">
+          <circle cx="5" cy="7" r="1.2" fill="#000" opacity=".12" />
+          <circle cx="18" cy="16" r="1" fill="#fff" opacity=".1" />
+          <circle cx="12" cy="23" r="1.1" fill="#000" opacity=".08" />
         </pattern>
         <linearGradient id="sr-wallshade" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#000" stop-opacity=".1" />
           <stop offset=".25" stop-color="#000" stop-opacity="0" />
         </linearGradient>
         <linearGradient id="sr-floor" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#7c533b" />
-          <stop offset="1" stop-color="#946449" />
+          <stop offset="0" :stop-color="floor.top" />
+          <stop offset="1" :stop-color="floor.bottom" />
         </linearGradient>
         <linearGradient id="sr-curtain" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#4f7d7a" />
-          <stop offset=".45" stop-color="#6a9b97" />
-          <stop offset="1" stop-color="#4f7d7a" />
+          <stop offset="0" :stop-color="curtain[0]" />
+          <stop offset=".45" :stop-color="curtain[1]" />
+          <stop offset="1" :stop-color="curtain[0]" />
         </linearGradient>
       </defs>
 
       <!-- wall with the window cut out -->
-      <path :d="`M0 0 H1600 V760 H0Z M${GLASS.x} ${GLASS.y} v${GLASS.h} h${GLASS.w} v-${GLASS.h}z`" fill-rule="evenodd" fill="#e7d3bd" />
+      <path :d="`M0 0 H1600 V760 H0Z M${GLASS.x} ${GLASS.y} v${GLASS.h} h${GLASS.w} v-${GLASS.h}z`" fill-rule="evenodd" :fill="wall.base" />
       <path
+        v-if="paper"
         :d="`M0 0 H1600 V600 H0Z M${GLASS.x} ${GLASS.y} v${GLASS.h} h${GLASS.w} v-${GLASS.h}z`"
         fill-rule="evenodd"
         fill="url(#sr-paper)"
       />
       <rect width="1600" height="760" fill="url(#sr-wallshade)" pointer-events="none" />
-      <rect y="0" width="1600" height="16" fill="#d8bfa6" />
-      <rect y="16" width="1600" height="4" fill="#c9ad93" />
+      <rect y="0" width="1600" height="16" :fill="wall.trim" />
+      <rect y="16" width="1600" height="4" :fill="wall.trim2" />
       <!-- wainscot -->
-      <rect y="600" width="1600" height="146" fill="#caa386" />
-      <rect y="594" width="1600" height="10" fill="#b58c6f" />
-      <g fill="none" stroke="#b58c6f" stroke-width="3" opacity=".7">
+      <rect y="600" width="1600" height="146" :fill="wall.low" />
+      <rect y="594" width="1600" height="10" :fill="wall.rail" />
+      <g fill="none" :stroke="wall.rail" stroke-width="3" opacity=".7">
         <rect v-for="i in 8" :key="i" :x="(i - 1) * 200 + 24" y="624" width="152" height="100" rx="3" />
       </g>
       <!-- floor -->
       <rect y="746" width="1600" height="14" fill="#efe2d1" />
       <rect y="758" width="1600" height="4" fill="#cdb9a2" />
       <rect y="762" width="1600" height="138" fill="url(#sr-floor)" />
-      <g stroke="#6d4832" stroke-width="2" opacity=".45">
+      <rect v-if="floor.kind === 'tiles'" y="762" width="1600" height="138" fill="url(#sr-tiles)" />
+      <rect v-if="floor.kind === 'carpet' || floor.kind === 'concrete'" y="762" width="1600" height="138" fill="url(#sr-speck)" />
+      <g v-if="floor.kind === 'concrete'" :stroke="floor.line" stroke-width="2" opacity=".5">
+        <line x1="0" y1="826" x2="1600" y2="826" />
+        <line v-for="i in 4" :key="'c' + i" :x1="i * 400 - 220" y1="762" :x2="i * 400 - 250" y2="900" />
+      </g>
+      <g v-if="floor.kind === 'boards'" :stroke="floor.line" stroke-width="2" opacity=".45">
         <line x1="0" y1="790" x2="1600" y2="790" />
         <line x1="0" y1="826" x2="1600" y2="826" />
         <line x1="0" y1="870" x2="1600" y2="870" />
@@ -312,7 +343,7 @@ const avatar = computed(() => room.avatar)
         d="M1062 88 H994 C998 170 1010 250 1004 330 C1000 420 1012 470 1026 520 H1068 C1056 470 1052 420 1052 330 C1050 250 1060 170 1062 88Z"
         fill="url(#sr-curtain)"
       />
-      <g stroke="#3f6663" stroke-width="3" fill="none" opacity=".5">
+      <g :stroke="curtain[2]" stroke-width="3" fill="none" opacity=".5">
         <path d="M560 96 C556 200 566 260 562 330 C560 420 556 470 552 516" />
         <path d="M584 96 C582 200 576 260 578 330 C580 420 572 470 562 516" />
         <path d="M1040 96 C1044 200 1034 260 1038 330 C1040 420 1044 470 1048 516" />
@@ -332,9 +363,9 @@ const avatar = computed(() => room.avatar)
         ]"
         :key="'sh' + i"
       >
-        <path :d="`M${s.x1 + 40} ${s.y + 14} v24 l24 -24z M${s.x2 - 40} ${s.y + 14} v24 l-24 -24z`" fill="#6a452e" />
-        <rect :x="s.x1" :y="s.y + 2" :width="s.x2 - s.x1" height="14" rx="2" fill="#83573a" />
-        <rect :x="s.x1" :y="s.y - 7" :width="s.x2 - s.x1" height="10" rx="2" fill="#a8754f" />
+        <path :d="`M${s.x1 + 40} ${s.y + 14} v24 l24 -24z M${s.x2 - 40} ${s.y + 14} v24 l-24 -24z`" :fill="wood.d" />
+        <rect :x="s.x1" :y="s.y + 2" :width="s.x2 - s.x1" height="14" rx="2" :fill="wood.n" />
+        <rect :x="s.x1" :y="s.y - 7" :width="s.x2 - s.x1" height="10" rx="2" :fill="wood.l" />
         <rect :x="s.x1 + 6" :y="s.y + 16" :width="s.x2 - s.x1 - 12" height="6" fill="#000" opacity=".08" />
       </g>
 
@@ -343,7 +374,7 @@ const avatar = computed(() => room.avatar)
       <rect x="1106" y="190" width="20" height="12" rx="3" fill="#3a2e3c" />
       <path d="M1098 200 H1134 L1166 248 H1066Z" fill="#2f5c58" />
       <path d="M1116 200 H1134 L1166 248 H1130Z" fill="#000" opacity=".15" />
-      <ellipse cx="1116" cy="248" rx="50" ry="7" fill="#f6dcaa" />
+      <ellipse cx="1116" cy="248" rx="50" ry="7" :fill="lamp.rim" :class="lamp.cycle && 'sr-rgb-fill'" />
 
       <!-- items: rugs, then the wall, shelves and sill, then things on the floor behind the desk -->
       <g v-for="it in byLayer.rug" :key="it.id" :transform="tx(it)" v-html="it.meta.svg" />
@@ -366,17 +397,17 @@ const avatar = computed(() => room.avatar)
 
       <!-- desk -->
       <ellipse cx="800" cy="806" rx="310" ry="14" fill="#000" opacity=".16" />
-      <rect x="548" y="590" width="12" height="172" fill="#5d3c28" />
-      <rect x="1040" y="590" width="12" height="172" fill="#5d3c28" />
-      <path d="M540 538 H1060 L1084 590 H516Z" fill="#b98460" />
+      <rect x="548" y="590" width="12" height="172" :fill="wood.dd" />
+      <rect x="1040" y="590" width="12" height="172" :fill="wood.dd" />
+      <path d="M540 538 H1060 L1084 590 H516Z" :fill="wood.top" />
       <path d="M540 538 H1060 L1062 542 H538Z" fill="#000" opacity=".1" />
-      <rect x="516" y="588" width="568" height="28" rx="3" fill="#8a5b3d" />
-      <rect x="516" y="588" width="568" height="5" fill="#c99670" />
-      <rect x="892" y="616" width="176" height="70" rx="3" fill="#7d5237" />
-      <rect x="900" y="624" width="160" height="54" rx="3" fill="#8a5b3d" />
+      <rect x="516" y="588" width="568" height="28" rx="3" :fill="wood.b" />
+      <rect x="516" y="588" width="568" height="5" :fill="wood.hi" />
+      <rect x="892" y="616" width="176" height="70" rx="3" :fill="wood.m" />
+      <rect x="900" y="624" width="160" height="54" rx="3" :fill="wood.b" />
       <rect x="960" y="646" width="40" height="8" rx="4" fill="#e3c089" />
-      <rect x="520" y="614" width="20" height="200" rx="3" fill="#7a5036" />
-      <rect x="1060" y="614" width="20" height="200" rx="3" fill="#6a452e" />
+      <rect x="520" y="614" width="20" height="200" rx="3" :fill="wood.m" />
+      <rect x="1060" y="614" width="20" height="200" rx="3" :fill="wood.d" />
 
       <g v-for="it in byLayer.desk" :key="it.id" :transform="tx(it)">
         <ellipse :cx="it.meta.w / 2" :cy="it.meta.h - 1" :rx="it.meta.w * 0.42" ry="3.5" :fill="C.shadow" opacity=".22" />
@@ -390,7 +421,7 @@ const avatar = computed(() => room.avatar)
       <!-- the student -->
       <ellipse cx="846" cy="866" rx="96" ry="9" fill="#000" opacity=".18" />
       <g ref="avatarG" transform="translate(840 692)">
-        <RoomAvatar :avatar="avatar" uid="sr-av" />
+        <RoomAvatar :avatar="avatar" :wood="style.wood" uid="sr-av" />
       </g>
 
       <g v-for="it in byLayer.floorFront" :key="it.id" :transform="tx(it)">
@@ -414,23 +445,23 @@ const avatar = computed(() => room.avatar)
     <svg class="sr-layer sr-glow" :viewBox="vb" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       <defs>
         <radialGradient id="sr-pool" cx="900" cy="500" r="500" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stop-color="#ffb35c" stop-opacity=".5" />
-          <stop offset=".5" stop-color="#ff9a52" stop-opacity=".22" />
-          <stop offset="1" stop-color="#ff9a52" stop-opacity="0" />
+          <stop offset="0" :stop-color="lamp.pool[0]" stop-opacity=".5" :class="lamp.cycle && 'sr-rgb-stop'" />
+          <stop offset=".5" :stop-color="lamp.pool[1]" stop-opacity=".22" :class="lamp.cycle && 'sr-rgb-stop'" />
+          <stop offset="1" :stop-color="lamp.pool[1]" stop-opacity="0" />
         </radialGradient>
         <radialGradient id="sr-bulb">
-          <stop offset="0" stop-color="#fff1c9" stop-opacity=".9" />
-          <stop offset="1" stop-color="#ffc977" stop-opacity="0" />
+          <stop offset="0" :stop-color="lamp.bulb[0]" stop-opacity=".9" />
+          <stop offset="1" :stop-color="lamp.bulb[1]" stop-opacity="0" :class="lamp.cycle && 'sr-rgb-stop'" />
         </radialGradient>
         <linearGradient id="sr-shaft" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" :stop-color="light.sun || '#9fb4ff'" stop-opacity=".5" />
           <stop offset="1" :stop-color="light.sun || '#9fb4ff'" stop-opacity="0" />
         </linearGradient>
       </defs>
-      <g :opacity="light.lamp">
+      <g :opacity="lampOn">
         <rect x="0" y="0" width="1600" height="900" fill="url(#sr-pool)" />
         <ellipse cx="1116" cy="252" rx="120" ry="60" fill="url(#sr-bulb)" />
-        <ellipse cx="1116" cy="248" rx="46" ry="6" fill="#fff4d6" />
+        <ellipse cx="1116" cy="248" rx="46" ry="6" :fill="lamp.core" />
       </g>
       <path :d="`M${GLASS.x} ${GLASS.y + 20} H${GLASS.x + GLASS.w} L1120 900 H700Z`" fill="url(#sr-shaft)" :opacity="light.sun ? 0.3 : 0" />
       <g v-for="it in glowing" :key="'g' + it.id" :transform="tx(it)" v-html="it.meta.glow" />
@@ -647,7 +678,52 @@ const avatar = computed(() => room.avatar)
     transform: translateY(-18px);
   }
 }
+/* the slow RGB lamp and rainbow fairy lights */
+.sr-rgb-stop {
+  animation: sr-rgb-stop 30s linear infinite;
+}
+.sr-rgb-fill {
+  animation: sr-rgb-fill 30s linear infinite;
+}
+@keyframes sr-rgb-stop {
+  0%,
+  100% {
+    stop-color: #ff7aa8;
+  }
+  20% {
+    stop-color: #ffb35c;
+  }
+  40% {
+    stop-color: #7cf0a4;
+  }
+  60% {
+    stop-color: #6fb0ff;
+  }
+  80% {
+    stop-color: #b48cff;
+  }
+}
+@keyframes sr-rgb-fill {
+  0%,
+  100% {
+    fill: #ff9fc0;
+  }
+  20% {
+    fill: #ffd08a;
+  }
+  40% {
+    fill: #a6ffc2;
+  }
+  60% {
+    fill: #9fd0ff;
+  }
+  80% {
+    fill: #cdb2ff;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
+  .sr-rgb-stop,
+  .sr-rgb-fill,
   .sr-rain,
   .sr-snow,
   .sr-petals,

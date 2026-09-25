@@ -11,6 +11,7 @@ export { createBackend, FGError, toErrorPayload, FAILSAFE_COPY } from './backend
 export { generateRecoveryCode, normalizeRecoveryCode, randomId, randomToken } from './crypto.js'
 export * from './progress.js'
 export * from './unlocks.js'
+export * from './options.js'
 export * from './milestones.js'
 export * from './visuals.js'
 export * from './appearance.js'
