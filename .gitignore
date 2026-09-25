@@ -7,3 +7,5 @@ test-results
 playwright-report
 *.tar.gz
 .env
+agent/dist
+packaging/out

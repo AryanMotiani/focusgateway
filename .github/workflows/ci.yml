@@ -39,6 +39,55 @@ jobs:
       - run: npm ci
       - run: npm test
 
+  agent:
+    name: Lock agent (Go, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: agent/go.mod, cache: false }
+      - name: gofmt
+        if: runner.os == 'Linux'
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; echo "Run gofmt -w agent"; exit 1; }
+      - run: go vet ./...
+      - run: go test ./...
+
+  agent-build:
+    name: Lock agent cross build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version-file: .nvmrc }
+      - uses: actions/setup-go@v5
+        with: { go-version-file: agent/go.mod, cache: false }
+      - name: Vet every target OS
+        working-directory: agent
+        run: |
+          for os in windows darwin linux; do GOOS=$os go vet ./...; done
+      - name: Build windows, darwin and linux for amd64 and arm64
+        run: npm run agent:build | tee build.txt
+      - name: Binary sizes
+        run: |
+          {
+            echo '### Lock agent binaries'
+            echo '```'
+            grep ' MB ' build.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: agent-binaries
+          path: agent/dist/
+          retention-days: 7
+
   build:
     name: Build web app and extension
     runs-on: ubuntu-latest
@@ -72,9 +121,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version-file: .nvmrc, cache: npm }
+      - uses: actions/setup-go@v5
+        with: { go-version-file: agent/go.mod, cache: false }
       - run: npm ci
       - uses: actions/download-artifact@v4
         with: { name: build-output }
+      - name: Build the lock agent for the pairing test
+        run: npm run agent:build -- --target linux/amd64
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4

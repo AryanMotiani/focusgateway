@@ -7,7 +7,14 @@
 
 Block distracting websites until your work is done. Tasks, a minimal habit tracker, a weekly schedule and a lofi study room, all in one free and open-source app.
 
-It works in Chrome, Edge, Brave, Opera, Vivaldi, Arc and Firefox. With the optional lock agent it blocks in every browser and app on the computer (Safari included). There is no server and no account. Your data stays on your computer.
+It works in Chrome, Edge, Brave, Opera, Vivaldi, Arc and Firefox. With the optional lock agent it blocks in every browser and app on the computer (Safari included). There is no server and no account. Your data stays on your computer ([privacy policy](https://aryanmotiani.github.io/focusgateway/privacy.html)).
+
+## Install
+
+Open the **[Install page](https://aryanmotiani.github.io/focusgateway/#/install)**. It detects your browser and computer and shows two buttons:
+
+1. **The browser extension.** One click from [Firefox Add-ons](docs/store/CHECKLIST-FIREFOX.md) and [Edge Add-ons](docs/store/CHECKLIST-EDGE.md) once the listings are live. Chrome, Brave and Opera install it by hand for now (four clicks, the page shows how) until the Chrome Web Store listing exists.
+2. **The lock agent (optional, recommended).** One download: `FocusGateway-Setup.exe` for Windows, `FocusGateway.pkg` for macOS, a `.deb` or `.rpm` for Linux (or `curl -fsSL https://github.com/AryanMotiani/focusgateway/releases/latest/download/install.sh | sh`). Open it, and your browser connects it to the extension by itself. No Node.js or anything else to install. The downloads are not code-signed yet, so [Windows and macOS show a warning once](docs/INSTALL-AGENT.md).
 
 ## What it does
 
@@ -37,9 +44,12 @@ It works in Chrome, Edge, Brave, Opera, Vivaldi, Arc and Firefox. With the optio
 apps/web        Vue 3 + Tailwind web app (landing page, dashboard, everything you see)
 extension       Manifest V3 browser extension. Holds your data, runs the rules,
                 blocks with declarativeNetRequest. Ships a copy of the web app inside.
-agent           Optional lock agent. Zero-dependency Node.js service that enforces
-                the same rules through the hosts file and sets browser policies.
-packages/core   The rules engine shared by all three (pure JavaScript, fully tested)
+agent           Optional lock agent. One small Go program (no runtime to install) that
+                enforces the same rules through the hosts file and sets browser policies.
+packages/core   The rules engine shared by the app and extension (pure JavaScript, fully
+                tested). The agent carries a Go port that is tested against it.
+packaging       Windows, macOS and Linux installers for the agent, plus winget, Homebrew
+                and AUR templates
 ```
 
 The **backend** in `packages/core/src/backend.js` is the single authority for every rule: PIN checks, the Failsafe cooldown, typed confirmations, conflict checks. It runs inside the extension's background worker. The web app only sends it commands.
@@ -69,15 +79,17 @@ The web app runs in three modes and picks one on its own:
 
 ## Run it locally
 
-Needs Node.js 20.19 or newer.
+Needs Node.js 20.19 or newer. The lock agent also needs Go 1.24 or newer.
 
 ```bash
 npm install
 npm run dev          # web app at http://localhost:5173
-npm test             # unit tests for the engine, backend and agent
+npm test             # unit tests for the engine and backend
 npm run build        # web app + extension (extension/dist/chromium and extension/dist/firefox)
-npm run test:e2e     # loads the built extension into Chromium and tests real blocking
-npm run check        # everything CI checks: lint, format, unit tests, build
+npm run agent:test   # go vet and go test for the lock agent
+npm run agent:build  # lock agent for Windows, macOS and Linux (agent/dist)
+npm run test:e2e     # loads the built extension into Chromium and tests real blocking (and pairing with the agent)
+npm run check        # everything CI checks for the JavaScript side: lint, format, unit tests, build
 ```
 
 Load the extension in Chrome: `chrome://extensions`, turn on Developer mode, **Load unpacked**, pick `extension/dist/chromium`. For Firefox use `about:debugging`, **Load Temporary Add-on**, pick `extension/dist/firefox/manifest.json`.
@@ -95,29 +107,28 @@ The web app is a static site. Any of these work with no server and no database:
 
 It uses hash routing and relative paths, so it works on a sub-path (like `username.github.io/focusgateway/`) with no extra config.
 
-**Releases.** Push a tag like `v1.0.0`. The release workflow builds the Chromium and Firefox extension zips plus a source bundle (which contains the lock agent) and attaches them to a GitHub Release.
+**Releases.** Push a tag like `v1.0.0`. The release workflow builds the extension zips, the lock agent for six platforms, the Windows setup, the macOS package, `.deb` and `.rpm` packages and `install.sh`, and attaches them to a GitHub Release with stable file names, so the Install page always links to the newest. With store secrets set, it also publishes to Firefox Add-ons and Edge Add-ons (and the Chrome Web Store later). See [docs/MAINTAINER_SETUP.md](docs/MAINTAINER_SETUP.md).
 
-After you publish, edit `apps/web/src/config.js` with your repo URL and any store links.
+After you publish, edit `apps/web/src/config.js` with your repo URL and the store links.
 
-### Publishing the extension (optional)
+### Publishing the extension
 
-- Chrome Web Store: one-time 5 USD developer fee. Upload `focusgateway-chromium-*.zip`. The same zip works for the Edge Add-ons store (free) and Opera add-ons.
-- Firefox: free. Upload `focusgateway-firefox-*.zip` to addons.mozilla.org, either listed or self-distributed (signed). Firefox only keeps signed extensions installed permanently.
+- **Firefox Add-ons** (free) and **Edge Add-ons** (free): checklists in [docs/store](docs/store), listing text in [docs/store/LISTING.md](docs/store/LISTING.md).
+- **Chrome Web Store:** one-time 5 USD developer fee, planned for later. Everything is prepared in [docs/store/CHECKLIST-CHROME.md](docs/store/CHECKLIST-CHROME.md). Opera add-ons also take the Chromium zip.
 - Once listed, install the agent with `--chrome-extension-id <id>` (and `--firefox-xpi <url>`) and it will force-install the extension so it can't be removed.
 
 ## Lock agent
 
+Install it from the [Install page](https://aryanmotiani.github.io/focusgateway/#/install) (see [docs/INSTALL-AGENT.md](docs/INSTALL-AGENT.md)). It is one static Go binary of about 7 MB. Double-click it (or run `focusgateway-agent` with no arguments) and it asks for admin rights, copies itself to a system folder, registers a service that starts at boot and restarts on crash (Task Scheduler, launchd or systemd), writes the browser policies and opens FocusGateway in your browser with a one-time pairing link. The page connects the extension to the agent by itself. The link carries the code after the `#`, so it never reaches a server, and it expires after 30 minutes or first use. The agent also prints a **pairing code** you can type in the app instead.
+
 ```bash
-# Windows: PowerShell as administrator
-node agent\bin\focusgateway-agent.js install
-
-# macOS / Linux
-sudo node agent/bin/focusgateway-agent.js install
+focusgateway-agent install [--strict]   # admin, --strict also locks the extensions page, flags and developer tools
+focusgateway-agent status               # is it running, is it paired, what is blocked
+focusgateway-agent pair                 # admin, a fresh pairing link and code
+focusgateway-agent recover              # admin, emergency: clear blocks if the agent is broken
+focusgateway-agent policies             # admin, re-apply browser policies after installing a new browser
+focusgateway-agent uninstall [--purge]  # admin, refused while a no-failsafe block is running
 ```
-
-It copies itself to a system folder, registers a service that starts at boot and restarts on crash (Task Scheduler, launchd or systemd), writes the browser policies and prints a **pairing code**. Paste the code in the app under Settings, Lock agent.
-
-Other commands: `status`, `recover`, `policies`, `uninstall [--purge]`. Add `--strict` on install to also lock the extensions page, browser flags and developer tools.
 
 Safety nets: hosts-file writes are atomic and only touch lines between FocusGateway's markers. If the agent crashes 4 times in 2 minutes it clears its blocks for 10 minutes instead of leaving you stuck (fail-open). `recover` clears the blocks when the agent is broken and refuses when it is healthy. A one-time backup of the original hosts file is kept in the data folder. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md).
 
@@ -136,7 +147,7 @@ The original `SPEC.md` and `TECHNICAL-PRD.md` are kept as the product source. Th
 
 Contributions are welcome, from adding a distracting site to the block list to new features. Start with [CONTRIBUTING.md](CONTRIBUTING.md). Please read the [Code of Conduct](CODE_OF_CONDUCT.md), and report security problems or ways around a block privately as described in [SECURITY.md](SECURITY.md).
 
-Every pull request runs lint, unit tests on Windows, macOS and Linux, the build, a Firefox add-on lint and end-to-end tests with the real extension. Merging to `master` deploys the website. Pushing a version tag publishes a release. The locked design decisions are in `.agents/ACTIVE_SPEC.md` (the repo uses the [SkilledAgent](https://www.npmjs.com/package/skilledagent) workspace).
+Every pull request runs lint, unit tests on Windows, macOS and Linux (JavaScript and the Go agent), a cross build of the agent, the build, a Firefox add-on lint and end-to-end tests with the real extension and the real agent. Merging to `master` deploys the website. Pushing a version tag publishes a release. The locked design decisions are in `.agents/ACTIVE_SPEC.md` (the repo uses the [SkilledAgent](https://www.npmjs.com/package/skilledagent) workspace).
 
 ## License
 

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>FocusGateway lock agent</title>
+    <organization>app.focusgateway</organization>
+    <welcome file="welcome.html" mime-type="text/html"/>
+    <license file="LICENSE.txt"/>
+    <conclusion file="conclusion.html" mime-type="text/html"/>
+    <options customize="never" require-scripts="true" rootVolumeOnly="true" hostArchitectures="x86_64,arm64"/>
+    <domains enable_anywhere="false" enable_currentUserHome="false" enable_localSystem="true"/>
+    <os-version min="11.0"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="app.focusgateway.agent"/>
+        </line>
+    </choices-outline>
+    <choice id="default"/>
+    <choice id="app.focusgateway.agent" visible="false">
+        <pkg-ref id="app.focusgateway.agent"/>
+    </choice>
+    <pkg-ref id="app.focusgateway.agent" version="__VERSION__" onConclusion="none">focusgateway-agent.pkg</pkg-ref>
+</installer-gui-script>

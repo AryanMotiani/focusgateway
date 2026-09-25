@@ -1,0 +1,83 @@
+//go:build !windows && !darwin
+
+package service
+
+import (
+	"os"
+	"path/filepath"
+
+	"focusgateway/agent/internal/paths"
+	"focusgateway/agent/internal/platform"
+)
+
+const (
+	systemdUnit = "/etc/systemd/system/focusgateway-agent.service"
+	cliLink     = "/usr/local/bin/focusgateway-agent"
+	desktopFile = "/usr/share/applications/focusgateway-recovery.desktop"
+)
+
+// Install writes a systemd unit (Restart=always), enables and starts it.
+func Install(exe string) error {
+	unit := `[Unit]
+Description=FocusGateway lock agent
+After=network.target
+
+[Service]
+ExecStart="` + exe + `" run
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+`
+	if err := os.WriteFile(systemdUnit, []byte(unit), 0o644); err != nil {
+		return err
+	}
+	if out, err := platform.Output("systemctl", "daemon-reload"); err != nil {
+		return &cmdError{"systemctl daemon-reload", err, out}
+	}
+	if out, err := platform.Output("systemctl", "enable", "--now", "focusgateway-agent.service"); err != nil {
+		return &cmdError{"systemctl enable", err, out}
+	}
+	// restart picks up a new binary when this is a reinstall or upgrade
+	_ = platform.Run("systemctl", "restart", "focusgateway-agent.service")
+	if exe != cliLink {
+		_ = os.MkdirAll(filepath.Dir(cliLink), 0o755)
+		_ = os.Remove(cliLink)
+		_ = os.Symlink(exe, cliLink)
+	}
+	_ = os.MkdirAll(filepath.Dir(desktopFile), 0o755)
+	_ = os.WriteFile(desktopFile, []byte("[Desktop Entry]\nType=Application\nName=FocusGateway Emergency Recovery\nExec=pkexec "+exe+
+		" recover\nTerminal=true\nCategories=Utility;\n"), 0o644)
+	return nil
+}
+
+type cmdError struct {
+	what string
+	err  error
+	out  []byte
+}
+
+func (e *cmdError) Error() string { return e.what + ": " + e.err.Error() + " " + string(e.out) }
+
+// Uninstall stops and removes the unit and the helpers.
+func Uninstall() {
+	_ = platform.Run("systemctl", "disable", "--now", "focusgateway-agent.service")
+	_ = os.Remove(systemdUnit)
+	_ = platform.Run("systemctl", "daemon-reload")
+	if t, err := os.Readlink(cliLink); err == nil && filepath.Base(t) == paths.BinaryName() {
+		_ = os.Remove(cliLink)
+	}
+	_ = os.Remove(desktopFile)
+}
+
+func removeProgram(dir string) { _ = os.RemoveAll(dir) }
+
+// Installed reports whether the systemd unit exists.
+func Installed() bool {
+	_, err := os.Stat(systemdUnit)
+	return err == nil
+}
+
+// RecoveryHint is where people find the emergency recovery tool.
+const RecoveryHint = "sudo focusgateway-agent recover"

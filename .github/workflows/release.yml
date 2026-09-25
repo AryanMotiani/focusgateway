@@ -1,43 +1,115 @@
 name: Release
 
-# Push a tag like v1.2.0 (see CONTRIBUTING.md, "Releasing").
+# Push a tag like v1.2.0 (see docs/MAINTAINER_SETUP.md, "Release flow").
 on:
   push:
     tags: ['v*.*.*']
 
 permissions:
-  contents: write
+  contents: read
+
+env:
+  NFPM_VERSION: 2.41.0
 
 jobs:
-  release:
+  build:
+    name: Build extension, agent and Windows/Linux installers
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version-file: .nvmrc, cache: npm }
+      - uses: actions/setup-go@v5
+        with: { go-version-file: agent/go.mod, cache: false }
       - run: npm ci
       - name: Tag must match package.json version
         run: |
           v=$(node -p "require('./package.json').version")
           [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME does not match package.json version $v"; exit 1; }
+          echo "VERSION=$v" >> "$GITHUB_ENV"
       - run: npm run check
       - run: npm run lint:firefox
-      - name: Source bundle (contains the lock agent)
-        run: git archive --format=zip --prefix=focusgateway/ -o focusgateway-${GITHUB_REF_NAME}.zip HEAD
+      - name: Lock agent tests
+        working-directory: agent
+        run: go vet ./... && go test ./...
+      - name: Lock agent binaries (version and pairing URL embedded)
+        run: npm run agent:build
+      - name: Windows installer (NSIS)
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q nsis
+          sh packaging/windows/build.sh "$VERSION"
+      - name: Linux packages (nfpm)
+        run: |
+          curl -fsSL -o nfpm.tgz "https://github.com/goreleaser/nfpm/releases/download/v${NFPM_VERSION}/nfpm_${NFPM_VERSION}_Linux_x86_64.tar.gz"
+          tar -xzf nfpm.tgz nfpm && rm nfpm.tgz
+          NFPM=./nfpm sh packaging/linux/build.sh "$VERSION"
+      - name: Collect release files (stable names, no version in the file name)
+        run: |
+          mkdir -p release
+          cp packaging/out/* release/
+          cp agent/dist/* release/
+          cp "extension/dist/focusgateway-chromium-$VERSION.zip" release/focusgateway-chromium.zip
+          cp "extension/dist/focusgateway-firefox-$VERSION.zip" release/focusgateway-firefox.zip
+          cp extension/dist/focusgateway-*-"$VERSION".zip release/
+          git archive --format=zip --prefix=focusgateway/ -o "release/focusgateway-source-$GITHUB_REF_NAME.zip" HEAD
+          ls -l release
+      - uses: actions/upload-artifact@v4
+        with: { name: release-files, path: release/, retention-days: 7 }
+      - uses: actions/upload-artifact@v4
+        with: { name: darwin-binaries, path: 'agent/dist/*darwin*', retention-days: 1 }
+
+  macos-pkg:
+    name: macOS installer package
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: darwin-binaries, path: agent/dist }
+      - name: Universal .pkg (unsigned)
+        run: sh packaging/macos/build-pkg.sh "${GITHUB_REF_NAME#v}"
+      - name: Check the package
+        run: |
+          pkgutil --payload-files packaging/out/FocusGateway.pkg | grep focusgateway-agent
+          pkgutil --expand packaging/out/FocusGateway.pkg expanded && ls expanded
+      - uses: actions/upload-artifact@v4
+        with: { name: macos-pkg, path: packaging/out/FocusGateway.pkg, retention-days: 7 }
+
+  publish:
+    name: Publish GitHub Release
+    needs: [build, macos-pkg]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: release-files, path: release }
+      - uses: actions/download-artifact@v4
+        with: { name: macos-pkg, path: release }
+      - name: Checksums
+        working-directory: release
+        run: sha256sum -- * > SHA256SUMS.txt && cat SHA256SUMS.txt
       - uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: |
-            extension/dist/focusgateway-chromium-*.zip
-            extension/dist/focusgateway-firefox-*.zip
-            focusgateway-${{ github.ref_name }}.zip
-      - uses: actions/upload-artifact@v4
-        with: { name: extension-zips, path: extension/dist/*.zip }
+          files: release/*
+          body: |
+            **Install:** open the [Install page](https://aryanmotiani.github.io/focusgateway/#/install). It picks the right files for you.
 
-  # Optional store publishing. Each job only runs when its secrets exist,
-  # so forks and new repos are not affected. See CONTRIBUTING.md, "Store publishing".
+            Lock agent: `FocusGateway-Setup.exe` (Windows), `FocusGateway.pkg` (macOS), `.deb` / `.rpm` or `curl -fsSL https://github.com/${{ github.repository }}/releases/latest/download/install.sh | sh` (Linux).
+            The installers are not code-signed yet: see [installing the lock agent](https://github.com/${{ github.repository }}/blob/master/docs/INSTALL-AGENT.md) for the one extra click.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: extension-zips
+          path: |
+            release/focusgateway-chromium-*.zip
+            release/focusgateway-firefox-*.zip
+            release/focusgateway-source-*.zip
+
+  # Optional store publishing. Each job only runs when its secrets exist, so forks
+  # and new repos are not affected. See docs/MAINTAINER_SETUP.md, "Browser stores".
   chrome-web-store:
-    needs: release
+    needs: publish
     runs-on: ubuntu-latest
     env:
       CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
@@ -56,7 +128,7 @@ jobs:
           REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
 
   firefox-addons:
-    needs: release
+    needs: publish
     runs-on: ubuntu-latest
     env:
       AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
@@ -70,7 +142,65 @@ jobs:
         with: { node-version-file: .nvmrc, cache: npm }
       - if: env.AMO_JWT_ISSUER != ''
         run: npm ci && npm run build
+      - uses: actions/download-artifact@v4
+        if: env.AMO_JWT_ISSUER != ''
+        with: { name: extension-zips, path: store }
+      # The extension bundles minified code, so AMO needs the source (docs/store/AMO_REVIEWER_NOTES.md).
       - if: env.AMO_JWT_ISSUER != ''
-        run: npx web-ext sign --source-dir extension/dist/firefox --channel listed --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET"
+        run: |
+          npx web-ext sign --source-dir extension/dist/firefox --channel listed \
+            --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" \
+            --upload-source-code store/focusgateway-source-"$GITHUB_REF_NAME".zip \
+            --approval-timeout 0
         env:
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+
+  edge-addons:
+    needs: publish
+    runs-on: ubuntu-latest
+    env:
+      EDGE_PRODUCT_ID: ${{ secrets.EDGE_PRODUCT_ID }}
+    steps:
+      - if: env.EDGE_PRODUCT_ID == ''
+        run: echo "Edge Add-ons secrets not set, skipping."
+      - uses: actions/download-artifact@v4
+        if: env.EDGE_PRODUCT_ID != ''
+        with: { name: extension-zips }
+      # Edge Add-ons API v1.1: upload the package to the draft, wait, then submit.
+      # https://learn.microsoft.com/microsoft-edge/extensions-chromium/publish/api/using-addons-api
+      - if: env.EDGE_PRODUCT_ID != ''
+        env:
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+        run: |
+          set -eu
+          api="https://api.addons.microsoftedge.microsoft.com/v1/products/$EDGE_PRODUCT_ID/submissions"
+          auth=(-H "Authorization: ApiKey $EDGE_API_KEY" -H "X-ClientID: $EDGE_CLIENT_ID")
+          zip=$(ls focusgateway-chromium-*.zip)
+
+          wait_for() { # url
+            for _ in $(seq 1 60); do
+              body=$(curl -fsS "${auth[@]}" "$1")
+              status=$(echo "$body" | jq -r .status)
+              echo "  $status"
+              case "$status" in
+                Succeeded) return 0 ;;
+                Failed) echo "$body"; return 1 ;;
+              esac
+              sleep 10
+            done
+            echo "Timed out"; return 1
+          }
+
+          echo "Uploading $zip"
+          op=$(curl -fsS -D - -o /dev/null "${auth[@]}" -H "Content-Type: application/zip" \
+            -X POST --data-binary @"$zip" "$api/draft/package" | tr -d '\r' | awk 'tolower($1)=="location:" {print $2}')
+          op=${op##*/}
+          wait_for "$api/draft/package/operations/$op"
+
+          echo "Submitting for review"
+          op=$(curl -fsS -D - -o /dev/null "${auth[@]}" -H "Content-Type: application/json" \
+            -X POST -d "{\"notes\":\"Release $GITHUB_REF_NAME. Source: https://github.com/$GITHUB_REPOSITORY/releases/tag/$GITHUB_REF_NAME\"}" \
+            "$api" | tr -d '\r' | awk 'tolower($1)=="location:" {print $2}')
+          op=${op##*/}
+          wait_for "$api/operations/$op"
