@@ -16,7 +16,7 @@ jobs:
     name: Build extension, agent and Windows/Linux installers
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with: { node-version-file: .nvmrc, cache: npm }
       - uses: actions/setup-go@v5
@@ -63,7 +63,7 @@ jobs:
     needs: build
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v4
         with: { name: darwin-binaries, path: agent/dist }
       - name: Universal .pkg (unsigned)
@@ -148,7 +148,7 @@ jobs:
     steps:
       - if: env.AMO_JWT_ISSUER == ''
         run: echo "addons.mozilla.org secrets not set, skipping."
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: env.AMO_JWT_ISSUER != ''
       - uses: actions/setup-node@v4
         if: env.AMO_JWT_ISSUER != ''
