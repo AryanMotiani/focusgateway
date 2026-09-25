@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
-import { isDark, lookMode, look } from './lib/look.js'
+import { isDark, lookMode, activeTheme } from './lib/look.js'
 import { store, blocks, useLocalInstead } from './lib/store.js'
 import Icon from './components/Icon.vue'
 import logo from './assets/logo.svg'
@@ -16,17 +16,16 @@ import { lofiState } from './lib/lofi.js'
 const route = useRoute()
 const menu = ref(false)
 
-// theme (system / light / dark), mode and look. App wraps every route, bare ones like
-// onboarding too, so this is the one place <html> gets its attributes.
+// Mode and theme. App wraps every route, bare ones like onboarding too, so this is the
+// one place <html> gets its attributes.
 watchEffect(() => {
-  document.documentElement.classList.toggle('dark', isDark.value)
-  // game (bold, pressable, vivid) or minimal (calm, editorial): picked in onboarding, changeable in Settings
-  const root = document.documentElement.dataset
-  root.mode = lookMode.value
-  // palette, heading font and body font for this mode, pure CSS from here (see style.css)
-  root.palette = look.value.palette
-  root.heading = look.value.heading
-  root.body = look.value.body
+  // game (bold, pressable) or minimal (Calm): picked in onboarding, changeable in Settings
+  const root = document.documentElement
+  root.dataset.mode = lookMode.value
+  // the whole theme (colours, typefaces, surfaces) is pure CSS from here, see style.css
+  root.dataset.themeId = activeTheme.value.id
+  // dark themes also set .dark so dark: variants keep working
+  root.classList.toggle('dark', isDark.value)
 })
 startRewardWatch()
 

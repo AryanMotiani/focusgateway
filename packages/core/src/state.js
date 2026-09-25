@@ -1,4 +1,4 @@
-import { DEFAULT_APPEARANCE, appearanceFor } from './appearance.js'
+import { DEFAULT_APPEARANCE, migrateAppearance } from './appearance.js'
 import { defaultRoom, sanitizeRoom } from './room.js'
 import { DEFAULT_LOFI, sanitizeLofi } from './lofi.js'
 import { defaultStats, backfillStats, sanitizeStats } from './progress.js'
@@ -15,13 +15,12 @@ export function defaultState() {
     security: { pin: null, recovery: null, recoveryUsed: false, failedAttempts: 0, lockedUntil: 0 },
     settings: {
       failsafeWaitSeconds: 60,
-      theme: 'system',
       weekStartsOn: 1,
       notifications: true,
       uiMode: 'game', // 'game' | 'minimal'
       sounds: true,
       weeklyFocusGoalMin: 300,
-      appearance: structuredClone(DEFAULT_APPEARANCE), // palette + heading font + body font, per mode
+      appearance: structuredClone(DEFAULT_APPEARANCE), // theme + optional night theme, per mode
       lofi: structuredClone(DEFAULT_LOFI), // study room scene, music and ambience, see lofi.js
       room: defaultRoom(), // avatar + placed decor, see room.js
     },
@@ -41,7 +40,7 @@ export function defaultState() {
   }
 }
 
-const SETTING_CHOICES = { theme: ['system', 'light', 'dark'], uiMode: ['game', 'minimal'] }
+const SETTING_CHOICES = { uiMode: ['game', 'minimal'] }
 const inRange = (v, lo, hi, fallback) => {
   const n = Math.round(Number(v))
   return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : fallback
@@ -60,7 +59,9 @@ export function migrate(saved, now = Date.now()) {
     out[k] = { ...base[k], ...(saved[k] || {}) }
   }
   out.settings.lofi = sanitizeLofi(saved.settings?.lofi)
-  out.settings.appearance = { game: appearanceFor(saved.settings, 'game'), minimal: appearanceFor(saved.settings, 'minimal') }
+  // The old system/light/dark switch and palette picker became themes, see appearance.js
+  out.settings.appearance = migrateAppearance(saved.settings)
+  delete out.settings.theme
   for (const [k, list] of Object.entries(SETTING_CHOICES)) if (!list.includes(out.settings[k])) out.settings[k] = base.settings[k]
   for (const k of ['notifications', 'sounds']) out.settings[k] = out.settings[k] !== false
   out.settings.weekStartsOn = [0, 1, 6, 7].includes(out.settings.weekStartsOn) ? out.settings.weekStartsOn : base.settings.weekStartsOn

@@ -193,7 +193,7 @@ onMounted(() => {
             >
               <span
                 class="grid h-7 w-7 place-items-center rounded-full border-2 text-sm transition"
-                :class="isHabitDone(s.habitLogs, h.id, store.now) ? 'border-good bg-good text-white' : 'border-line'"
+                :class="isHabitDone(s.habitLogs, h.id, store.now) ? 'border-good bg-good text-on-good' : 'border-line'"
               >
                 <Icon v-if="isHabitDone(s.habitLogs, h.id, store.now)" name="check" :size="14" />
                 <span v-else>{{ h.emoji }}</span>

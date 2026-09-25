@@ -8,10 +8,9 @@ import { hasLocalData, clearLocalData, createLocalAdapter } from '../lib/api.js'
 import Icon from '../components/Icon.vue'
 import Modal from '../components/Modal.vue'
 import PinField from '../components/PinField.vue'
-import ComboPicker from '../components/look/ComboPicker.vue'
-import LookPreview from '../components/look/LookPreview.vue'
-import PaletteDots from '../components/look/PaletteDots.vue'
-import { catalog, look, lookMode, setLook } from '../lib/look.js'
+import ThemePicker from '../components/look/ThemePicker.vue'
+import NightPicker from '../components/look/NightPicker.vue'
+import { lookMode } from '../lib/look.js'
 
 const s = computed(() => store.state)
 const wait = ref(s.value.settings.failsafeWaitSeconds)
@@ -152,23 +151,6 @@ async function revoke(o) {
     <section class="card divide-y divide-line">
       <div class="flex flex-wrap items-center justify-between gap-3 p-5">
         <div>
-          <h2 class="font-semibold">Appearance</h2>
-          <p class="text-sm text-muted">Light, dark, or follow your device.</p>
-        </div>
-        <div class="flex rounded-xl border border-line p-0.5 text-sm">
-          <button
-            v-for="t in ['system', 'light', 'dark']"
-            :key="t"
-            class="rounded-lg px-3 py-1.5 capitalize"
-            :class="s.settings.theme === t ? 'bg-accent-soft font-semibold text-accent' : 'text-muted'"
-            @click="set({ theme: t })"
-          >
-            {{ t }}
-          </button>
-        </div>
-      </div>
-      <div class="flex flex-wrap items-center justify-between gap-3 p-5">
-        <div>
           <h2 class="font-semibold">Style</h2>
           <p class="text-sm text-muted">Game: XP pops, levels and sounds. Calm: the same features, quiet and minimal.</p>
         </div>
@@ -189,81 +171,17 @@ async function revoke(o) {
       </div>
       <div id="look" class="space-y-5 p-5">
         <div>
-          <h2 class="font-semibold">Look</h2>
+          <h2 class="font-semibold">Theme</h2>
           <p class="text-sm text-muted">
-            Colours and fonts for {{ lookMode === 'game' ? 'Game' : 'Calm' }}. Each style keeps its own look, and every palette has a light
-            and a dark version.
+            Themes for {{ lookMode === 'game' ? 'Game' : 'Calm' }}. Each one has its own typefaces, colours and surfaces, and applies the
+            moment you pick it.
           </p>
         </div>
-        <div class="grid gap-5 md:grid-cols-[1fr_15rem]">
-          <div class="min-w-0">
-            <p class="label">Quick combos</p>
-            <ComboPicker :mode="lookMode" />
-          </div>
-          <div class="md:pt-6"><LookPreview /></div>
-        </div>
+        <ThemePicker :mode="lookMode" />
         <div>
-          <p class="label">Palette</p>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Palette">
-            <button
-              v-for="p in catalog.palettes"
-              :key="p.id"
-              type="button"
-              role="radio"
-              :aria-checked="look.palette === p.id"
-              class="flex min-w-0 items-center gap-2.5 rounded-xl border-2 p-2.5 text-left transition"
-              :class="look.palette === p.id ? 'border-accent bg-accent-soft' : 'border-line hover:border-ink/25'"
-              @click="setLook({ palette: p.id })"
-            >
-              <span class="flex shrink-0 flex-col gap-1">
-                <PaletteDots :colors="p.swatch.light" size="sm" />
-                <PaletteDots :colors="p.swatch.dark" size="sm" />
-              </span>
-              <span class="min-w-0">
-                <span class="block text-sm font-semibold">{{ p.name }}</span>
-                <span class="block truncate text-[11px] text-muted">{{ p.blurb }}</span>
-              </span>
-            </button>
-          </div>
-        </div>
-        <div class="grid gap-5 sm:grid-cols-2">
-          <div>
-            <p class="label">Headings</p>
-            <div class="grid gap-1.5" role="radiogroup" aria-label="Heading font">
-              <button
-                v-for="f in catalog.headings"
-                :key="f.id"
-                type="button"
-                role="radio"
-                :aria-checked="look.heading === f.id"
-                class="flex items-baseline justify-between gap-3 rounded-xl border-2 px-3 py-2 text-left transition"
-                :class="look.heading === f.id ? 'border-accent bg-accent-soft' : 'border-line hover:border-ink/25'"
-                @click="setLook({ heading: f.id })"
-              >
-                <span class="truncate text-xl leading-tight" :style="{ fontFamily: f.family, fontWeight: f.weight }">{{ f.name }}</span>
-                <span class="shrink-0 text-lg text-muted" :style="{ fontFamily: f.family, fontWeight: f.weight }">Aa</span>
-              </button>
-            </div>
-          </div>
-          <div>
-            <p class="label">Text</p>
-            <div class="grid gap-1.5" role="radiogroup" aria-label="Body font">
-              <button
-                v-for="f in catalog.bodies"
-                :key="f.id"
-                type="button"
-                role="radio"
-                :aria-checked="look.body === f.id"
-                class="rounded-xl border-2 px-3 py-2 text-left transition"
-                :class="look.body === f.id ? 'border-accent bg-accent-soft' : 'border-line hover:border-ink/25'"
-                :style="{ fontFamily: f.family }"
-                @click="setLook({ body: f.id })"
-              >
-                <span class="block text-sm font-semibold">{{ f.name }}</span>
-                <span class="block truncate text-xs text-muted">Finish the essay outline before 5 pm.</span>
-              </button>
-            </div>
-          </div>
+          <p class="label">Night theme</p>
+          <p class="mb-2.5 text-sm text-muted">Switch to another theme on its own while your device is in dark mode.</p>
+          <NightPicker :mode="lookMode" />
         </div>
       </div>
       <div v-if="(s.settings.uiMode || 'game') === 'game'" class="flex flex-wrap items-center justify-between gap-3 p-5">

@@ -80,7 +80,11 @@ onBeforeUnmount(() => running.value && stopTimer())
     <div class="flex items-start gap-3 p-3 sm:p-3.5" :class="isGame && !compact && 'pl-4 sm:pl-5'">
       <button
         class="relative mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 transition"
-        :class="[done ? 'border-good bg-good text-white' : 'border-line hover:border-good', popping && 'scale-125', isGame && 'rounded-lg']"
+        :class="[
+          done ? 'border-good bg-good text-on-good' : 'border-line hover:border-good',
+          popping && 'scale-125',
+          isGame && 'rounded-lg',
+        ]"
         :aria-label="done ? 'Mark as not done' : 'Mark as done'"
         @click="toggle"
       >

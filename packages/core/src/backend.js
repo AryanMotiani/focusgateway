@@ -769,7 +769,7 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         if (v < s.settings.failsafeWaitSeconds) await checkPin(s, pin)
         s.settings.failsafeWaitSeconds = v
       }
-      for (const k of ['theme', 'weekStartsOn', 'notifications', 'sounds']) if (k in patch) s.settings[k] = patch[k]
+      for (const k of ['weekStartsOn', 'notifications', 'sounds']) if (k in patch) s.settings[k] = patch[k]
       if ('uiMode' in patch) s.settings.uiMode = patch.uiMode === 'minimal' ? 'minimal' : 'game'
       if ('weeklyFocusGoalMin' in patch) {
         const v = Math.round(Number(patch.weeklyFocusGoalMin))

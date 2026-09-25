@@ -8,8 +8,8 @@ const TRACKS = {
   tasks: ['Finisher', 'var(--fg-accent)'],
   streak: ['Streaks', 'var(--fg-warm)'],
   habit: ['Habits', 'var(--fg-good)'],
-  focus: ['Deep focus', '#38a8f5'],
-  windows: ['Earned windows', '#9a7bff'],
+  focus: ['Deep focus', 'var(--fg-rar-low)'],
+  windows: ['Earned windows', 'var(--fg-rar-medium)'],
   resisted: ['Willpower', 'var(--fg-bad)'],
   perfect: ['Perfect weeks', 'var(--fg-xp)'],
 }
@@ -33,7 +33,7 @@ const groups = computed(() =>
           v-for="m in t.list"
           :key="m.id"
           class="relative grid h-10 w-10 place-items-center rounded-xl transition"
-          :class="m.achieved ? 'text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.25)]' : 'border-2 border-dashed border-line text-muted/60'"
+          :class="m.achieved ? 'text-paper shadow-[inset_0_-3px_0_rgba(0,0,0,0.25)]' : 'border-2 border-dashed border-line text-muted/60'"
           :style="m.achieved ? { background: t.color } : m === t.next ? { borderColor: t.color, color: t.color } : {}"
           :title="`${m.name}${m.achieved ? ' (earned)' : `: ${m.value}/${m.target}`}`"
         >

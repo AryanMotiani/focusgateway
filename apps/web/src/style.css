@@ -1,46 +1,55 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/geist';
-@import '@fontsource-variable/geist-mono';
-@import '@fontsource-variable/nunito';
-@import '@fontsource/barlow-condensed/600.css';
-@import '@fontsource/barlow-condensed/700.css';
-@import '@fontsource/barlow-condensed/800.css';
-@import '@fontsource/instrument-serif';
-/* Optional heading and body fonts. Each @font-face only downloads when a page uses it. */
+/* One heading and one body typeface per theme (see packages/core/src/appearance.js).
+   Each @font-face only downloads when the page uses that family. */
 @import '@fontsource-variable/fredoka';
+@import '@fontsource-variable/nunito';
+@import '@fontsource/patrick-hand/400.css';
+@import '@fontsource-variable/atkinson-hyperlegible-next';
+@import '@fontsource-variable/pixelify-sans';
+@import '@fontsource/silkscreen/400.css';
+@import '@fontsource/chakra-petch/400.css';
+@import '@fontsource/chakra-petch/500.css';
+@import '@fontsource/chakra-petch/600.css';
+@import '@fontsource/chakra-petch/700.css';
 @import '@fontsource-variable/baloo-2';
-@import '@fontsource/lilita-one';
-@import '@fontsource-variable/space-grotesk';
 @import '@fontsource-variable/lexend';
-@import '@fontsource-variable/outfit';
-@import '@fontsource-variable/dm-sans';
 @import '@fontsource-variable/fraunces';
-@import '@fontsource/dm-serif-display';
-@import '@fontsource-variable/newsreader';
-@import '@fontsource-variable/inter';
-@import '@fontsource-variable/ibm-plex-sans';
 @import '@fontsource-variable/source-serif-4';
+@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/cormorant-garamond';
+@import '@fontsource-variable/lora';
+@import '@fontsource-variable/syne';
+@import '@fontsource-variable/ibm-plex-sans';
+@import '@fontsource-variable/geist-mono';
 
 /*
-  Two looks, one set of components.
-    html[data-mode='game']     tactile, bright, chunky (Duolingo-like) with HUD touches
-    html[data-mode='minimal']  calm paper notebook
-  Each has a light and a dark palette (.dark on <html>).
-  On top of that, html[data-palette], [data-heading] and [data-body] pick one of the
-  looks from packages/core/src/appearance.js. The defaults (Grape, Paper) are the plain
-  mode rules below. Components only use the tokens below, never raw colours.
+  Two modes, eight themes, one set of components.
+    html[data-mode='game']     XP, levels, pressable controls
+    html[data-mode='minimal']  the same features, quiet (shown as Calm)
+  html[data-theme-id] picks a complete theme: fixed tone, typefaces, palette, radii,
+  borders, shadows and background texture. `.dark` is set on <html> when the theme is dark.
+  A theme block also works on any element (the theme picker cards use that), because
+  the utilities read the --fg-* tokens directly (@theme inline).
+  Components only use these tokens, never raw colours.
 */
 
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant game (&:where([data-mode='game'], [data-mode='game'] *));
 @custom-variant minimal (&:where([data-mode='minimal'], [data-mode='minimal'] *));
 
-@theme {
+@theme inline {
   --font-sans: var(--fg-font-sans);
   --font-display: var(--fg-font-display);
   --font-label: var(--fg-font-label);
   --font-num: var(--fg-font-num);
   --font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-md: var(--fg-r-md);
+  --radius-lg: var(--fg-r-lg);
+  --radius-xl: var(--fg-r-xl);
+  --radius-2xl: var(--fg-r-2xl);
+  --radius-3xl: var(--fg-r-3xl);
 
   --color-paper: var(--fg-paper);
   --color-card: var(--fg-card);
@@ -59,10 +68,12 @@
   --color-good: var(--fg-good);
   --color-good-deep: var(--fg-good-deep);
   --color-good-soft: var(--fg-good-soft);
+  --color-on-good: var(--fg-on-good);
   --color-caution: var(--fg-caution);
   --color-caution-soft: var(--fg-caution-soft);
   --color-bad: var(--fg-bad);
   --color-bad-soft: var(--fg-bad-soft);
+  --color-on-bad: var(--fg-on-bad);
   --color-xp: var(--fg-xp);
   --color-hud: var(--fg-hud);
   --color-hud-ink: var(--fg-hud-ink);
@@ -72,905 +83,878 @@
   --color-heat-1: var(--fg-heat-1);
   --color-heat-2: var(--fg-heat-2);
   --color-heat-3: var(--fg-heat-3);
+  --color-rar-low: var(--fg-rar-low);
+  --color-rar-medium: var(--fg-rar-medium);
+  --color-rar-high: var(--fg-rar-high);
 }
 
-/* ---------- Minimal (default) light ---------- */
-:root {
-  --fg-font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --fg-font-display: 'Instrument Serif', Georgia, serif;
-  --fg-font-label: 'Geist Variable', system-ui, sans-serif;
-  --fg-font-num: 'Geist Mono Variable', ui-monospace, monospace;
-  --fg-display-weight: 400;
-  --fg-display-tracking: -0.01em;
-  --fg-radius: 14px;
-  --fg-paper: #f4efe6;
-  --fg-card: #fffdf8;
-  --fg-sunk: #ece5d8;
-  --fg-ink: #23202c;
-  --fg-muted: #6f6880;
-  --fg-line: #e2dacb;
-  --fg-edge: #e2dacb;
-  --fg-accent: #5b4bd6;
-  --fg-accent-deep: #4536b5;
-  --fg-accent-soft: #ece7fa;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #c47413;
-  --fg-warm-deep: #9e5b0b;
-  --fg-warm-soft: #f8ead3;
-  --fg-good: #22885c;
-  --fg-good-deep: #1a6b48;
-  --fg-good-soft: #dcf1e5;
-  --fg-caution: #a86b12;
-  --fg-caution-soft: #f8ecd2;
-  --fg-bad: #c93a52;
-  --fg-bad-soft: #f9e0e4;
-  --fg-xp: #5b4bd6;
-  --fg-hud: #fffdf8;
-  --fg-hud-ink: #23202c;
-  --fg-hud-muted: #6f6880;
-  --fg-hud-line: #e2dacb;
-  --fg-heat-0: #e7e0d2;
-  --fg-heat-1: #c9c1ef;
-  --fg-heat-2: #8f80e6;
-  --fg-heat-3: #5b4bd6;
-  --fg-texture: radial-gradient(rgba(35, 32, 44, 0.05) 1px, transparent 1px);
-  color-scheme: light;
-}
-.dark {
-  --fg-paper: #121019;
-  --fg-card: #1b1824;
-  --fg-sunk: #16131f;
-  --fg-ink: #efeaf2;
-  --fg-muted: #a39db3;
-  --fg-line: #2c2838;
-  --fg-edge: #2c2838;
-  --fg-accent: #a497ff;
-  --fg-accent-deep: #7d6ef0;
-  --fg-accent-soft: #28233f;
-  --fg-on-accent: #16131f;
-  --fg-warm: #f0a954;
-  --fg-warm-deep: #c7822f;
-  --fg-warm-soft: #33261a;
-  --fg-good: #52d39b;
-  --fg-good-deep: #2f9e6e;
-  --fg-good-soft: #15302a;
-  --fg-caution: #f0c25a;
-  --fg-caution-soft: #342a14;
-  --fg-bad: #ff7a8e;
-  --fg-bad-soft: #3a1822;
-  --fg-xp: #a497ff;
-  --fg-hud: #1b1824;
-  --fg-hud-ink: #efeaf2;
-  --fg-hud-muted: #a39db3;
-  --fg-hud-line: #2c2838;
-  --fg-heat-0: #211d2c;
-  --fg-heat-1: #36305e;
-  --fg-heat-2: #5c50b8;
-  --fg-heat-3: #a497ff;
-  --fg-texture: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  color-scheme: dark;
-}
-
-/* ---------- Game light ---------- */
-[data-mode='game'] {
-  --fg-font-sans: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
-  --fg-font-display: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
-  --fg-font-label: 'Barlow Condensed', 'Arial Narrow', sans-serif;
-  --fg-font-num: 'Barlow Condensed', 'Arial Narrow', sans-serif;
-  --fg-display-weight: 900;
-  --fg-display-tracking: -0.03em;
-  --fg-body-weight: 600;
-  --fg-radius: 18px;
-  --fg-paper: #fff7ec;
-  --fg-card: #ffffff;
-  --fg-sunk: #f7ecdc;
-  --fg-ink: #2b2a33;
-  --fg-muted: #6e6879;
-  --fg-line: #eee2d0;
-  --fg-edge: #e0d0b9;
-  --fg-accent: #7a4dff;
-  --fg-accent-deep: #5a31db;
-  --fg-accent-soft: #efe8ff;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #ff8a00;
-  --fg-warm-deep: #d66f00;
-  --fg-warm-soft: #fff0dc;
-  --fg-good: #2fbe5a;
-  --fg-good-deep: #219a45;
-  --fg-good-soft: #ddf7e4;
-  --fg-caution: #e19b00;
-  --fg-caution-soft: #fff3d1;
-  --fg-bad: #ff4b5c;
-  --fg-bad-soft: #ffe3e6;
-  --fg-xp: #f2b705;
-  --fg-hud: #1a1830;
-  --fg-hud-ink: #f3f0ff;
-  --fg-hud-muted: #9b96bd;
-  --fg-hud-line: #2e2b4d;
-  --fg-heat-0: #f1e6d6;
-  --fg-heat-1: #cbb8ff;
-  --fg-heat-2: #9a74ff;
-  --fg-heat-3: #7a4dff;
-  --fg-texture: none;
-}
-[data-mode='game'].dark {
-  --fg-paper: #13121c;
-  --fg-card: #1c1a29;
-  --fg-sunk: #181624;
-  --fg-ink: #f1edfa;
-  --fg-muted: #9d97b5;
-  --fg-line: #2d2a3e;
-  --fg-edge: #0c0b13;
-  --fg-accent: #9b7bff;
-  --fg-accent-deep: #6a45e0;
-  --fg-accent-soft: #2a2444;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #ffa53a;
-  --fg-warm-deep: #c97417;
-  --fg-warm-soft: #33241a;
-  --fg-good: #3fd675;
-  --fg-good-deep: #25a352;
-  --fg-good-soft: #15301f;
-  --fg-caution: #ffc44d;
-  --fg-caution-soft: #362a12;
-  --fg-bad: #ff6475;
-  --fg-bad-soft: #3a1720;
-  --fg-xp: #ffc933;
-  --fg-hud: #0f0e18;
-  --fg-hud-ink: #f3f0ff;
-  --fg-hud-muted: #9b96bd;
-  --fg-hud-line: #28253f;
-  --fg-heat-0: #211f30;
-  --fg-heat-1: #3b2f7a;
-  --fg-heat-2: #6a45e0;
-  --fg-heat-3: #a58bff;
-}
-
-/* ---------- Heading fonts (data-heading) ---------- */
-html[data-heading='nunito'] {
-  --fg-font-display: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
-  --fg-display-weight: 900;
-  --fg-display-tracking: -0.03em;
-}
-html[data-heading='fredoka'] {
-  --fg-font-display: 'Fredoka Variable', system-ui, sans-serif;
-  --fg-display-weight: 650;
-  --fg-display-tracking: -0.01em;
-}
-html[data-heading='baloo'] {
-  --fg-font-display: 'Baloo 2 Variable', system-ui, sans-serif;
-  --fg-display-weight: 800;
-  --fg-display-tracking: -0.02em;
-}
-html[data-heading='lilita'] {
-  --fg-font-display: 'Lilita One', system-ui, sans-serif;
-  --fg-display-weight: 400;
-  --fg-display-tracking: 0.005em;
-}
-html[data-heading='space-grotesk'] {
-  --fg-font-display: 'Space Grotesk Variable', system-ui, sans-serif;
+/* ---------- Shared shape defaults, each theme overrides what it needs ---------- */
+:root,
+[data-theme-id] {
   --fg-display-weight: 700;
-  --fg-display-tracking: -0.035em;
-}
-html[data-heading='barlow'] {
-  --fg-font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
-  --fg-display-weight: 800;
-  --fg-display-tracking: 0;
-}
-html[data-heading='instrument'] {
-  --fg-font-display: 'Instrument Serif', Georgia, serif;
-  --fg-display-weight: 400;
   --fg-display-tracking: -0.01em;
-}
-html[data-heading='fraunces'] {
-  --fg-font-display: 'Fraunces Variable', Georgia, serif;
-  --fg-display-weight: 500;
-  --fg-display-tracking: -0.02em;
-}
-html[data-heading='dm-serif'] {
-  --fg-font-display: 'DM Serif Display', Georgia, serif;
-  --fg-display-weight: 400;
-  --fg-display-tracking: -0.01em;
-}
-html[data-heading='newsreader'] {
-  --fg-font-display: 'Newsreader Variable', Georgia, serif;
-  --fg-display-weight: 500;
-  --fg-display-tracking: -0.02em;
-}
-html[data-heading='geist'] {
-  --fg-font-display: 'Geist Variable', system-ui, sans-serif;
-  --fg-display-weight: 600;
-  --fg-display-tracking: -0.04em;
-}
-
-/* ---------- Body fonts (data-body). The weight only applies in game mode. ---------- */
-html[data-body='nunito'] {
-  --fg-font-sans: 'Nunito Variable', 'Nunito', system-ui, sans-serif;
-  --fg-body-weight: 600;
-}
-html[data-body='lexend'] {
-  --fg-font-sans: 'Lexend Variable', system-ui, sans-serif;
-  --fg-body-weight: 450;
-}
-html[data-body='outfit'] {
-  --fg-font-sans: 'Outfit Variable', system-ui, sans-serif;
-  --fg-body-weight: 500;
-}
-html[data-body='dm-sans'] {
-  --fg-font-sans: 'DM Sans Variable', system-ui, sans-serif;
-  --fg-body-weight: 500;
-}
-html[data-body='space-grotesk'] {
-  --fg-font-sans: 'Space Grotesk Variable', system-ui, sans-serif;
-  --fg-body-weight: 500;
-}
-html[data-body='geist'] {
-  --fg-font-sans: 'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
-}
-html[data-body='inter'] {
-  --fg-font-sans: 'Inter Variable', system-ui, sans-serif;
-}
-html[data-body='plex'] {
-  --fg-font-sans: 'IBM Plex Sans Variable', system-ui, sans-serif;
-}
-html[data-body='source-serif'] {
-  --fg-font-sans: 'Source Serif 4 Variable', Georgia, serif;
+  --fg-display-case: none;
+  --fg-display-adjust: none;
+  --fg-body-weight: 400;
+  --fg-label-weight: 600;
+  --fg-label-size: 12px;
+  --fg-label-tracking: 0.08em;
+  --fg-num-weight: 600;
+  --fg-r-md: 6px;
+  --fg-r-lg: 8px;
+  --fg-r-xl: 12px;
+  --fg-r-2xl: 16px;
+  --fg-r-3xl: 24px;
+  --fg-radius: 14px;
+  --fg-card-border: 1px;
+  --fg-card-edge: 0px;
+  --fg-card-shadow: none;
+  --fg-btn-radius: 12px;
+  --fg-btn-radius-sm: 9px;
+  --fg-btn-border: 1px;
+  --fg-btn-edge: 0px;
+  --fg-btn-weight: 600;
+  --fg-btn-case: none;
+  --fg-btn-tracking: 0;
+  --fg-btn-shadow: none;
+  --fg-btn-primary-shadow: var(--fg-btn-shadow);
+  --fg-btn-line: var(--fg-line);
+  --fg-btn-edge-color: var(--fg-edge);
+  --fg-card-line: var(--fg-line);
+  --fg-card-edge-color: var(--fg-edge);
+  --fg-press-x: 0px;
+  --fg-press-y: 0px;
+  --fg-input-border: 1px;
+  --fg-chip-radius: 999px;
+  --fg-chip-weight: 500;
+  --fg-xp-height: 8px;
+  --fg-xp-radius: 999px;
+  --fg-xp-overlay: none;
+  --fg-xp-inset: 0;
+  --fg-texture: none;
+  --fg-texture-size: auto;
 }
 
 /*
-  ---------- Palettes (data-palette) ----------
-  One light and one dark block per palette, ids from packages/core/src/appearance.js.
-  Every block sets every colour token, so a light value never leaks into dark.
-  Good, bad and caution colours come from the mode rules above.
+  ---------- Themes ----------
+  Every block sets every colour, so nothing leaks between themes. The --fg-hud-* colours
+  are what the game HUD (always dark) uses for the same roles, see the .bg-hud rule below.
+  packages/core/test/appearance.test.js checks these hex values for WCAG contrast.
 */
-html[data-mode='game'][data-palette='arcade'] {
-  --fg-paper: #eefaf8;
+
+/* Sunny Quest: bright cream and sky, coral, teal, sunflower, grass. Chunky and round. */
+[data-theme-id='sunny'] {
+  --fg-paper: #fff6e3;
   --fg-card: #ffffff;
-  --fg-sunk: #dcf1ed;
-  --fg-ink: #14213d;
-  --fg-muted: #506079;
-  --fg-line: #cfe7e3;
-  --fg-edge: #a9d3cc;
-  --fg-accent: #0a7f74;
-  --fg-accent-deep: #075e56;
-  --fg-accent-soft: #d5f5ef;
+  --fg-sunk: #fcecca;
+  --fg-ink: #1f2a44;
+  --fg-muted: #555e72;
+  --fg-line: #f0dcb4;
+  --fg-edge: #dfc088;
+  --fg-accent: #bb3a23;
+  --fg-accent-deep: #8f2a18;
+  --fg-accent-soft: #feebe4;
   --fg-on-accent: #ffffff;
-  --fg-warm: #e8157a;
-  --fg-warm-deep: #b80e5f;
-  --fg-warm-soft: #ffe0ee;
-  --fg-xp: #ff2e88;
-  --fg-hud: #0b1330;
-  --fg-hud-ink: #e8fbff;
-  --fg-hud-muted: #8aa0c8;
-  --fg-hud-line: #1c2a52;
-  --fg-heat-0: #d9ece8;
-  --fg-heat-1: #9fe3d9;
-  --fg-heat-2: #2fb8a8;
-  --fg-heat-3: #0a7f74;
+  --fg-warm: #a95400;
+  --fg-warm-deep: #7f3f00;
+  --fg-warm-soft: #fff1c9;
+  --fg-good: #287634;
+  --fg-good-deep: #1b5725;
+  --fg-good-soft: #e0f3d8;
+  --fg-on-good: #ffffff;
+  --fg-caution: #8c5a06;
+  --fg-caution-soft: #fff1cc;
+  --fg-bad: #bb2842;
+  --fg-bad-soft: #ffe4e8;
+  --fg-on-bad: #ffffff;
+  --fg-xp: #b27800;
+  --fg-xpbar: #1a868c;
+  --fg-hud: #1d3a6b;
+  --fg-hud-ink: #f4f7ff;
+  --fg-hud-muted: #b8c7e4;
+  --fg-hud-line: #34568f;
+  --fg-hud-accent: #ff9b80;
+  --fg-hud-accent-deep: #d8664b;
+  --fg-hud-on-accent: #2a1208;
+  --fg-hud-warm: #ffc24a;
+  --fg-hud-good: #8be096;
+  --fg-hud-bad: #ff9aa9;
+  --fg-hud-xp: #ffd34d;
+  --fg-hud-xpbar: #ffd34d;
+  --fg-heat-0: #f6e7c8;
+  --fg-heat-1: #a9dcd9;
+  --fg-heat-2: #3aa6aa;
+  --fg-heat-3: #137278;
+  --fg-rar-low: #1a868c;
+  --fg-rar-medium: #3b6fd6;
+  --fg-rar-high: #c28400;
+
+  --fg-font-sans: 'Nunito Variable', system-ui, sans-serif;
+  --fg-font-display: 'Fredoka Variable', system-ui, sans-serif;
+  --fg-font-label: 'Fredoka Variable', system-ui, sans-serif;
+  --fg-font-num: 'Fredoka Variable', system-ui, sans-serif;
+  --fg-font-btn: 'Fredoka Variable', system-ui, sans-serif;
+  --fg-display-weight: 600;
+  --fg-display-tracking: -0.01em;
+  --fg-body-weight: 600;
+  --fg-label-tracking: 0.08em;
+  --fg-num-weight: 600;
+  --fg-r-md: 10px;
+  --fg-r-lg: 12px;
+  --fg-r-xl: 16px;
+  --fg-r-2xl: 22px;
+  --fg-r-3xl: 28px;
+  --fg-radius: 24px;
+  --fg-card-border: 2px;
+  --fg-card-edge: 3px;
+  --fg-btn-radius: 18px;
+  --fg-btn-radius-sm: 13px;
+  --fg-btn-border: 2px;
+  --fg-btn-edge: 3px;
+  --fg-btn-weight: 600;
+  --fg-press-y: 3px;
+  --fg-input-border: 2px;
+  --fg-chip-weight: 700;
+  --fg-xp-height: 14px;
+  --fg-xp-overlay: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%);
+  --fg-xp-inset: 0.22;
+  --fg-texture: radial-gradient(rgba(198, 63, 40, 0.09) 2px, transparent 2.5px);
+  --fg-texture-size: 26px 26px;
 }
-html[data-mode='game'][data-palette='arcade'].dark {
-  --fg-paper: #0a1024;
-  --fg-card: #111a33;
-  --fg-sunk: #0d152c;
-  --fg-ink: #e6f7ff;
-  --fg-muted: #8ea3c4;
-  --fg-line: #1e2b4d;
-  --fg-edge: #050912;
-  --fg-accent: #2ee6d0;
-  --fg-accent-deep: #13a897;
-  --fg-accent-soft: #0f3038;
-  --fg-on-accent: #04161a;
-  --fg-warm: #ff4fa0;
-  --fg-warm-deep: #c9267a;
-  --fg-warm-soft: #3a1330;
-  --fg-xp: #ff4fa0;
-  --fg-hud: #060b1c;
-  --fg-hud-ink: #e6f7ff;
-  --fg-hud-muted: #8ea3c4;
-  --fg-hud-line: #18244a;
-  --fg-heat-0: #141d38;
-  --fg-heat-1: #13545a;
-  --fg-heat-2: #1ca597;
-  --fg-heat-3: #2ee6d0;
+
+/* Storybook: parchment and ink brown, berry, forest, ochre. Hand drawn edges. */
+[data-theme-id='storybook'] {
+  --fg-paper: #f3e7cc;
+  --fg-card: #fbf4e2;
+  --fg-sunk: #ecdcb9;
+  --fg-ink: #3a2a1c;
+  --fg-muted: #634e3b;
+  --fg-line: #d7c399;
+  --fg-edge: #8a6f4a;
+  --fg-accent: #962a49;
+  --fg-accent-deep: #6e1d35;
+  --fg-accent-soft: #f5dde2;
+  --fg-on-accent: #fff8ec;
+  --fg-warm: #8e5205;
+  --fg-warm-deep: #6b3d05;
+  --fg-warm-soft: #f5e5bd;
+  --fg-good: #2d6638;
+  --fg-good-deep: #204c29;
+  --fg-good-soft: #dfecd1;
+  --fg-on-good: #fff8ec;
+  --fg-caution: #7c520b;
+  --fg-caution-soft: #f5e6c0;
+  --fg-bad: #a02f29;
+  --fg-bad-soft: #f7ddd6;
+  --fg-on-bad: #fff8ec;
+  --fg-xp: #94600a;
+  --fg-xpbar: #962a49;
+  --fg-hud: #2e4a35;
+  --fg-hud-ink: #faf1dc;
+  --fg-hud-muted: #cfd9bd;
+  --fg-hud-line: #4a6b53;
+  --fg-hud-accent: #f5b1c2;
+  --fg-hud-accent-deep: #c9788d;
+  --fg-hud-on-accent: #3a1320;
+  --fg-hud-warm: #f2c46a;
+  --fg-hud-good: #b2dca3;
+  --fg-hud-bad: #f8a99e;
+  --fg-hud-xp: #f2c46a;
+  --fg-hud-xpbar: #f2c46a;
+  --fg-heat-0: #e8d7b2;
+  --fg-heat-1: #bdd2a3;
+  --fg-heat-2: #6c9a5c;
+  --fg-heat-3: #2d6638;
+  --fg-rar-low: #3a6a8a;
+  --fg-rar-medium: #7a4b8c;
+  --fg-rar-high: #a0690e;
+
+  --fg-font-sans: 'Atkinson Hyperlegible Next Variable', system-ui, sans-serif;
+  --fg-font-display: 'Patrick Hand', 'Comic Sans MS', system-ui, sans-serif;
+  --fg-font-label: 'Patrick Hand', 'Comic Sans MS', system-ui, sans-serif;
+  --fg-font-num: 'Patrick Hand', 'Comic Sans MS', system-ui, sans-serif;
+  --fg-font-btn: 'Patrick Hand', 'Comic Sans MS', system-ui, sans-serif;
+  --fg-display-weight: 400;
+  --fg-display-tracking: 0.01em;
+  --fg-display-adjust: 0.52;
+  --fg-body-weight: 400;
+  --fg-label-weight: 400;
+  --fg-label-size: 15px;
+  --fg-label-tracking: 0.06em;
+  --fg-num-weight: 400;
+  --fg-r-md: 7px 4px 6px 5px / 5px 6px 4px 7px;
+  --fg-r-lg: 10px 6px 9px 7px / 7px 9px 6px 10px;
+  --fg-r-xl: 14px 8px 12px 9px / 9px 12px 8px 14px;
+  --fg-r-2xl: 18px 10px 16px 12px / 12px 16px 10px 18px;
+  --fg-r-3xl: 26px 14px 22px 16px / 16px 22px 14px 26px;
+  --fg-radius: 18px 8px 16px 10px / 10px 16px 8px 18px;
+  --fg-card-border: 2px;
+  --fg-card-shadow: 3px 3px 0 rgba(58, 42, 28, 0.14);
+  --fg-card-line: #b69d72;
+  --fg-card-edge-color: #b69d72;
+  --fg-btn-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
+  --fg-btn-radius-sm: 255px 14px 225px 14px / 14px 225px 14px 255px;
+  --fg-btn-border: 2px;
+  --fg-btn-line: #8a6f4a;
+  --fg-btn-edge-color: #8a6f4a;
+  --fg-btn-weight: 400;
+  --fg-btn-tracking: 0.02em;
+  --fg-btn-shadow: 2px 3px 0 rgba(58, 42, 28, 0.35);
+  --fg-press-x: 2px;
+  --fg-press-y: 2px;
+  --fg-input-border: 2px;
+  --fg-chip-radius: 12px 6px 11px 7px / 7px 11px 6px 12px;
+  --fg-chip-weight: 700;
+  --fg-xp-height: 12px;
+  --fg-xp-radius: 8px 4px 8px 5px;
+  --fg-xp-overlay: repeating-linear-gradient(-45deg, rgba(255, 248, 236, 0.28) 0 3px, transparent 3px 8px);
+  --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .12 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fg-texture-size: 180px 180px;
 }
-html[data-mode='game'][data-palette='sunset'] {
-  --fg-paper: #fff4ec;
+
+/* Arcade: dark retro console, toned brick, amber, leaf and cobalt. Pixel type, square. */
+[data-theme-id='arcade'] {
+  --fg-paper: #17162b;
+  --fg-card: #211f3b;
+  --fg-sunk: #1b1a33;
+  --fg-ink: #eeecf8;
+  --fg-muted: #b0aed2;
+  --fg-line: #3a3862;
+  --fg-edge: #09081a;
+  --fg-accent: #ec6a52;
+  --fg-accent-deep: #a83b29;
+  --fg-accent-soft: #3d2336;
+  --fg-on-accent: #1a0c08;
+  --fg-warm: #efaf48;
+  --fg-warm-deep: #c4861f;
+  --fg-warm-soft: #3a2d22;
+  --fg-good: #78c95b;
+  --fg-good-deep: #4c9a35;
+  --fg-good-soft: #1f3526;
+  --fg-on-good: #0d1a08;
+  --fg-caution: #efc35a;
+  --fg-caution-soft: #3a3120;
+  --fg-bad: #f07b72;
+  --fg-bad-soft: #402031;
+  --fg-on-bad: #1a0808;
+  --fg-xp: #efaf48;
+  --fg-xpbar: #78c95b;
+  --fg-hud: #0e0d1f;
+  --fg-hud-ink: #eeecf8;
+  --fg-hud-muted: #a6a4cb;
+  --fg-hud-line: #2c2a52;
+  --fg-hud-accent: #ec6a52;
+  --fg-hud-accent-deep: #a83b29;
+  --fg-hud-on-accent: #1a0c08;
+  --fg-hud-warm: #efaf48;
+  --fg-hud-good: #78c95b;
+  --fg-hud-bad: #f07b72;
+  --fg-hud-xp: #efaf48;
+  --fg-hud-xpbar: #78c95b;
+  --fg-heat-0: #272548;
+  --fg-heat-1: #2f4786;
+  --fg-heat-2: #4f71d6;
+  --fg-heat-3: #8ea6ff;
+  --fg-rar-low: #78c95b;
+  --fg-rar-medium: #8199f5;
+  --fg-rar-high: #efaf48;
+
+  --fg-font-sans: 'Chakra Petch', system-ui, sans-serif;
+  --fg-font-display: 'Pixelify Sans Variable', ui-monospace, monospace;
+  --fg-font-label: 'Silkscreen', ui-monospace, monospace;
+  --fg-font-num: 'Pixelify Sans Variable', ui-monospace, monospace;
+  --fg-font-btn: 'Pixelify Sans Variable', ui-monospace, monospace;
+  --fg-display-weight: 600;
+  --fg-display-tracking: 0.01em;
+  --fg-body-weight: 500;
+  --fg-label-weight: 400;
+  --fg-label-size: 11px;
+  --fg-label-tracking: 0.04em;
+  --fg-num-weight: 600;
+  --fg-r-md: 0px;
+  --fg-r-lg: 2px;
+  --fg-r-xl: 2px;
+  --fg-r-2xl: 3px;
+  --fg-r-3xl: 4px;
+  --fg-radius: 3px;
+  --fg-card-border: 2px;
+  --fg-card-shadow: 5px 5px 0 rgba(0, 0, 0, 0.45);
+  --fg-btn-radius: 2px;
+  --fg-btn-radius-sm: 2px;
+  --fg-btn-border: 2px;
+  --fg-btn-weight: 600;
+  --fg-btn-case: uppercase;
+  --fg-btn-tracking: 0.04em;
+  --fg-btn-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
+  --fg-press-x: 3px;
+  --fg-press-y: 3px;
+  --fg-input-border: 2px;
+  --fg-chip-radius: 2px;
+  --fg-chip-weight: 600;
+  --fg-xp-height: 14px;
+  --fg-xp-radius: 0px;
+  --fg-xp-overlay: repeating-linear-gradient(90deg, transparent 0 9px, rgba(9, 8, 26, 0.7) 9px 11px);
+  --fg-texture: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 4px);
+  --fg-texture-size: auto;
+}
+
+/* Night Owl: deep navy night sky, moon yellow, lilac, soft teal, peach. Soft glows. */
+[data-theme-id='night-owl'] {
+  --fg-paper: #0f1830;
+  --fg-card: #17233f;
+  --fg-sunk: #131d38;
+  --fg-ink: #e9edf8;
+  --fg-muted: #a8b3d0;
+  --fg-line: #2a3960;
+  --fg-edge: #2a3960;
+  --fg-accent: #f3cf63;
+  --fg-accent-deep: #c9a53d;
+  --fg-accent-soft: #2f3144;
+  --fg-on-accent: #1a1a2e;
+  --fg-warm: #f4a57a;
+  --fg-warm-deep: #cf7d52;
+  --fg-warm-soft: #392a38;
+  --fg-good: #62d1be;
+  --fg-good-deep: #3aa393;
+  --fg-good-soft: #15363e;
+  --fg-on-good: #0a1f1c;
+  --fg-caution: #f3cf63;
+  --fg-caution-soft: #33311f;
+  --fg-bad: #f28b99;
+  --fg-bad-soft: #3d1f33;
+  --fg-on-bad: #200b12;
+  --fg-xp: #f3cf63;
+  --fg-xpbar: #b8a2ff;
+  --fg-hud: #0a1126;
+  --fg-hud-ink: #e9edf8;
+  --fg-hud-muted: #a1adcc;
+  --fg-hud-line: #223055;
+  --fg-hud-accent: #f3cf63;
+  --fg-hud-accent-deep: #c9a53d;
+  --fg-hud-on-accent: #1a1a2e;
+  --fg-hud-warm: #f4a57a;
+  --fg-hud-good: #62d1be;
+  --fg-hud-bad: #f28b99;
+  --fg-hud-xp: #f3cf63;
+  --fg-hud-xpbar: #b8a2ff;
+  --fg-heat-0: #1d2949;
+  --fg-heat-1: #3e3b7c;
+  --fg-heat-2: #7a67d6;
+  --fg-heat-3: #b8a2ff;
+  --fg-rar-low: #62d1be;
+  --fg-rar-medium: #b8a2ff;
+  --fg-rar-high: #f3cf63;
+
+  --fg-font-sans: 'Lexend Variable', system-ui, sans-serif;
+  --fg-font-display: 'Baloo 2 Variable', system-ui, sans-serif;
+  --fg-font-label: 'Baloo 2 Variable', system-ui, sans-serif;
+  --fg-font-num: 'Baloo 2 Variable', system-ui, sans-serif;
+  --fg-font-btn: 'Baloo 2 Variable', system-ui, sans-serif;
+  --fg-display-weight: 800;
+  --fg-display-tracking: -0.01em;
+  --fg-body-weight: 400;
+  --fg-label-weight: 700;
+  --fg-label-size: 12px;
+  --fg-label-tracking: 0.12em;
+  --fg-num-weight: 700;
+  --fg-r-md: 10px;
+  --fg-r-lg: 12px;
+  --fg-r-xl: 16px;
+  --fg-r-2xl: 20px;
+  --fg-r-3xl: 28px;
+  --fg-radius: 22px;
+  --fg-card-shadow: 0 0 0 1px rgba(184, 162, 255, 0.05), 0 14px 36px -18px rgba(184, 162, 255, 0.35);
+  --fg-btn-radius: 999px;
+  --fg-btn-radius-sm: 999px;
+  --fg-btn-weight: 700;
+  --fg-btn-primary-shadow: 0 0 0 4px rgba(243, 207, 99, 0.12), 0 8px 26px -8px rgba(243, 207, 99, 0.55);
+  --fg-chip-weight: 600;
+  --fg-xp-height: 10px;
+  --fg-xp-overlay: linear-gradient(90deg, rgba(243, 207, 99, 0) 40%, rgba(243, 207, 99, 0.75));
+  --fg-texture:
+    radial-gradient(1.2px 1.2px at 12% 18%, rgba(233, 237, 248, 0.5), transparent),
+    radial-gradient(1px 1px at 68% 42%, rgba(233, 237, 248, 0.35), transparent),
+    radial-gradient(1.6px 1.6px at 38% 76%, rgba(243, 207, 99, 0.45), transparent),
+    radial-gradient(1px 1px at 88% 88%, rgba(184, 162, 255, 0.5), transparent);
+  --fg-texture-size: 220px 220px;
+}
+
+/* Paper: warm ivory notebook, ink blue, rust, sage. Editorial serif, crisp corners. */
+[data-theme-id='paper'] {
+  --fg-paper: #faf5ea;
+  --fg-card: #fffdf7;
+  --fg-sunk: #f1eadb;
+  --fg-ink: #1e2432;
+  --fg-muted: #585c6b;
+  --fg-line: #e3dbc7;
+  --fg-edge: #e3dbc7;
+  --fg-accent: #1f4e8c;
+  --fg-accent-deep: #173c6d;
+  --fg-accent-soft: #e4ebf5;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #a0441d;
+  --fg-warm-deep: #7e3413;
+  --fg-warm-soft: #f7e6dc;
+  --fg-good: #3c6845;
+  --fg-good-deep: #2d5035;
+  --fg-good-soft: #e3ede0;
+  --fg-on-good: #ffffff;
+  --fg-caution: #85590e;
+  --fg-caution-soft: #f5ebd2;
+  --fg-bad: #a5303a;
+  --fg-bad-soft: #f8e3e3;
+  --fg-on-bad: #ffffff;
+  --fg-xp: #1f4e8c;
+  --fg-xpbar: #1f4e8c;
+  --fg-hud: #fffdf7;
+  --fg-hud-ink: #1e2432;
+  --fg-hud-muted: #585c6b;
+  --fg-hud-line: #e3dbc7;
+  --fg-hud-accent: #1f4e8c;
+  --fg-hud-accent-deep: #173c6d;
+  --fg-hud-on-accent: #ffffff;
+  --fg-hud-warm: #a0441d;
+  --fg-hud-good: #3c6845;
+  --fg-hud-bad: #a5303a;
+  --fg-hud-xp: #1f4e8c;
+  --fg-hud-xpbar: #1f4e8c;
+  --fg-heat-0: #ede5d3;
+  --fg-heat-1: #b9c9e0;
+  --fg-heat-2: #6689bd;
+  --fg-heat-3: #1f4e8c;
+  --fg-rar-low: #4f7c58;
+  --fg-rar-medium: #1f4e8c;
+  --fg-rar-high: #a0441d;
+
+  --fg-font-sans: 'Source Serif 4 Variable', Georgia, serif;
+  --fg-font-display: 'Fraunces Variable', Georgia, serif;
+  --fg-font-label: 'Source Serif 4 Variable', Georgia, serif;
+  --fg-font-num: 'Fraunces Variable', Georgia, serif;
+  --fg-font-btn: 'Source Serif 4 Variable', Georgia, serif;
+  --fg-display-weight: 500;
+  --fg-display-tracking: -0.015em;
+  --fg-body-weight: 400;
+  --fg-label-weight: 600;
+  --fg-label-tracking: 0.1em;
+  --fg-num-weight: 500;
+  --fg-r-md: 3px;
+  --fg-r-lg: 4px;
+  --fg-r-xl: 5px;
+  --fg-r-2xl: 6px;
+  --fg-r-3xl: 8px;
+  --fg-radius: 4px;
+  --fg-btn-radius: 3px;
+  --fg-btn-radius-sm: 3px;
+  --fg-btn-weight: 600;
+  --fg-chip-radius: 3px;
+  --fg-xp-height: 6px;
+  --fg-xp-radius: 0px;
+  --fg-texture: repeating-linear-gradient(180deg, transparent 0 31px, rgba(31, 78, 140, 0.06) 31px 32px);
+  --fg-texture-size: auto;
+}
+
+/* Nordic: cool grey white, fjord blue, pine, clay. Airy geometric sans, soft shadows. */
+[data-theme-id='nordic'] {
+  --fg-paper: #f2f4f6;
   --fg-card: #ffffff;
-  --fg-sunk: #fbe6d8;
-  --fg-ink: #2e1a2b;
-  --fg-muted: #7a5d6d;
-  --fg-line: #f3dccd;
-  --fg-edge: #e6c4ae;
-  --fg-accent: #c8431c;
-  --fg-accent-deep: #9a3013;
-  --fg-accent-soft: #ffe3d8;
+  --fg-sunk: #e8ecf0;
+  --fg-ink: #16202b;
+  --fg-muted: #505c69;
+  --fg-line: #dde3e9;
+  --fg-edge: #dde3e9;
+  --fg-accent: #2a6189;
+  --fg-accent-deep: #1f4b6b;
+  --fg-accent-soft: #e2edf5;
   --fg-on-accent: #ffffff;
-  --fg-warm: #f29f05;
-  --fg-warm-deep: #c27d00;
-  --fg-warm-soft: #fff0cf;
-  --fg-xp: #ffb627;
-  --fg-hud: #3a1838;
-  --fg-hud-ink: #fff0f3;
-  --fg-hud-muted: #c9a0b9;
-  --fg-hud-line: #55284f;
-  --fg-heat-0: #f6e3d6;
-  --fg-heat-1: #ffc2a8;
-  --fg-heat-2: #f47b52;
-  --fg-heat-3: #c8431c;
-}
-html[data-mode='game'][data-palette='sunset'].dark {
-  --fg-paper: #1a0f17;
-  --fg-card: #26151f;
-  --fg-sunk: #1f121b;
-  --fg-ink: #fbeee8;
-  --fg-muted: #bb9aa8;
-  --fg-line: #3a2230;
-  --fg-edge: #0d070b;
-  --fg-accent: #ff7a50;
-  --fg-accent-deep: #d4502a;
-  --fg-accent-soft: #3d1d1c;
-  --fg-on-accent: #1a0f17;
-  --fg-warm: #ffb730;
-  --fg-warm-deep: #cc8a12;
-  --fg-warm-soft: #372812;
-  --fg-xp: #ffc43d;
-  --fg-hud: #12080f;
-  --fg-hud-ink: #fbeee8;
-  --fg-hud-muted: #bb9aa8;
-  --fg-hud-line: #2f1a27;
-  --fg-heat-0: #2a1822;
-  --fg-heat-1: #5e2a2a;
-  --fg-heat-2: #b04a2c;
-  --fg-heat-3: #ff7a50;
-}
-html[data-mode='game'][data-palette='forest'] {
-  --fg-paper: #fbf6e9;
-  --fg-card: #fffdf6;
-  --fg-sunk: #f1ead6;
-  --fg-ink: #1f2a1f;
-  --fg-muted: #5f6a55;
-  --fg-line: #e6ddc4;
-  --fg-edge: #d6c9a6;
-  --fg-accent: #2b7d39;
-  --fg-accent-deep: #1d5e28;
-  --fg-accent-soft: #e2f2dc;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #d99a00;
-  --fg-warm-deep: #a87700;
-  --fg-warm-soft: #fbefcc;
-  --fg-xp: #e0a800;
-  --fg-hud: #17291c;
-  --fg-hud-ink: #f3f7ea;
-  --fg-hud-muted: #9fb59a;
-  --fg-hud-line: #284332;
-  --fg-heat-0: #ece4cc;
-  --fg-heat-1: #bfe0b0;
-  --fg-heat-2: #6fbf6a;
-  --fg-heat-3: #2b7d39;
-}
-html[data-mode='game'][data-palette='forest'].dark {
-  --fg-paper: #0f1611;
-  --fg-card: #172119;
-  --fg-sunk: #131c15;
-  --fg-ink: #eef3e6;
-  --fg-muted: #9fae9a;
-  --fg-line: #26352a;
-  --fg-edge: #070b08;
-  --fg-accent: #6fd672;
-  --fg-accent-deep: #3f9f47;
-  --fg-accent-soft: #1b3320;
-  --fg-on-accent: #0c1a0e;
-  --fg-warm: #f2c14a;
-  --fg-warm-deep: #c2931f;
-  --fg-warm-soft: #332b12;
-  --fg-xp: #f7cf4f;
-  --fg-hud: #0a110c;
-  --fg-hud-ink: #eef3e6;
-  --fg-hud-muted: #9fae9a;
-  --fg-hud-line: #1f2e23;
-  --fg-heat-0: #1a241c;
-  --fg-heat-1: #22502b;
-  --fg-heat-2: #3f9f47;
-  --fg-heat-3: #6fd672;
-}
-html[data-mode='game'][data-palette='ocean'] {
-  --fg-paper: #f0f6ff;
-  --fg-card: #ffffff;
-  --fg-sunk: #e0ecfb;
-  --fg-ink: #142238;
-  --fg-muted: #53637c;
-  --fg-line: #d5e3f5;
-  --fg-edge: #b8cde9;
-  --fg-accent: #1d67d6;
-  --fg-accent-deep: #1452b0;
-  --fg-accent-soft: #e0ecff;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #ff8a1c;
-  --fg-warm-deep: #d06b0a;
-  --fg-warm-soft: #fff0dc;
-  --fg-xp: #13c2e0;
-  --fg-hud: #0d1b33;
-  --fg-hud-ink: #eaf3ff;
-  --fg-hud-muted: #8fa6c7;
-  --fg-hud-line: #1d3052;
-  --fg-heat-0: #e0e9f5;
-  --fg-heat-1: #a9d2f7;
-  --fg-heat-2: #4f9cf0;
-  --fg-heat-3: #1d67d6;
-}
-html[data-mode='game'][data-palette='ocean'].dark {
-  --fg-paper: #0b1320;
-  --fg-card: #121d2e;
-  --fg-sunk: #0e1826;
-  --fg-ink: #e8f1ff;
-  --fg-muted: #93a6c1;
-  --fg-line: #1f2d42;
-  --fg-edge: #060a12;
-  --fg-accent: #5aa2ff;
-  --fg-accent-deep: #2f74d6;
-  --fg-accent-soft: #16294a;
-  --fg-on-accent: #06101f;
-  --fg-warm: #ffa94d;
-  --fg-warm-deep: #cc7a24;
-  --fg-warm-soft: #33250f;
-  --fg-xp: #3ddcf5;
-  --fg-hud: #070d18;
-  --fg-hud-ink: #e8f1ff;
-  --fg-hud-muted: #93a6c1;
-  --fg-hud-line: #1a2940;
-  --fg-heat-0: #141f30;
-  --fg-heat-1: #1a3a66;
-  --fg-heat-2: #2f74d6;
-  --fg-heat-3: #5aa2ff;
-}
-html[data-mode='game'][data-palette='candy'] {
-  --fg-paper: #fff3f8;
-  --fg-card: #ffffff;
-  --fg-sunk: #fbe4ef;
-  --fg-ink: #3a2340;
-  --fg-muted: #7d6082;
-  --fg-line: #f5d7e6;
-  --fg-edge: #eabfd6;
-  --fg-accent: #c92a74;
-  --fg-accent-deep: #9c1d58;
-  --fg-accent-soft: #ffe0ee;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #f08a4b;
-  --fg-warm-deep: #c96a2e;
-  --fg-warm-soft: #ffeadb;
-  --fg-xp: #b98cff;
-  --fg-hud: #3a2340;
-  --fg-hud-ink: #fff0f7;
-  --fg-hud-muted: #c8a6cc;
-  --fg-hud-line: #523558;
-  --fg-heat-0: #f6e2ec;
-  --fg-heat-1: #f7b8d6;
-  --fg-heat-2: #e86aa6;
-  --fg-heat-3: #c92a74;
-}
-html[data-mode='game'][data-palette='candy'].dark {
-  --fg-paper: #1a1220;
-  --fg-card: #241a2b;
-  --fg-sunk: #1e1525;
-  --fg-ink: #fbeef6;
-  --fg-muted: #c3a6c6;
-  --fg-line: #3a2b42;
-  --fg-edge: #0d0910;
-  --fg-accent: #ff7ab8;
-  --fg-accent-deep: #d64a8e;
-  --fg-accent-soft: #3d1d33;
-  --fg-on-accent: #1f0e19;
-  --fg-warm: #ffae6b;
-  --fg-warm-deep: #d0813f;
-  --fg-warm-soft: #372516;
-  --fg-xp: #c9a2ff;
-  --fg-hud: #120c17;
-  --fg-hud-ink: #fbeef6;
-  --fg-hud-muted: #c3a6c6;
-  --fg-hud-line: #2e2236;
-  --fg-heat-0: #251b2c;
-  --fg-heat-1: #5a2848;
-  --fg-heat-2: #b24382;
-  --fg-heat-3: #ff7ab8;
-}
-html[data-mode='minimal'][data-palette='sage'] {
-  --fg-paper: #f1f3ec;
-  --fg-card: #fbfcf8;
-  --fg-sunk: #e5e9dd;
-  --fg-ink: #1f2620;
-  --fg-muted: #5b675c;
-  --fg-line: #dbe0d2;
-  --fg-edge: #dbe0d2;
-  --fg-accent: #3f6e4f;
-  --fg-accent-deep: #2f5540;
-  --fg-accent-soft: #e2ede3;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #b0702a;
-  --fg-warm-deep: #8d5820;
-  --fg-warm-soft: #f3e7d4;
-  --fg-xp: #3f6e4f;
-  --fg-hud: #fbfcf8;
-  --fg-hud-ink: #1f2620;
-  --fg-hud-muted: #5b675c;
-  --fg-hud-line: #dbe0d2;
-  --fg-heat-0: #e2e6da;
-  --fg-heat-1: #bcd3bf;
-  --fg-heat-2: #7fa98a;
-  --fg-heat-3: #3f6e4f;
-}
-html[data-mode='minimal'][data-palette='sage'].dark {
-  --fg-paper: #111512;
-  --fg-card: #181d19;
-  --fg-sunk: #141915;
-  --fg-ink: #e8ede6;
-  --fg-muted: #9ba89c;
-  --fg-line: #262e27;
-  --fg-edge: #262e27;
-  --fg-accent: #8fc29d;
-  --fg-accent-deep: #6a9d78;
-  --fg-accent-soft: #1f2d23;
-  --fg-on-accent: #0f1a12;
-  --fg-warm: #e0a65e;
-  --fg-warm-deep: #b8823f;
-  --fg-warm-soft: #2e2518;
-  --fg-xp: #8fc29d;
-  --fg-hud: #181d19;
-  --fg-hud-ink: #e8ede6;
-  --fg-hud-muted: #9ba89c;
-  --fg-hud-line: #262e27;
-  --fg-heat-0: #1c221d;
-  --fg-heat-1: #2a4332;
-  --fg-heat-2: #4f7c5c;
-  --fg-heat-3: #8fc29d;
-}
-html[data-mode='minimal'][data-palette='slate'] {
-  --fg-paper: #eef1f4;
-  --fg-card: #fbfcfd;
-  --fg-sunk: #e2e7ec;
-  --fg-ink: #1c232b;
-  --fg-muted: #58636f;
-  --fg-line: #d7dde4;
-  --fg-edge: #d7dde4;
-  --fg-accent: #3d5a80;
-  --fg-accent-deep: #2e4563;
-  --fg-accent-soft: #e1e8f1;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #b5652b;
-  --fg-warm-deep: #8f4f20;
-  --fg-warm-soft: #f3e4d8;
-  --fg-xp: #3d5a80;
-  --fg-hud: #fbfcfd;
-  --fg-hud-ink: #1c232b;
-  --fg-hud-muted: #58636f;
-  --fg-hud-line: #d7dde4;
-  --fg-heat-0: #dde3ea;
-  --fg-heat-1: #b3c3d6;
-  --fg-heat-2: #7690b1;
-  --fg-heat-3: #3d5a80;
-}
-html[data-mode='minimal'][data-palette='slate'].dark {
-  --fg-paper: #0f1318;
-  --fg-card: #161b22;
-  --fg-sunk: #12171d;
-  --fg-ink: #e6ebf0;
-  --fg-muted: #97a3b0;
-  --fg-line: #242c36;
-  --fg-edge: #242c36;
-  --fg-accent: #8fb0d9;
-  --fg-accent-deep: #6a8cb8;
-  --fg-accent-soft: #1c2838;
-  --fg-on-accent: #0d1520;
-  --fg-warm: #e39a61;
-  --fg-warm-deep: #b87843;
-  --fg-warm-soft: #2f2319;
-  --fg-xp: #8fb0d9;
-  --fg-hud: #161b22;
-  --fg-hud-ink: #e6ebf0;
-  --fg-hud-muted: #97a3b0;
-  --fg-hud-line: #242c36;
-  --fg-heat-0: #1a2029;
-  --fg-heat-1: #243549;
-  --fg-heat-2: #45628a;
-  --fg-heat-3: #8fb0d9;
-}
-html[data-mode='minimal'][data-palette='sand'] {
-  --fg-paper: #f5ece0;
-  --fg-card: #fffaf3;
-  --fg-sunk: #ecdfcd;
-  --fg-ink: #2b211b;
-  --fg-muted: #6e5f54;
-  --fg-line: #e4d5c1;
-  --fg-edge: #e4d5c1;
-  --fg-accent: #a84b28;
-  --fg-accent-deep: #8a3c1f;
-  --fg-accent-soft: #f7e1d6;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #8a6d1f;
-  --fg-warm-deep: #6e5718;
-  --fg-warm-soft: #f0e8cf;
-  --fg-xp: #a84b28;
-  --fg-hud: #fffaf3;
-  --fg-hud-ink: #2b211b;
-  --fg-hud-muted: #6e5f54;
-  --fg-hud-line: #e4d5c1;
-  --fg-heat-0: #e8dccb;
-  --fg-heat-1: #eab9a2;
-  --fg-heat-2: #d27d5a;
-  --fg-heat-3: #a84b28;
-}
-html[data-mode='minimal'][data-palette='sand'].dark {
-  --fg-paper: #16110d;
-  --fg-card: #1f1813;
-  --fg-sunk: #1a1410;
-  --fg-ink: #f2e9df;
-  --fg-muted: #b0a193;
-  --fg-line: #33291f;
-  --fg-edge: #33291f;
-  --fg-accent: #e58a63;
-  --fg-accent-deep: #c06b45;
-  --fg-accent-soft: #3a2218;
-  --fg-on-accent: #1a0f0a;
-  --fg-warm: #d6b45a;
-  --fg-warm-deep: #a98a3a;
-  --fg-warm-soft: #2e2714;
-  --fg-xp: #e58a63;
-  --fg-hud: #1f1813;
-  --fg-hud-ink: #f2e9df;
-  --fg-hud-muted: #b0a193;
-  --fg-hud-line: #33291f;
-  --fg-heat-0: #231b15;
-  --fg-heat-1: #4f2d1f;
-  --fg-heat-2: #a3593a;
-  --fg-heat-3: #e58a63;
-}
-html[data-mode='minimal'][data-palette='ink'] {
-  --fg-paper: #f6f6f4;
-  --fg-card: #ffffff;
-  --fg-sunk: #ececea;
-  --fg-ink: #111111;
-  --fg-muted: #5e5e5e;
-  --fg-line: #e2e2df;
-  --fg-edge: #e2e2df;
-  --fg-accent: #1a1a1a;
-  --fg-accent-deep: #000000;
-  --fg-accent-soft: #e8e8e6;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #b3432f;
-  --fg-warm-deep: #8f3322;
-  --fg-warm-soft: #f6e0da;
-  --fg-xp: #1a1a1a;
+  --fg-warm: #a3502d;
+  --fg-warm-deep: #82401f;
+  --fg-warm-soft: #f6e6de;
+  --fg-good: #2b6a4f;
+  --fg-good-deep: #1f503b;
+  --fg-good-soft: #e0eee6;
+  --fg-on-good: #ffffff;
+  --fg-caution: #7f5b0e;
+  --fg-caution-soft: #f4ebd1;
+  --fg-bad: #af3838;
+  --fg-bad-soft: #f8e3e3;
+  --fg-on-bad: #ffffff;
+  --fg-xp: #2b6a4f;
+  --fg-xpbar: #2a6189;
   --fg-hud: #ffffff;
-  --fg-hud-ink: #111111;
-  --fg-hud-muted: #5e5e5e;
-  --fg-hud-line: #e2e2df;
-  --fg-heat-0: #e6e6e3;
-  --fg-heat-1: #bdbdbd;
-  --fg-heat-2: #7a7a7a;
-  --fg-heat-3: #1a1a1a;
+  --fg-hud-ink: #16202b;
+  --fg-hud-muted: #505c69;
+  --fg-hud-line: #dde3e9;
+  --fg-hud-accent: #2a6189;
+  --fg-hud-accent-deep: #1f4b6b;
+  --fg-hud-on-accent: #ffffff;
+  --fg-hud-warm: #a3502d;
+  --fg-hud-good: #2b6a4f;
+  --fg-hud-bad: #af3838;
+  --fg-hud-xp: #2b6a4f;
+  --fg-hud-xpbar: #2a6189;
+  --fg-heat-0: #e3e8ed;
+  --fg-heat-1: #b3d2c3;
+  --fg-heat-2: #5e9b7f;
+  --fg-heat-3: #2b6a4f;
+  --fg-rar-low: #687a8b;
+  --fg-rar-medium: #2a6189;
+  --fg-rar-high: #a3502d;
+
+  --fg-font-sans: 'Inter Variable', system-ui, sans-serif;
+  --fg-font-display: 'Manrope Variable', system-ui, sans-serif;
+  --fg-font-label: 'Inter Variable', system-ui, sans-serif;
+  --fg-font-num: 'Manrope Variable', system-ui, sans-serif;
+  --fg-font-btn: 'Manrope Variable', system-ui, sans-serif;
+  --fg-display-weight: 700;
+  --fg-display-tracking: -0.03em;
+  --fg-body-weight: 400;
+  --fg-label-weight: 600;
+  --fg-label-size: 11px;
+  --fg-label-tracking: 0.09em;
+  --fg-num-weight: 700;
+  --fg-r-md: 8px;
+  --fg-r-lg: 10px;
+  --fg-r-xl: 14px;
+  --fg-r-2xl: 18px;
+  --fg-r-3xl: 26px;
+  --fg-radius: 18px;
+  --fg-card-border: 1px;
+  --fg-card-shadow: 0 1px 2px rgba(22, 32, 43, 0.04), 0 12px 32px -18px rgba(22, 32, 43, 0.18);
+  --fg-btn-radius: 12px;
+  --fg-btn-radius-sm: 10px;
+  --fg-btn-weight: 700;
+  --fg-btn-shadow: 0 1px 2px rgba(22, 32, 43, 0.06);
+  --fg-xp-height: 8px;
 }
-html[data-mode='minimal'][data-palette='ink'].dark {
-  --fg-paper: #0e0e0e;
-  --fg-card: #171717;
-  --fg-sunk: #131313;
-  --fg-ink: #ededed;
-  --fg-muted: #9a9a9a;
-  --fg-line: #262626;
-  --fg-edge: #262626;
-  --fg-accent: #f2f2f2;
-  --fg-accent-deep: #cfcfcf;
-  --fg-accent-soft: #2a2a2a;
-  --fg-on-accent: #111111;
-  --fg-warm: #e0805a;
-  --fg-warm-deep: #b8603c;
-  --fg-warm-soft: #2e1f18;
-  --fg-xp: #f2f2f2;
-  --fg-hud: #171717;
-  --fg-hud-ink: #ededed;
-  --fg-hud-muted: #9a9a9a;
-  --fg-hud-line: #262626;
-  --fg-heat-0: #1c1c1c;
-  --fg-heat-1: #3d3d3d;
-  --fg-heat-2: #8a8a8a;
-  --fg-heat-3: #f2f2f2;
+
+/* Midnight Library: green black study, brass, burgundy, parchment text. Old style serif. */
+[data-theme-id='midnight'] {
+  --fg-paper: #0f1712;
+  --fg-card: #16211a;
+  --fg-sunk: #121c16;
+  --fg-ink: #efe6d2;
+  --fg-muted: #b7ad96;
+  --fg-line: #2c3c31;
+  --fg-edge: #2c3c31;
+  --fg-accent: #d4aa52;
+  --fg-accent-deep: #a8823a;
+  --fg-accent-soft: #2b2a1a;
+  --fg-on-accent: #17120a;
+  --fg-warm: #e08d9b;
+  --fg-warm-deep: #b35e6e;
+  --fg-warm-soft: #3a1d25;
+  --fg-good: #8fc39c;
+  --fg-good-deep: #6a9c77;
+  --fg-good-soft: #1c3024;
+  --fg-on-good: #0d1a11;
+  --fg-caution: #dcbc6a;
+  --fg-caution-soft: #302a17;
+  --fg-bad: #e8868a;
+  --fg-bad-soft: #3a1c1f;
+  --fg-on-bad: #1e0b0c;
+  --fg-xp: #d4aa52;
+  --fg-xpbar: #d4aa52;
+  --fg-hud: #16211a;
+  --fg-hud-ink: #efe6d2;
+  --fg-hud-muted: #b7ad96;
+  --fg-hud-line: #2c3c31;
+  --fg-hud-accent: #d4aa52;
+  --fg-hud-accent-deep: #a8823a;
+  --fg-hud-on-accent: #17120a;
+  --fg-hud-warm: #e08d9b;
+  --fg-hud-good: #8fc39c;
+  --fg-hud-bad: #e8868a;
+  --fg-hud-xp: #d4aa52;
+  --fg-hud-xpbar: #d4aa52;
+  --fg-heat-0: #1d2a21;
+  --fg-heat-1: #4a4424;
+  --fg-heat-2: #8f773a;
+  --fg-heat-3: #d4aa52;
+  --fg-rar-low: #8fc39c;
+  --fg-rar-medium: #e08d9b;
+  --fg-rar-high: #d4aa52;
+
+  --fg-font-sans: 'Lora Variable', Georgia, serif;
+  --fg-font-display: 'Cormorant Garamond Variable', Georgia, serif;
+  --fg-font-label: 'Lora Variable', Georgia, serif;
+  --fg-font-num: 'Cormorant Garamond Variable', Georgia, serif;
+  --fg-font-btn: 'Lora Variable', Georgia, serif;
+  --fg-display-weight: 600;
+  --fg-display-tracking: 0;
+  --fg-display-adjust: 0.47;
+  --fg-body-weight: 400;
+  --fg-label-weight: 500;
+  --fg-label-size: 11px;
+  --fg-label-tracking: 0.16em;
+  --fg-num-weight: 600;
+  --fg-r-md: 2px;
+  --fg-r-lg: 2px;
+  --fg-r-xl: 3px;
+  --fg-r-2xl: 4px;
+  --fg-r-3xl: 6px;
+  --fg-radius: 3px;
+  --fg-card-shadow: inset 0 0 0 3px #16211a, inset 0 0 0 4px rgba(212, 170, 82, 0.16);
+  --fg-btn-radius: 2px;
+  --fg-btn-radius-sm: 2px;
+  --fg-btn-weight: 500;
+  --fg-btn-tracking: 0.03em;
+  --fg-chip-radius: 2px;
+  --fg-xp-height: 5px;
+  --fg-xp-radius: 0px;
+  --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .8 0 0 0 0 .55 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fg-texture-size: 200px 200px;
 }
-html[data-mode='minimal'][data-palette='dusk'] {
-  --fg-paper: #f3f1f6;
-  --fg-card: #fdfcfe;
-  --fg-sunk: #e8e4ee;
-  --fg-ink: #221f33;
-  --fg-muted: #625c7a;
-  --fg-line: #dfd9e8;
-  --fg-edge: #dfd9e8;
-  --fg-accent: #4f4a8c;
-  --fg-accent-deep: #3b3770;
-  --fg-accent-soft: #e6e4f3;
-  --fg-on-accent: #ffffff;
-  --fg-warm: #b5566e;
-  --fg-warm-deep: #914257;
-  --fg-warm-soft: #f6e1e6;
-  --fg-xp: #4f4a8c;
-  --fg-hud: #fdfcfe;
-  --fg-hud-ink: #221f33;
-  --fg-hud-muted: #625c7a;
-  --fg-hud-line: #dfd9e8;
-  --fg-heat-0: #e4e0eb;
-  --fg-heat-1: #c4c0e0;
-  --fg-heat-2: #8a84c2;
-  --fg-heat-3: #4f4a8c;
+
+/* Studio: warm graphite, terracotta, cream, olive, mustard. Wide display sans, mono labels. */
+[data-theme-id='studio'] {
+  --fg-paper: #2a2622;
+  --fg-card: #34302b;
+  --fg-sunk: #2f2b27;
+  --fg-ink: #f3ecdf;
+  --fg-muted: #c6bcac;
+  --fg-line: #4a433b;
+  --fg-edge: #4a433b;
+  --fg-accent: #e8916b;
+  --fg-accent-deep: #c06c48;
+  --fg-accent-soft: #4a3229;
+  --fg-on-accent: #231510;
+  --fg-warm: #dcb65c;
+  --fg-warm-deep: #b08f3e;
+  --fg-warm-soft: #433a26;
+  --fg-good: #b3c472;
+  --fg-good-deep: #8a9a50;
+  --fg-good-soft: #393d26;
+  --fg-on-good: #1c1f0c;
+  --fg-caution: #dcb65c;
+  --fg-caution-soft: #433a26;
+  --fg-bad: #f08e84;
+  --fg-bad-soft: #4a2b2a;
+  --fg-on-bad: #230f0d;
+  --fg-xp: #e8916b;
+  --fg-xpbar: #e8916b;
+  --fg-hud: #34302b;
+  --fg-hud-ink: #f3ecdf;
+  --fg-hud-muted: #c6bcac;
+  --fg-hud-line: #4a433b;
+  --fg-hud-accent: #e8916b;
+  --fg-hud-accent-deep: #c06c48;
+  --fg-hud-on-accent: #231510;
+  --fg-hud-warm: #dcb65c;
+  --fg-hud-good: #b3c472;
+  --fg-hud-bad: #f08e84;
+  --fg-hud-xp: #e8916b;
+  --fg-hud-xpbar: #e8916b;
+  --fg-heat-0: #3b3631;
+  --fg-heat-1: #5e4437;
+  --fg-heat-2: #a5684b;
+  --fg-heat-3: #e8916b;
+  --fg-rar-low: #93b7cc;
+  --fg-rar-medium: #b3c472;
+  --fg-rar-high: #dcb65c;
+
+  --fg-font-sans: 'IBM Plex Sans Variable', system-ui, sans-serif;
+  --fg-font-display: 'Syne Variable', system-ui, sans-serif;
+  --fg-font-label: 'Geist Mono Variable', ui-monospace, monospace;
+  --fg-font-num: 'Geist Mono Variable', ui-monospace, monospace;
+  --fg-font-btn: 'IBM Plex Sans Variable', system-ui, sans-serif;
+  --fg-display-weight: 700;
+  --fg-display-tracking: -0.02em;
+  --fg-body-weight: 400;
+  --fg-label-weight: 500;
+  --fg-label-size: 11px;
+  --fg-label-tracking: 0.06em;
+  --fg-num-weight: 500;
+  --fg-r-md: 6px;
+  --fg-r-lg: 8px;
+  --fg-r-xl: 10px;
+  --fg-r-2xl: 12px;
+  --fg-r-3xl: 16px;
+  --fg-radius: 12px;
+  --fg-btn-radius: 999px;
+  --fg-btn-radius-sm: 999px;
+  --fg-btn-weight: 600;
+  --fg-chip-radius: 6px;
+  --fg-xp-height: 6px;
+  --fg-texture: radial-gradient(rgba(243, 236, 223, 0.07) 1px, transparent 1.2px);
+  --fg-texture-size: 18px 18px;
 }
-html[data-mode='minimal'][data-palette='dusk'].dark {
-  --fg-paper: #121119;
-  --fg-card: #1a1824;
-  --fg-sunk: #15141e;
-  --fg-ink: #ebe8f3;
-  --fg-muted: #a19cb5;
-  --fg-line: #2a2738;
-  --fg-edge: #2a2738;
-  --fg-accent: #a9a3e6;
-  --fg-accent-deep: #8680c9;
-  --fg-accent-soft: #25233d;
-  --fg-on-accent: #14122a;
-  --fg-warm: #e591a6;
-  --fg-warm-deep: #bf6d83;
-  --fg-warm-soft: #36202a;
-  --fg-xp: #a9a3e6;
-  --fg-hud: #1a1824;
-  --fg-hud-ink: #ebe8f3;
-  --fg-hud-muted: #a19cb5;
-  --fg-hud-line: #2a2738;
-  --fg-heat-0: #1d1b28;
-  --fg-heat-1: #312e55;
-  --fg-heat-2: #5f5aa3;
-  --fg-heat-3: #a9a3e6;
+
+/*
+  The game HUD (status strip, level card, celebrations) is always dark, so inside it the
+  roles switch to their HUD colours. Dark themes use the same values for both.
+*/
+:where(.bg-hud, .\!bg-hud) {
+  --fg-ink: var(--fg-hud-ink);
+  --fg-muted: var(--fg-hud-muted);
+  --fg-line: var(--fg-hud-line);
+  --fg-sunk: var(--fg-hud-line);
+  --fg-accent: var(--fg-hud-accent);
+  --fg-accent-deep: var(--fg-hud-accent-deep);
+  --fg-on-accent: var(--fg-hud-on-accent);
+  --fg-warm: var(--fg-hud-warm);
+  --fg-good: var(--fg-hud-good);
+  --fg-bad: var(--fg-hud-bad);
+  --fg-xp: var(--fg-hud-xp);
+  --fg-xpbar: var(--fg-hud-xpbar);
 }
 
 html,
 body {
-  background: var(--fg-paper);
+  background-color: var(--fg-paper);
   color: var(--fg-ink);
 }
-body {
+:root {
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
+}
+body,
+.theme-scope {
   font-family: var(--fg-font-sans);
+  font-weight: var(--fg-body-weight);
   -webkit-font-smoothing: antialiased;
   background-image: var(--fg-texture);
-  background-size: 6px 6px;
+  background-size: var(--fg-texture-size);
 }
-[data-mode='game'] body {
-  font-weight: var(--fg-body-weight);
+.theme-scope {
+  background-color: var(--fg-paper);
+  color: var(--fg-ink);
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  .h-display {
+    font-family: var(--fg-font-display);
+    letter-spacing: var(--fg-display-tracking);
+    font-size-adjust: var(--fg-display-adjust);
+  }
+  [data-theme-id='storybook'] :where(h1, h2, h3, .h-display) {
+    font-synthesis-weight: none;
+  }
 }
 
 @layer components {
-  /* Buttons: flat in minimal, pressable with a bottom edge in game mode */
+  /* Buttons: every theme draws them its own way through the --fg-btn-* tokens */
   .btn {
-    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-line bg-card px-4 py-2.5 text-sm font-semibold text-ink transition
-      hover:-translate-y-px hover:shadow-sm active:translate-y-0 disabled:pointer-events-none disabled:opacity-50;
-  }
-  .btn-primary {
-    @apply border-accent bg-accent text-on-accent;
-  }
-  .btn-ghost {
-    @apply border-transparent bg-transparent hover:bg-sunk hover:shadow-none;
-  }
-  .btn-danger {
-    @apply border-bad bg-bad text-white;
-  }
-  .btn-sm {
-    @apply rounded-lg px-3 py-1.5 text-xs;
-  }
-  [data-mode='game'] .btn {
-    border-width: 2px;
-    border-bottom-width: 4px;
-    border-color: var(--fg-line);
-    border-bottom-color: var(--fg-edge);
-    border-radius: 16px;
-    font-weight: 800;
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5 text-sm transition disabled:pointer-events-none disabled:opacity-50;
+    border: var(--fg-btn-border) solid var(--fg-btn-line);
+    border-bottom-width: calc(var(--fg-btn-border) + var(--fg-btn-edge));
+    border-bottom-color: var(--fg-btn-edge-color);
+    border-radius: var(--fg-btn-radius);
+    background-color: var(--fg-card);
+    color: var(--fg-ink);
+    font-family: var(--fg-font-btn);
+    font-weight: var(--fg-btn-weight);
+    text-transform: var(--fg-btn-case);
+    letter-spacing: var(--fg-btn-tracking);
+    box-shadow: var(--fg-btn-shadow);
     transition:
       transform 0.1s ease,
       border-bottom-width 0.1s ease,
+      box-shadow 0.1s ease,
       filter 0.15s ease;
   }
-  [data-mode='game'] .btn:hover {
-    transform: none;
-    filter: brightness(1.04);
+  .btn:hover {
+    filter: brightness(1.05);
+  }
+  .btn:active {
+    transform: translate(var(--fg-press-x), var(--fg-press-y));
+    border-bottom-width: var(--fg-btn-border);
     box-shadow: none;
   }
-  [data-mode='game'] .btn:active {
-    transform: translateY(2px);
-    border-bottom-width: 2px;
-  }
-  [data-mode='game'] .btn-primary {
+  .btn-primary {
     border-color: var(--fg-accent);
     border-bottom-color: var(--fg-accent-deep);
+    background-color: var(--fg-accent);
+    color: var(--fg-on-accent);
+    box-shadow: var(--fg-btn-primary-shadow);
   }
-  [data-mode='game'] .btn-danger {
+  .btn-ghost {
+    border-color: transparent;
+    background-color: transparent;
+    box-shadow: none;
+  }
+  .btn-ghost:hover {
+    background-color: var(--fg-sunk);
+  }
+  .btn-danger {
     border-color: var(--fg-bad);
     border-bottom-color: color-mix(in srgb, var(--fg-bad) 70%, black);
+    background-color: var(--fg-bad);
+    color: var(--fg-on-bad);
   }
-  [data-mode='game'] .btn-ghost {
-    border-color: transparent;
-  }
-  [data-mode='game'] .btn-sm {
-    border-radius: 12px;
-    border-bottom-width: 3px;
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+    border-radius: var(--fg-btn-radius-sm);
+    border-bottom-width: calc(var(--fg-btn-border) + min(var(--fg-btn-edge), 2px));
   }
 
   /* Surfaces */
   .card {
-    @apply border border-line bg-card;
+    border: var(--fg-card-border) solid var(--fg-card-line);
+    border-bottom-width: calc(var(--fg-card-border) + var(--fg-card-edge));
+    border-bottom-color: var(--fg-card-edge-color);
     border-radius: var(--fg-radius);
-  }
-  [data-mode='game'] .card {
-    border-width: 2px;
-    border-bottom-width: 4px;
-    border-bottom-color: var(--fg-edge);
+    background-color: var(--fg-card);
+    box-shadow: var(--fg-card-shadow);
   }
 
   .input {
-    @apply w-full rounded-xl border border-line bg-card px-3 py-2.5 text-sm text-ink outline-none transition placeholder:text-muted
-      focus:border-accent focus:ring-4 focus:ring-accent/15;
-  }
-  [data-mode='game'] .input {
-    border-width: 2px;
-    border-radius: 14px;
-    font-weight: 600;
+    @apply w-full px-3 py-2.5 text-sm outline-none transition placeholder:text-muted focus:border-accent focus:ring-4 focus:ring-accent/15;
+    border: var(--fg-input-border) solid var(--fg-line);
+    border-radius: var(--fg-r-xl);
+    background-color: var(--fg-card);
+    color: var(--fg-ink);
   }
 
   /* Type roles */
   .label {
-    @apply mb-1.5 block text-xs font-semibold tracking-wide text-muted uppercase;
-  }
-  [data-mode='game'] .label {
+    @apply mb-1.5 block text-muted uppercase;
     font-family: var(--fg-font-label);
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.12em;
+    font-weight: var(--fg-label-weight);
+    font-size: var(--fg-label-size);
+    letter-spacing: var(--fg-label-tracking);
   }
   .h-display {
-    font-family: var(--fg-font-display);
-    letter-spacing: var(--fg-display-tracking);
     font-weight: var(--fg-display-weight);
+    text-transform: var(--fg-display-case);
   }
   .hud-label {
     font-family: var(--fg-font-label);
     font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
+    font-weight: var(--fg-label-weight);
+    letter-spacing: var(--fg-label-tracking);
     text-transform: uppercase;
-  }
-  [data-mode='minimal'] .hud-label {
-    letter-spacing: 0.06em;
-    font-weight: 600;
   }
   .num {
     font-family: var(--fg-font-num);
-    font-variant-numeric: tabular-nums;
-  }
-  [data-mode='game'] .num {
-    font-weight: 800;
-    letter-spacing: 0.02em;
+    font-weight: var(--fg-num-weight);
+    font-variant-numeric: lining-nums tabular-nums;
   }
   .chip {
-    @apply inline-flex items-center gap-1 rounded-full bg-sunk px-2.5 py-0.5 text-xs font-medium text-muted;
-  }
-  [data-mode='game'] .chip {
-    font-weight: 800;
+    @apply inline-flex items-center gap-1 bg-sunk px-2.5 py-0.5 text-xs text-muted;
+    border-radius: var(--fg-chip-radius);
+    font-weight: var(--fg-chip-weight);
   }
 
-  /* Priority as "rarity": low common blue, medium rare violet, high legendary gold */
+  /* Priority as "rarity": each theme picks three of its own hues */
   .rar-low {
-    --rar: #38a8f5;
+    --rar: var(--fg-rar-low);
   }
   .rar-medium {
-    --rar: #9a7bff;
+    --rar: var(--fg-rar-medium);
   }
   .rar-high {
-    --rar: #f2a900;
+    --rar: var(--fg-rar-high);
   }
 
   /* XP / progress bars */
   .xpbar {
-    height: 8px;
-    border-radius: 999px;
+    height: var(--fg-xp-height);
+    border-radius: var(--fg-xp-radius);
     background: var(--fg-sunk);
     overflow: hidden;
   }
@@ -978,15 +962,10 @@ body {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: var(--fg-accent);
+    background-color: var(--fg-xpbar);
+    background-image: var(--fg-xp-overlay);
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, var(--fg-xp-inset));
     transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  [data-mode='game'] .xpbar {
-    height: 12px;
-  }
-  [data-mode='game'] .xpbar > i {
-    background: linear-gradient(90deg, var(--fg-accent), color-mix(in srgb, var(--fg-accent) 55%, white));
-    box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--fg-accent-deep) 80%, transparent);
   }
 }
 

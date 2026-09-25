@@ -237,10 +237,11 @@ describe('import sanitizing', () => {
     const { state } = await be.dispatch('data.import', { data: dump, pin: PIN })
     const st = state.settings
     expect(st.failsafeWaitSeconds).toBe(30)
-    expect(st.theme).toBe('system')
+    expect('theme' in st).toBe(false)
+    // an unknown old palette and an unknown old switch fall back to the first light and dark themes
     expect(st.appearance).toEqual({
-      game: { palette: 'grape', heading: 'lilita', body: 'nunito' },
-      minimal: { palette: 'paper', heading: 'instrument', body: 'geist' },
+      game: { theme: 'sunny', night: 'night-owl' },
+      minimal: { theme: 'paper', night: 'midnight' },
     })
     expect(st.lofi).toEqual({
       volume: 1,
