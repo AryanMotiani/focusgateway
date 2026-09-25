@@ -10,6 +10,7 @@ import PinField from '../components/PinField.vue'
 import FailsafeFlow from '../components/FailsafeFlow.vue'
 import RuleEditor from '../components/RuleEditor.vue'
 import ThemePicker from '../components/look/ThemePicker.vue'
+import QuickTheme from '../components/look/QuickTheme.vue'
 import logo from '../assets/logo.svg'
 
 const router = useRouter()
@@ -119,7 +120,7 @@ const firstRule = computed(() => s.value.rules[0])
     <div class="mx-auto max-w-xl">
       <div class="mb-6 flex items-center justify-between">
         <div class="flex items-center gap-2"><img :src="logo" alt="" class="h-8 w-8" /><span class="font-semibold">FocusGateway</span></div>
-        <span class="text-xs text-muted">Step {{ step + 1 }} of {{ STEPS.length }}</span>
+        <span class="flex items-center gap-2 text-xs text-muted">Step {{ step + 1 }} of {{ STEPS.length }} <QuickTheme /></span>
       </div>
       <div class="mb-6 flex gap-1" aria-hidden="true">
         <span v-for="(n, i) in STEPS" :key="n" class="h-1.5 flex-1 rounded-full" :class="i <= step ? 'bg-accent' : 'bg-line'" />
@@ -155,7 +156,7 @@ const firstRule = computed(() => s.value.rules[0])
             FocusGateway icon in your toolbar, press <b>Allow</b>, and your PIN and rules move over. No need to do this again.
           </div>
           <div>
-            <p class="label">Pick a style (change it any time in Settings)</p>
+            <p class="label">Pick a style (change it any time from the palette button)</p>
             <div class="grid gap-2 sm:grid-cols-2">
               <button
                 v-for="m in MODES"
@@ -172,7 +173,7 @@ const firstRule = computed(() => s.value.rules[0])
             </div>
           </div>
           <div>
-            <p class="label">And a theme (change it any time in Settings)</p>
+            <p class="label">And a theme</p>
             <ThemePicker :mode="uiMode" compact />
           </div>
           <button class="btn btn-primary w-full py-3" @click="start">Start setup</button>

@@ -32,6 +32,8 @@ import StatusStrip from '../components/StatusStrip.vue'
 import Icon from '../components/Icon.vue'
 import logo from '../assets/logo.svg'
 import HelpButton from '../components/help/HelpButton.vue'
+import RoomNotice from '../components/help/RoomNotice.vue'
+import QuickTheme from '../components/look/QuickTheme.vue'
 import { autoTour } from '../lib/tour.js'
 
 const player = lofi()
@@ -137,7 +139,7 @@ function layout(vw, vh) {
     focus,
     player,
     drawer,
-    welcome: { x: M, y: focus.y - GAP - 170, w: lw, h: 170 },
+    welcome: { x: M, y: focus.y - GAP - 196, w: lw, h: 196 },
     notes: { x: vw - M - 320, y: Math.max(top, drawer.y - GAP - 230), w: 320, h: 230, min: true },
     scene: { x: vw - M - 460, y: top, w: 460, h: 480, min: true },
   }
@@ -351,6 +353,8 @@ const chipOn = 'room-glass room-pill room-on'
             <Icon :name="n.icon" :size="16" />
           </RouterLink>
         </nav>
+        <!-- trial room: why nothing is blocked here (set up rooms show it in the status strip) -->
+        <RoomNotice v-if="!narrow && !onboarded" class="max-w-xl" />
         <div class="ml-auto flex items-center gap-1.5">
           <button
             v-if="onboarded"
@@ -390,6 +394,7 @@ const chipOn = 'room-glass room-pill room-on'
             <Icon name="sparkles" :size="15" /> <span class="max-sm:hidden">Scene</span>
             <span class="num opacity-60 max-sm:hidden">{{ unlockedCount }}/{{ UNLOCKS.length }}</span>
           </button>
+          <QuickTheme glass />
           <HelpButton glass page="room" :class="pill" />
           <button class="p-2" :class="pill" aria-label="Hide panels (Z)" title="Hide panels (Z)" @click="hidden = true">
             <Icon name="eyeOff" :size="16" />
@@ -409,6 +414,7 @@ const chipOn = 'room-glass room-pill room-on'
         narrow ? ['relative flex flex-col gap-3 p-3 pb-24', phoneFull ? 'z-50' : 'z-10'] : 'pointer-events-none absolute inset-0 z-10'
       "
     >
+      <RoomNotice v-if="narrow" />
       <RoomWindow v-if="onboarded" id="status" title="Status" icon="pulse" :ctl="ctl" :stacked="narrow">
         <StatusStrip bare />
       </RoomWindow>

@@ -11,6 +11,20 @@ const blockingBasics = {
   ],
 }
 
+// Every reason blocking can be off, in the order people run into them
+const blockingOff = {
+  h: 'Why is nothing blocked?',
+  items: [
+    'No extension in this browser: the app runs on its own. Tasks, habits, the timer and the room work, but sites still open. Add the extension from the Install page.',
+    'Extension installed, site not approved: click the puzzle piece in the toolbar, then FocusGateway, then Allow. Then press Check again.',
+    'Firefox without website access: click the FocusGateway icon and press Grant access, or use the Fix it button here.',
+    'Older extension: blocking still works, but update it from the Install page to use the latest features.',
+    "Private or incognito window: extensions are off there until you allow FocusGateway in your browser's extension settings.",
+    'Phones: browser extensions run on computers. Firefox for Android runs some extensions, but FocusGateway does not support it yet.',
+    'Click the red "Blocking is off" chip for a checklist with a fix for each step, or open the Blocking page.',
+  ],
+}
+
 export const HELP = {
   room: {
     title: 'The study room',
@@ -62,8 +76,11 @@ export const HELP = {
           'Some rewards are badges you earn once, for example a streak or a number of focus hours. They can go in the room too.',
         ],
       },
+      blockingOff,
     ],
     tips: [
+      'Trying the room before setup? It is a trial room: the timer and music work, and site blocking is off until you add the extension.',
+      'The palette button in the header changes the theme any time.',
       'Hide the panels (Z) to enjoy the room with just a small timer and the play button.',
       'Leaving the room during a session asks first. Your sites stay blocked either way.',
     ],
@@ -96,6 +113,7 @@ export const HELP = {
         ],
       },
       blockingBasics,
+      blockingOff,
     ],
     tips: ['Your streak grows every day you finish every task that was due.', 'Add the one task that would make today a win.'],
     tour: 'today',
@@ -176,11 +194,21 @@ export const HELP = {
         items: [
           'Editing or deleting a rule while it is live needs your PIN. Deleting always does.',
           'A hard block can not overlap a task-gated window on the same site.',
+          'Without the extension you can still save rules. They start blocking once the extension is added.',
         ],
       },
+      {
+        h: 'Blocking status',
+        items: [
+          'The checklist on top shows each thing blocking needs: the extension, this site approved, website access, and the optional lock agent.',
+          'A green check is done. A red cross has a one-click fix next to it. Grey means optional or waiting on an earlier step.',
+          'Blocks running right now lists every active block and why it is on.',
+        ],
+      },
+      blockingOff,
       blockingBasics,
     ],
-    tips: ['Not sure blocking works? Settings, Test blocking checks it in one click.'],
+    tips: ['Not sure blocking works? Test blocking checks it in one click.'],
     tour: 'blocking',
   },
   habits: {
@@ -231,9 +259,9 @@ export const HELP = {
       {
         h: 'What is here',
         items: [
-          'Style and theme: Game (XP pops and sounds) or Calm, the theme, and a night theme for dark mode.',
+          'Style and theme: Game (XP pops and sounds) or Calm, the theme, and a night theme for dark mode. The palette button changes it from any page.',
           'Weekly focus goal, notifications and the Failsafe wait time.',
-          'Test blocking: opens a test site with a one minute block and tells you if this browser really blocks.',
+          'Blocking status: a checklist of what blocking needs here, with a fix for each step, and Test blocking, which opens a test site with a one minute block.',
           'PIN: protects your rules. Forgot it? Use your recovery code.',
           'Lock agent: blocks in every browser and app on this computer.',
           'Connected websites: sites allowed to talk to the extension.',
@@ -255,8 +283,10 @@ export const HELP = {
           'Using the website? Click the FocusGateway icon (under the puzzle piece) and press Allow for this site. Until you do, nothing is blocked.',
           'Firefox: allow access to all websites when asked, or blocking stays off.',
           "Private windows: allow FocusGateway there in your browser's extension settings.",
+          'Phones: extensions run on computers, so blocking does too. Firefox for Android runs some extensions, but FocusGateway does not support it yet.',
         ],
       },
+      blockingOff,
       {
         h: 'Check it',
         items: ['Test blocking opens a test site with a one minute block and tells you if it was blocked.'],

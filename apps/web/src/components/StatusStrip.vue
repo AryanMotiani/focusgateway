@@ -5,7 +5,7 @@
 // Both use the theme's room colours (style.css .room-ui and .room-glass).
 import { computed } from 'vue'
 import { focusPhase, taskStreak, trackById, trackStyle } from '@focusgateway/core'
-import { store, blocks } from '../lib/store.js'
+import { store, blocks, extensionOutdated, blockingIssue } from '../lib/store.js'
 import { progress, isGame } from '../lib/rewards.js'
 import { countdown } from '../lib/format.js'
 import { lofi, lofiState, playWithSettings, savedTrack } from '../lib/lofi.js'
@@ -83,6 +83,15 @@ const sub = computed(() => (props.glass || props.bare ? 'text-muted' : isGame.va
     </RouterLink>
 
     <BlockingOffBadge />
+    <RouterLink
+      v-if="extensionOutdated && !blockingIssue"
+      to="/install"
+      data-update-chip
+      class="flex items-center gap-1.5 rounded-full bg-caution-soft px-2.5 py-1 text-xs font-bold text-caution"
+      title="Your extension is older than this site. Update it to use the latest features."
+    >
+      <Icon name="sparkles" :size="13" /> Update extension
+    </RouterLink>
     <RouterLink v-if="blockText" to="/blocking" class="flex min-w-0 items-center gap-1.5 text-sm" :title="blockText">
       <Icon name="lock" :size="15" :class="firstBlock.locked ? 'text-bad' : 'text-accent'" />
       <span class="max-w-52 truncate">{{ blockText }}</span>

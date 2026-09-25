@@ -133,7 +133,8 @@ export async function connect() {
   if (extensionPresent()) {
     const bridge = bridgeAdapter()
     const hello = await bridge.call('hello')
-    if (hello?.ok) return { ...bridge, approved: hello.data.approved, hostAccess: hello.data.hostAccess ?? null }
+    if (hello?.ok)
+      return { ...bridge, approved: hello.data.approved, hostAccess: hello.data.hostAccess ?? null, version: hello.data.version ?? null }
   }
   return localAdapter()
 }

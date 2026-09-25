@@ -1,7 +1,7 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { parseHHMM, formatMinutes } from '@focusgateway/core'
-import { store, call, toast } from '../lib/store.js'
+import { store, call, toast, blockingIssue } from '../lib/store.js'
 import { withPin } from '../lib/actions.js'
 import { endOfToday } from '../lib/format.js'
 import Modal from './Modal.vue'
@@ -29,6 +29,15 @@ const newTasks = ref([{ title: '', priority: 'medium' }])
 const conflict = ref(null)
 const error = ref('')
 const openTasks = computed(() => store.state.tasks.filter((t) => !t.parentId && t.status !== 'done' && !t.ruleId))
+// rules can be saved without the extension, they just can not block yet
+const offlineNote = computed(
+  () =>
+    ({
+      'no-extension': 'Your rule is saved, but it only blocks once the extension is added to this browser.',
+      'not-approved': 'Your rule is saved, but it only blocks once this site is connected to the extension.',
+      'no-access': 'Your rule is saved, but it only blocks once the extension can reach websites.',
+    })[blockingIssue.value],
+)
 const crossesMidnight = computed(() => (parseHHMM(f.end) ?? 0) <= (parseHHMM(f.start) ?? 0))
 
 async function save() {
@@ -43,7 +52,8 @@ async function save() {
         f.mode === 'gated' ? newTasks.value.filter((t) => t.title.trim()).map((t) => ({ ...t, deadline: endOfToday(store.now) })) : []
       const rule = await call('rules.create', { ...payload, mode: f.mode, taskIds: attach.value, newTasks: tasks })
       const why = rule && store.state ? ruleWhy(store.state, rule, Date.now()) : null
-      toast(why ? `Rule created. ${why.text}` : 'Rule created.', 'success')
+      if (blockingIssue.value) toast('Rule saved. It blocks once the extension is added and connected.', 'info')
+      else toast(why ? `Rule created. ${why.text}` : 'Rule created.', 'success')
     } else {
       const res = await withPin(
         'rules.update',
@@ -178,6 +188,10 @@ async function save() {
         <button type="button" class="btn btn-sm mt-2" @click="emit('edit-rule', conflict.details.conflictRuleId)">Open that rule</button>
       </div>
       <p v-if="error" class="rounded-xl bg-bad-soft p-3 text-sm text-bad">{{ error }}</p>
+      <p v-if="blockingIssue" data-rule-offline class="flex items-start gap-2 rounded-xl bg-caution-soft p-3 text-sm">
+        <Icon name="alert" :size="16" class="mt-0.5 shrink-0 text-caution" />
+        <span>{{ offlineNote }}</span>
+      </p>
 
       <div class="flex justify-end gap-2">
         <button type="button" class="btn" @click="emit('close')">Cancel</button>

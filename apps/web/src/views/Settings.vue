@@ -7,7 +7,7 @@ import { download } from '../lib/format.js'
 import { hasLocalData, clearLocalData, createLocalAdapter } from '../lib/api.js'
 import Icon from '../components/Icon.vue'
 import HelpButton from '../components/help/HelpButton.vue'
-import BlockingTest from '../components/help/BlockingTest.vue'
+import BlockingStatus from '../components/help/BlockingStatus.vue'
 import Modal from '../components/Modal.vue'
 import PinField from '../components/PinField.vue'
 import ThemePicker from '../components/look/ThemePicker.vue'
@@ -179,7 +179,7 @@ async function revoke(o) {
           <h2 class="font-semibold">Theme</h2>
           <p class="text-sm text-muted">
             Themes for {{ lookMode === 'game' ? 'Game' : 'Calm' }}. Each one has its own typefaces, colours and surfaces, and applies the
-            moment you pick it.
+            moment you pick it. Change it any time from the palette button.
           </p>
         </div>
         <ThemePicker :mode="lookMode" />
@@ -243,11 +243,7 @@ async function revoke(o) {
       </div>
     </section>
 
-    <section class="card p-5" data-tour="settings-test">
-      <h2 class="font-semibold">Does blocking work here?</h2>
-      <p class="mt-1 mb-3 text-sm text-muted">Check this browser in one click. Handy after installing, or when a site was not blocked.</p>
-      <BlockingTest />
-    </section>
+    <div data-tour="settings-test"><BlockingStatus /></div>
 
     <section class="card divide-y divide-line" data-tour="settings-pin">
       <div class="flex flex-wrap items-center justify-between gap-3 p-5">

@@ -131,17 +131,22 @@ export const LEGACY_PALETTES = {
 
 /**
  * Turns an old { palette, heading, body } look plus the old theme switch into
- * { theme, night }. Light keeps the light theme, dark keeps the dark one, and
- * system (the old default) uses the light one by day and the dark one as night theme.
+ * { theme, night }. Dark keeps the dark theme. Light and system (the old default) get
+ * the light theme and no night theme, because light is the default look now.
  */
 export function legacyAppearance(old, mode, oldTheme) {
   const m = modeOf(mode)
   const table = LEGACY_PALETTES[m]
   const [light, dark] = table[old?.palette] || Object.values(table)[0]
-  if (oldTheme === 'light') return { theme: light, night: null }
   if (oldTheme === 'dark') return { theme: dark, night: null }
-  return { theme: light, night: dark }
+  return { theme: light, night: null }
 }
+
+/**
+ * Version of the look defaults. Version 2 made light the default: saves from before it
+ * drop the night theme that the old system setting turned on by itself.
+ */
+export const LOOK_VERSION = 2
 
 /** The look for one mode, with missing or unknown ids replaced by defaults. */
 export function appearanceFor(settings, mode) {
@@ -155,14 +160,16 @@ export function appearanceFor(settings, mode) {
 
 /**
  * Old saves have no appearance at all or the palette shape. Those carry the old
- * system/light/dark switch into the new theme and night theme.
+ * system/light/dark switch into a theme (dark stays dark, the rest turns light).
  */
 export function migrateAppearance(settings) {
   const out = {}
+  const before = !(settings?.lookVersion >= LOOK_VERSION)
   for (const m of APPEARANCE_MODES) {
     const saved = settings?.appearance?.[m]
     const isNew = !!saved && typeof saved === 'object' && 'theme' in saved
     out[m] = isNew ? appearanceFor(settings, m) : legacyAppearance(saved, m, settings?.theme)
+    if (isNew && before) out[m].night = null
   }
   return out
 }

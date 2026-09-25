@@ -5,8 +5,9 @@ import { progressOf, newlyUnlocked, computeMilestones, dateKey } from '@focusgat
 import { store } from './store.js'
 import { sfx } from './sfx.js'
 import { freshAffordable, initKnown, newlyAffordable, balance } from './shop.js'
+import { lookMode } from './look.js'
 
-export const isGame = computed(() => (store.state?.settings?.uiMode || 'game') === 'game')
+export const isGame = computed(() => lookMode.value === 'game')
 const soundsOn = () => isGame.value && store.state?.settings?.sounds !== false
 
 export const progress = computed(() => (store.state ? progressOf(store.state) : null))

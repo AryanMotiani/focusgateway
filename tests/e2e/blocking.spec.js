@@ -95,6 +95,17 @@ test('custom sites picked for a focus session are blocked too', async ({ context
   await expect(tab).toHaveURL(/blocked\.html\?d=news\.ycombinator\.com/)
 })
 
+test('the blocking status checklist is all green once connected', async ({ context, extensionId }) => {
+  const app = await connectedApp(context, extensionId, '#/blocking')
+  await app.goto(APP + '#/blocking')
+  const status = app.locator('[data-blocking-status]')
+  await expect(status.locator('[data-blocking-status-summary]')).toHaveText('Ready to block')
+  for (const id of ['extension', 'approved', 'access'])
+    await expect(status.locator(`[data-check="${id}"]`)).toHaveAttribute('data-state', 'ok')
+  await expect(status.locator('[data-check="agent"]')).toHaveAttribute('data-state', 'off')
+  await expect(app.locator('[data-extension-banner]')).toHaveCount(0)
+})
+
 test('Test blocking in Settings reports that blocking works', async ({ context, extensionId }) => {
   const app = await connectedApp(context, extensionId, '#/settings')
   await app.goto(APP + '#/settings')

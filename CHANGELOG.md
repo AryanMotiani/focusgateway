@@ -4,6 +4,15 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+### Added
+
+- Clear signs of why blocking may not work: a one-time "Site blocking needs the free extension" dialog, a trial room notice, a Blocking status checklist (Blocking page, Settings and the red chip) with a fix for each step, a two step approval guide with Check again, and banners for missing website access and an extension older than the site.
+- A palette button on every page, the study room included, to change the style, theme and night theme any time.
+
+### Changed
+
+- Light is the default look: new users get Sunny Quest with no night theme, and old saves that followed the system setting now get the light theme. Saves that picked dark keep a dark theme.
+
 ## [1.1.0] - 2026-09-25
 
 First public release: the study room home, Game and Calm styles, visual accountability, and the single-file lock agent with installers.

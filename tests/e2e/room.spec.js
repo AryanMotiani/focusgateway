@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test'
 // The study room windows: drag, resize, minimize, maximize and a layout that survives a
 // reload, with real pointer events. Runs on the public room (/room), no setup needed.
 test.use({ viewport: { width: 1440, height: 900 } })
+// the one-time "Site blocking needs the free extension" dialog is tested in clarity.spec.js
+test.beforeEach(({ page }) => page.addInitScript(() => localStorage.setItem('focusgateway:no-extension-seen', '1')))
 
 const rect = (page, id) =>
   page.locator(`[data-window="${id}"]`).evaluate((e) => {

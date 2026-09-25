@@ -6,11 +6,30 @@ This page lists every cause we found, what we changed, and what can still go wro
 
 ## Quick checks
 
-1. Open **Settings** and press **Test blocking**. It turns on a one minute block for `example.com`, opens it in a new tab and tells you whether the extension caught it. If it says "Blocking works in this browser", your setup is fine.
-2. Do you see a red **Blocking is off** sign in the status bar or the focus card? Click it. It tells you exactly what is missing and has a one-click fix.
-3. On the website (aryanmotiani.github.io/focusgateway), a page that says **Approve this site in the extension** means one more step: click the puzzle piece in the toolbar, then FocusGateway, then **Allow**.
-4. Firefox: if the FocusGateway icon shows a red **!**, click it and press **Grant access**.
-5. Private or incognito window? Extensions do not run there unless you allow it in the browser's extension settings.
+1. Open the **Blocking** page (or **Settings**). The **Blocking status** checklist at the top shows each thing blocking needs, with a green check, a red cross or a grey dot, and a one-click fix next to anything red:
+   - **Extension connected**: the free extension is installed and talking to this page (and not older than the site).
+   - **This site approved**: the website is allowed to use the extension.
+   - **Website access granted**: the extension may reach websites (Firefox can install it without).
+   - **Lock agent** (optional): blocks in other browsers and apps too.
+   - **Blocks running right now**: every active block and why it is on, or why a rule is not running.
+2. Press **Test blocking** under the checklist. It turns on a one minute block for `example.com`, opens it in a new tab and tells you whether the extension caught it.
+3. A red **Blocking is off** chip in the status bar opens the same checklist.
+4. On the website (aryanmotiani.github.io/focusgateway), a page that says **Approve this site in the extension** means one more step: click the puzzle piece in the toolbar, then FocusGateway, then **Allow**. Then press **Check again**.
+5. Firefox: if the FocusGateway icon shows a red **!**, click it and press **Grant access**.
+6. Private or incognito window? Extensions do not run there unless you allow FocusGateway in the browser's extension settings.
+7. On a phone? Browser extensions run on computers. Firefox for Android runs some extensions, but FocusGateway does not support it yet. Tasks, habits and the room still work.
+
+## What the app says in each situation
+
+| Situation | What you see |
+|---|---|
+| No extension, first visit to any app page (the room included) | A one-time dialog, **Site blocking needs the free extension**, with the install button for your browser (or the Install page) and **Continue without blocking**. It is remembered in `localStorage` (`focusgateway:no-extension-seen`), the red chips stay. |
+| Trial study room (public `/room`, no setup yet or no extension) | A glass pill in the room header (on phones, above the windows): **Trial room. Site blocking is off until you add the extension.** with **Add extension**. |
+| Starting focus without the extension | The **Blocking is off in this browser** dialog explains that the timer runs but nothing is blocked, with **Start anyway**. |
+| Saving a rule without the extension | An inline note in the rule editor: the rule is saved and starts blocking once the extension is added. The toast says the same. |
+| Extension installed, site not approved | The approval screen with the two steps (puzzle piece, then Allow), a small drawing of both, and **Check again**. After **Continue without blocking**, the red chip and the room pill offer **Connect**. |
+| Extension without website access | A red banner above every page with **Fix it**, and a red line in the checklist. |
+| Extension older than the website | A banner: **Update your extension to use the latest features.** Blocking keeps working. The extension reports its version in its `hello` answer, the app compares it with its own version (root `package.json`, injected by Vite). |
 
 ## Causes we found
 
@@ -83,14 +102,14 @@ Before, the only hints were a small line under the timer ("The timer works here.
 | Extension switched off, or removed | Nothing blocks in that browser | Switch it back on. The lock agent keeps blocking at system level |
 | Another browser | Only browsers with the extension block | Install it there too, or use the lock agent |
 | Safari | The extension does not run in Safari | Use the lock agent, which blocks in every app |
-| Phones | No extension | Blocking works on computers |
+| Phones | Browser extensions run on computers. Firefox for Android runs some, but FocusGateway does not support it yet | Use a computer for blocking. Tasks, habits and the room work on phones |
 | Brave | Shields do not stop the extension | Nothing to do. Brave treats it like Chrome |
-| Old extension zip with a newer website | Newer commands (like Test blocking) are unknown to the old extension | Download the latest zip from the Install page |
+| Old extension zip with a newer website | Newer commands (like Test blocking) are unknown to the old extension. The app now notices and shows "Update your extension" | Download the latest zip from the Install page |
 
 ## Remaining risks
 
 - **Manual installs.** Until the store listings are live, testers load a zip by hand, and Firefox temporary add-ons are removed when Firefox restarts. The Test blocking button makes this easy to notice, but it still needs a person to check.
-- **Version skew.** The website updates on every merge, the extension zip only on a release. We could not confirm from here that the latest release already carries the `focusgateway-chromium.zip` asset the Install page links to. Maintainers should check that the Install page download works after each release.
+- **Version skew.** The website updates on every merge, the extension zip only on a release. The app now shows "Update your extension" when the extension is older than the site, but the Install page still has to offer a newer zip. We could not confirm from here that the latest release already carries the `focusgateway-chromium.zip` asset the Install page links to. Maintainers should check that the Install page download works after each release.
 - **Approval step.** Connecting the website still needs a click in the extension popup. That is on purpose (any website could ask to connect), but it is the step people miss. The dialogs now explain it clearly.
 - **Firefox fallback.** Without host access, blocked sites show the browser's plain error page instead of FocusGateway's page with your tasks.
 - **Admin users.** Anyone with administrator rights can switch off extensions or edit the hosts file. FocusGateway makes giving in slow and visible, not impossible.
@@ -104,5 +123,9 @@ Before, the only hints were a small line under the timer ("The timer works here.
 | Network rules, open tabs, badge, host access | `extension/src/background.js` |
 | Website to extension bridge | `extension/src/bridge.js`, `apps/web/src/lib/api.js` |
 | Blocking is off dialog and chips | `apps/web/src/components/help/` (`guard.js`, `BlockingOffDialog.vue`, `BlockingOffBadge.vue`) |
+| Blocking status checklist | `apps/web/src/components/help/BlockingStatus.vue`, `BlockingStatusDialog.vue` |
+| First visit dialog, room notice, banners | `apps/web/src/components/help/FirstVisitDialog.vue`, `RoomNotice.vue`, `ExtensionBanner.vue` |
+| Approval steps with Check again | `apps/web/src/components/help/ApproveGuide.vue`, `checkApproval` in `apps/web/src/lib/store.js` |
+| Version check | `extensionOutdated` in `apps/web/src/lib/store.js`, `packages/core/src/version.js` |
 | Test blocking | `apps/web/src/components/help/BlockingTest.vue`, `blocking.test` and `blocking.hit` in `packages/core/src/backend.js`, `extension/src/blocked.js` |
 | End-to-end tests | `tests/e2e/blocking.spec.js` |

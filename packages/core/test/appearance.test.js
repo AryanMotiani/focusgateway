@@ -6,6 +6,7 @@ import {
   APPEARANCE,
   DEFAULT_APPEARANCE,
   LEGACY_PALETTES,
+  LOOK_VERSION,
   activeTheme,
   appearanceFor,
   legacyAppearance,
@@ -85,11 +86,13 @@ describe('migrating the old palette look', () => {
   it('maps each old palette to its closest light and dark theme', () => {
     expect(legacyAppearance({ palette: 'arcade' }, 'game', 'dark')).toEqual({ theme: 'arcade', night: null })
     expect(legacyAppearance({ palette: 'forest' }, 'game', 'light')).toEqual({ theme: 'storybook', night: null })
-    expect(legacyAppearance({ palette: 'sand' }, 'minimal', 'system')).toEqual({ theme: 'paper', night: 'studio' })
+    // system (the old default) now turns light with no night theme: light is the default look
+    expect(legacyAppearance({ palette: 'sand' }, 'minimal', 'system')).toEqual({ theme: 'paper', night: null })
+    expect(legacyAppearance({ palette: 'sand' }, 'minimal', undefined)).toEqual({ theme: 'paper', night: null })
     expect(legacyAppearance({ palette: 'nope' }, 'minimal', 'dark')).toEqual({ theme: 'midnight', night: null })
   })
 
-  it('carries system, light and dark into themes and removes the old switch', () => {
+  it('carries light and system into light themes, dark into dark ones, and removes the old switch', () => {
     const old = defaultState()
     old.settings.theme = 'system'
     old.settings.appearance = {
@@ -98,10 +101,11 @@ describe('migrating the old palette look', () => {
     }
     const m = migrate(old)
     expect(m.settings.appearance).toEqual({
-      game: { theme: 'sunny', night: 'night-owl' },
-      minimal: { theme: 'nordic', night: 'studio' },
+      game: { theme: 'sunny', night: null },
+      minimal: { theme: 'nordic', night: null },
     })
     expect('theme' in m.settings).toBe(false)
+    expect(m.settings.lookVersion).toBe(LOOK_VERSION)
 
     old.settings.theme = 'dark'
     expect(migrate(old).settings.appearance).toEqual({
@@ -125,6 +129,29 @@ describe('migrating the old palette look', () => {
     const picked = migrate({ ...fresh, settings: { ...fresh.settings, appearance: { game: { theme: 'arcade', night: null } } } })
     expect(picked.settings.appearance.game).toEqual({ theme: 'arcade', night: null })
     expect(migrate(picked).settings.appearance).toEqual(picked.settings.appearance)
+  })
+
+  it('drops the automatic night theme of saves from before light became the default', () => {
+    const early = defaultState()
+    delete early.settings.lookVersion
+    early.settings.appearance = { game: { theme: 'sunny', night: 'night-owl' }, minimal: { theme: 'studio', night: 'nordic' } }
+    const m = migrate(early)
+    // light stays light without a night theme, a dark main theme stays dark
+    expect(m.settings.appearance).toEqual({ game: { theme: 'sunny', night: null }, minimal: { theme: 'studio', night: null } })
+    // a night theme picked after the change is kept
+    const later = migrate({
+      ...m,
+      settings: { ...m.settings, appearance: { ...m.settings.appearance, game: { theme: 'sunny', night: 'arcade' } } },
+    })
+    expect(later.settings.appearance.game).toEqual({ theme: 'sunny', night: 'arcade' })
+  })
+
+  it('gives new users the light Sunny Quest theme in Game mode with no night theme', () => {
+    const s = defaultState()
+    expect(s.settings.uiMode).toBe('game')
+    expect(s.settings.appearance.game).toEqual({ theme: 'sunny', night: null })
+    expect(APPEARANCE.game.themes.find((t) => t.id === 'sunny').tone).toBe('light')
+    expect(activeTheme(s.settings, 'game', true).id).toBe('sunny')
   })
 })
 
