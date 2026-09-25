@@ -13,6 +13,7 @@ import (
 
 	"focusgateway/agent/internal/assets"
 	"focusgateway/agent/internal/paths"
+	"focusgateway/agent/internal/safefile"
 )
 
 // Self is the running executable with symlinks resolved.
@@ -40,7 +41,8 @@ func copyExe(from, to string) error {
 	}
 	defer src.Close()
 	tmp := to + ".new"
-	dst, err := os.OpenFile(tmp, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o755)
+	_ = safefile.Remove(tmp) // left over from an interrupted copy
+	dst, err := safefile.CreateExclusive(tmp, 0o755)
 	if err != nil {
 		return err
 	}
@@ -70,7 +72,7 @@ func copyExe(from, to string) error {
 // deleting the download afterwards is harmless. It returns the installed path.
 func CopyProgram() (string, error) {
 	dest := paths.ProgramBinary()
-	if err := os.MkdirAll(paths.ProgramDir(), 0o755); err != nil {
+	if err := safefile.MkdirTrusted(paths.ProgramDir(), 0o755); err != nil {
 		return "", err
 	}
 	self, err := Self()
@@ -83,9 +85,24 @@ func CopyProgram() (string, error) {
 		}
 	}
 	_ = os.Chmod(dest, 0o755)
-	_ = os.WriteFile(filepath.Join(paths.ProgramDir(), "TROUBLESHOOTING.md"), assets.Troubleshooting, 0o644)
-	_ = os.WriteFile(filepath.Join(paths.ProgramDir(), "LICENSE"), assets.License, 0o644)
+	_ = safefile.WriteFile(filepath.Join(paths.ProgramDir(), "TROUBLESHOOTING.md"), assets.Troubleshooting, 0o644)
+	_ = safefile.WriteFile(filepath.Join(paths.ProgramDir(), "LICENSE"), assets.License, 0o644)
 	return dest, nil
+}
+
+// CopyTo copies this binary to dest (a file in an existing, admin-only folder)
+// and returns dest.
+func CopyTo(dest string) (string, error) {
+	self, err := Self()
+	if err != nil {
+		return "", err
+	}
+	if !sameFile(self, dest) {
+		if err := copyExe(self, dest); err != nil {
+			return "", err
+		}
+	}
+	return dest, os.Chmod(dest, 0o755)
 }
 
 // RemoveProgram deletes the program folder. On Windows the running binary can't

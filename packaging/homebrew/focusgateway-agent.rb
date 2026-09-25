@@ -19,7 +19,7 @@ cask "focusgateway-agent" do
   # The agent refuses to uninstall while a no-failsafe block is running.
   uninstall_preflight do
     system_command "/usr/local/bin/focusgateway-agent",
-                   args: ["uninstall", "--yes"],
+                   args: ["uninstall", "--yes", "--no-pause"],
                    sudo: true
   end
   uninstall pkgutil: "app.focusgateway.agent"

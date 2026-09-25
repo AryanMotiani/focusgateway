@@ -4,7 +4,9 @@ package paths
 // earlier Node.js agent wrote, so upgrading keeps the pairing.
 type Config struct {
 	// PairCode is the one-time code printed by install and pair. Null once used.
-	PairCode *string `json:"pairCode"`
+	// It expires at PairExpiresAt (epoch ms), like the link code.
+	PairCode      *string `json:"pairCode"`
+	PairExpiresAt int64   `json:"pairExpiresAt,omitempty"`
 	// LinkCode is a second one-time code that only travels inside the pairing link the
 	// agent opens in the browser. It expires at LinkExpiresAt (epoch ms).
 	LinkCode      *string `json:"linkCode,omitempty"`

@@ -5,16 +5,20 @@ package hosts
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
 	"time"
 
+	"focusgateway/agent/internal/paths"
 	"focusgateway/agent/internal/platform"
+	"focusgateway/agent/internal/safefile"
 )
 
 const (
@@ -47,6 +51,71 @@ func splitLines(content string) []string {
 		lines[i] = strings.TrimSuffix(l, "\r")
 	}
 	return lines
+}
+
+// hostLabel is one DNS label: letters, digits and inner hyphens, 1 to 63 long.
+var hostLabel = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$`)
+
+// ValidDomain reports whether d is a plain lowercase host name that is safe to
+// write into the hosts file: at most 253 characters, at least two labels of 1
+// to 63 letters, digits or inner hyphens, and not an IP address. Anything else
+// (spaces, newlines, control characters, "#", wildcards) could add or comment
+// out other lines, so it never reaches the file.
+func ValidDomain(d string) bool {
+	if len(d) == 0 || len(d) > 253 {
+		return false
+	}
+	labels := strings.Split(d, ".")
+	if len(labels) < 2 {
+		return false
+	}
+	for _, l := range labels {
+		if !hostLabel.MatchString(l) {
+			return false
+		}
+	}
+	// A numeric last label means an IP address (or nonsense), not a site.
+	return strings.Trim(labels[len(labels)-1], "0123456789") != ""
+}
+
+// Sanitize lowercases the domains and splits them into valid (sorted, no
+// duplicates) and dropped ones.
+func Sanitize(domains []string) (valid, dropped []string) {
+	seen := map[string]bool{}
+	valid = []string{}
+	for _, d := range domains {
+		l := strings.ToLower(d)
+		if !ValidDomain(l) {
+			dropped = append(dropped, d)
+			continue
+		}
+		if !seen[l] {
+			seen[l] = true
+			valid = append(valid, l)
+		}
+	}
+	sort.Strings(valid)
+	return valid, dropped
+}
+
+// LogDropped writes one log line about domains Sanitize refused (a few of them,
+// shortened and quoted, so a hostile value can't forge log lines either).
+func LogDropped(dropped []string) {
+	if len(dropped) == 0 {
+		return
+	}
+	show := []string{}
+	for i, d := range dropped {
+		if i == 5 {
+			show = append(show, "...")
+			break
+		}
+		if len(d) > 80 {
+			d = d[:80] + "..."
+		}
+		show = append(show, fmt.Sprintf("%q", d))
+	}
+	paths.Log(fmt.Sprintf("skipped %d invalid domain(s): %s", len(dropped), strings.Join(show, ", ")))
 }
 
 // ExpandDomains adds the www. variant of every domain (hosts files have no wildcards).
@@ -87,7 +156,9 @@ func StripManaged(content string) []string {
 }
 
 // Render returns the new hosts file content for this set of blocked domains. Pure.
+// Invalid domains are left out (see ValidDomain).
 func Render(content string, domains []string, eol string) string {
+	domains, _ = Sanitize(domains)
 	base := StripManaged(content)
 	if len(domains) == 0 {
 		return strings.Join(base, eol) + eol
@@ -135,17 +206,26 @@ func Read(file string) (string, error) {
 }
 
 // WriteAtomic replaces the file through a temp file and rename.
+// The temp file is created exclusively and without following links.
 func WriteAtomic(content, file string) error {
-	tmp := file + ".focusgateway-tmp"
-	if err := os.WriteFile(tmp, []byte(content), 0o644); err != nil {
+	err := safefile.Replace(file, []byte(content), 0o644)
+	if err == nil || runtime.GOOS != "windows" {
 		return err
 	}
-	if err := os.Rename(tmp, file); err != nil {
-		// Windows can refuse to replace a file that antivirus has open: write in place instead.
-		_ = os.Remove(tmp)
-		return os.WriteFile(file, []byte(content), 0o644)
+	// Windows can refuse to replace a file that antivirus has open: write in place
+	// instead, but never through a link.
+	if lerr := safefile.RefuseLink(file); lerr != nil {
+		return lerr
 	}
-	return nil
+	f, oerr := os.OpenFile(file, os.O_WRONLY|os.O_TRUNC, 0o644)
+	if oerr != nil {
+		return err
+	}
+	_, werr := f.WriteString(content)
+	if cerr := f.Close(); werr == nil {
+		werr = cerr
+	}
+	return werr
 }
 
 // EOL is the line ending the hosts file uses on this OS.
@@ -161,6 +241,8 @@ func Apply(domains []string) (bool, error) { return ApplyTo(Path(), domains) }
 
 // ApplyTo is Apply for a given file.
 func ApplyTo(file string, domains []string) (bool, error) {
+	domains, dropped := Sanitize(domains)
+	LogDropped(dropped)
 	current, err := Read(file)
 	if err != nil {
 		return false, err

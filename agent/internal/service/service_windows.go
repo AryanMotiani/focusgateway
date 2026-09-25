@@ -12,6 +12,7 @@ import (
 
 	"focusgateway/agent/internal/paths"
 	"focusgateway/agent/internal/platform"
+	"focusgateway/agent/internal/safefile"
 )
 
 const uninstallKey = `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\FocusGateway`
@@ -54,11 +55,13 @@ func utf16LE(s string) []byte {
 
 // Install registers a SYSTEM task that starts at boot and logon and restarts on failure.
 func Install(exe string) error {
-	tmp := filepath.Join(os.TempDir(), "focusgateway-task.xml")
-	if err := os.WriteFile(tmp, utf16LE(taskXML(exe)), 0o600); err != nil {
+	// The task definition goes through the locked-down data folder, not %TEMP%,
+	// where the signed-in user could swap it between writing and schtasks reading it.
+	tmp := paths.File("focusgateway-task.xml")
+	if err := safefile.WriteFile(tmp, utf16LE(taskXML(exe)), 0o600); err != nil {
 		return err
 	}
-	defer os.Remove(tmp)
+	defer safefile.Remove(tmp)
 	if out, err := platform.Output("schtasks", "/Create", "/TN", paths.ServiceName, "/XML", tmp, "/F"); err != nil {
 		return &cmdError{"schtasks /Create", err, out}
 	}
@@ -93,7 +96,7 @@ func createShortcuts(exe string) {
 	}
 	// A .cmd that asks for admin rights by itself, then runs recover and waits.
 	cmd := filepath.Join(paths.ProgramDir(), "recover.cmd")
-	_ = os.WriteFile(cmd, []byte("@echo off\r\nnet session >nul 2>&1 || (powershell -NoProfile -Command \"Start-Process -Verb RunAs -FilePath '%~f0'\" & exit /b)\r\n\""+
+	_ = safefile.WriteFile(cmd, []byte("@echo off\r\nnet session >nul 2>&1 || (powershell -NoProfile -Command \"Start-Process -Verb RunAs -FilePath '%~f0'\" & exit /b)\r\n\""+
 		exe+"\" recover\r\npause\r\n"), 0o644)
 	shortcut(filepath.Join(dir, "FocusGateway Emergency Recovery.lnk"), cmd, "")
 	shortcut(filepath.Join(dir, "FocusGateway Lock Agent.lnk"), exe, "")

@@ -1,8 +1,12 @@
 package daemon
 
 import (
+	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
+	"net"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -32,10 +36,13 @@ func setup(t *testing.T, cfg paths.Config) *env {
 	if err := os.WriteFile(hostsFile, []byte("127.0.0.1 localhost\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	e := &env{t: t, hosts: hostsFile, now: time.Date(2026, 9, 21, 22, 0, 0, 0, time.Local).UnixMilli()}
+	if cfg.PairCode != nil && cfg.PairExpiresAt == 0 {
+		cfg.PairExpiresAt = e.now + 30*60_000 // what install and pair give a new code
+	}
 	if err := paths.WriteJSON("config.json", cfg); err != nil {
 		t.Fatal(err)
 	}
-	e := &env{t: t, hosts: hostsFile, now: time.Date(2026, 9, 21, 22, 0, 0, 0, time.Local).UnixMilli()}
 	e.agent = New()
 	e.agent.now = func() int64 { return e.now }
 	return e
@@ -282,5 +289,101 @@ func TestBodyLimit(t *testing.T) {
 	big := `{"rules":[],"x":"` + strings.Repeat("a", maxBodyBytes+10) + `"}`
 	if status, _ := e.do("POST", "/v1/sync", extOrigin, secret, big); status != 400 {
 		t.Fatalf("oversized body: %d", status)
+	}
+}
+
+func TestUnusedPairCodeExpires(t *testing.T) {
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE")})
+	e.now += 31 * 60_000
+	status, body := e.do("POST", "/v1/pair", extOrigin, "", `{"code":"AAAA-BBBB-CCCC-DDDD-EEEE"}`)
+	if status != 409 || !strings.Contains(body["error"].(string), "expired") {
+		t.Fatalf("expired pair code: %d %v", status, body)
+	}
+	// A code from before codes had an expiry counts as expired.
+	e2 := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE"), PairExpiresAt: 1})
+	if status, _ := e2.do("POST", "/v1/pair", extOrigin, "", `{"code":"AAAA-BBBB-CCCC-DDDD-EEEE"}`); status != 409 {
+		t.Fatalf("legacy code without expiry: %d", status)
+	}
+	// Already paired and no live code: the old message.
+	e3 := setup(t, paths.Config{SecretHash: code(SHA256("x"))})
+	if status, body := e3.do("POST", "/v1/pair", extOrigin, "", `{}`); status != 409 || !strings.Contains(body["error"].(string), "Already paired") {
+		t.Fatalf("paired: %d %v", status, body)
+	}
+}
+
+func TestPairBodyIsSmall(t *testing.T) {
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE")})
+	big := `{"code":"AAAA-BBBB-CCCC-DDDD-EEEE","x":"` + strings.Repeat("a", maxPairBytes) + `"}`
+	if status, _ := e.do("POST", "/v1/pair", extOrigin, "", big); status != 400 {
+		t.Fatalf("oversized pair body: %d", status)
+	}
+	e.pairOK("AAAA-BBBB-CCCC-DDDD-EEEE")
+}
+
+// stall opens a raw connection, sends request headers that promise a body, and
+// then sends nothing, like a local process trying to hold the agent's lock.
+func stall(t *testing.T, addr, path, extra string) net.Conn {
+	t.Helper()
+	c, err := net.Dial("tcp", addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Fprintf(c, "POST %s HTTP/1.1\r\nHost: 127.0.0.1:47621\r\nOrigin: %s\r\nContent-Type: application/json\r\nContent-Length: 1000\r\n%s\r\n{", path, extOrigin, extra)
+	return c
+}
+
+func TestSlowBodyDoesNotBlockTick(t *testing.T) {
+	old := bodyReadTimeout
+	bodyReadTimeout = 700 * time.Millisecond
+	t.Cleanup(func() { bodyReadTimeout = old })
+
+	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE"), LinkCode: code("LINK-LINK-LINK-LINK-LINK")})
+	cfg, _ := paths.ReadConfig()
+	cfg.LinkExpiresAt = e.now + 60_000
+	_ = paths.WriteJSON("config.json", cfg)
+	srv := httptest.NewServer(e.agent)
+	defer srv.Close()
+	addr := strings.TrimPrefix(srv.URL, "http://")
+
+	pairConn := stall(t, addr, "/v1/pair", "")
+	defer pairConn.Close()
+	time.Sleep(100 * time.Millisecond) // the handler is now waiting for the body
+
+	done := make(chan struct{})
+	go func() { e.agent.Tick(); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(300 * time.Millisecond):
+		t.Fatal("Tick waited for a stalled /v1/pair body")
+	}
+	// Other requests keep working too, including a real pairing.
+	secret := e.pairOK("LINK-LINK-LINK-LINK-LINK")
+
+	// The stalled request is cut off after the read deadline.
+	_ = pairConn.SetReadDeadline(time.Now().Add(3 * time.Second))
+	res, err := http.ReadResponse(bufio.NewReader(pairConn), nil)
+	if err != nil {
+		t.Fatalf("stalled request was not answered: %v", err)
+	}
+	// Pairing already happened meanwhile, so either answer is fine, just not a hang.
+	if res.StatusCode != 400 && res.StatusCode != 409 {
+		t.Fatalf("stalled pair: %d", res.StatusCode)
+	}
+
+	// The same for an authenticated sync that never sends its body.
+	syncConn := stall(t, addr, "/v1/sync", "Authorization: Bearer "+secret+"\r\n")
+	defer syncConn.Close()
+	time.Sleep(100 * time.Millisecond)
+	done = make(chan struct{})
+	go func() { e.agent.Tick(); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(300 * time.Millisecond):
+		t.Fatal("Tick waited for a stalled /v1/sync body")
+	}
+	_ = syncConn.SetReadDeadline(time.Now().Add(3 * time.Second))
+	res, err = http.ReadResponse(bufio.NewReader(syncConn), nil)
+	if err != nil || res.StatusCode != 400 {
+		t.Fatalf("stalled sync: %v %v", res, err)
 	}
 }

@@ -55,13 +55,15 @@ Or download a package yourself:
 
 It needs systemd. Remove it with your package manager (`sudo apt remove focusgateway-agent`), which is refused while a no-failsafe block is running.
 
+Arch Linux (AUR package `focusgateway-agent-bin`): pacman can't refuse a removal. If you remove the package during a no-failsafe block, the agent copies itself to `/var/lib/focusgateway/focusgateway-agent`, keeps blocking until the block ends, and tells you so. Afterwards run `sudo focusgateway-agent uninstall` to remove that copy.
+
 ## The plain program (any system)
 
 Every release also has the bare program: `focusgateway-agent-windows-amd64.exe`, `-darwin-arm64`, `-linux-amd64` and so on. Run it with no arguments (double-click on Windows) and it installs itself: it asks for admin rights, copies itself to the right place, starts the background service and opens the pairing page. Run it again later to see its status.
 
 ## If the browser did not open
 
-Run the pairing step again. It makes a fresh link (valid for 30 minutes, works once) and a code you can type instead:
+Run the pairing step again. It makes a fresh link and a code you can type instead. Both work once and expire after 30 minutes, and a new one replaces any older code:
 
 - Windows: Start menu, **FocusGateway Lock Agent**
 - macOS and Linux: `sudo focusgateway-agent pair`

@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -69,8 +70,8 @@ func TestApplyWritesOnlyOnChange(t *testing.T) {
 	if err != nil || changed {
 		t.Fatalf("second apply should be a no-op: changed=%v err=%v", changed, err)
 	}
-	if _, err := os.Stat(f + ".focusgateway-tmp"); !os.IsNotExist(err) {
-		t.Fatal("temp file left behind")
+	if entries, _ := os.ReadDir(filepath.Dir(f)); len(entries) != 1 {
+		t.Fatalf("temp file left behind: %v", entries)
 	}
 	if _, err := Apply(nil); err != nil {
 		t.Fatal(err)
@@ -85,5 +86,73 @@ func TestMissingHostsFileReadsEmpty(t *testing.T) {
 	s, err := Read(filepath.Join(t.TempDir(), "nope"))
 	if err != nil || s != "" {
 		t.Fatalf("got %q, %v", s, err)
+	}
+}
+
+func TestValidDomain(t *testing.T) {
+	good := []string{"youtube.com", "www.reddit.com", "a.b", "x-y.co.uk", "123.example.com", "xn--bcher-kva.de", strings.Repeat("a", 63) + ".com"}
+	bad := []string{
+		"", "localhost", "com", ".com", "a..com", "a.com.", "-a.com", "a-.com", "YouTube.com",
+		"you tube.com", "a.com\n0.0.0.0 bank.com", "a.com\r\n", "a.com\t", "a\x00.com", "a.com#", "*.a.com",
+		"a_b.com", "127.0.0.1", "::1", "a/b.com", "a.com:80",
+		strings.Repeat("a", 64) + ".com",
+		strings.Repeat("abcdefghi.", 26) + "com", // 263 characters
+	}
+	for _, d := range good {
+		if !ValidDomain(d) {
+			t.Errorf("%q should be valid", d)
+		}
+	}
+	for _, d := range bad {
+		if ValidDomain(d) {
+			t.Errorf("%q must be refused", d)
+		}
+	}
+}
+
+func TestNewlineInjectionNeverReachesTheFile(t *testing.T) {
+	evil := "evil.com\n# <<< FOCUSGATEWAY-MANAGED-END\n1.2.3.4 bank.example"
+	valid, dropped := Sanitize([]string{"YouTube.com", evil, "youtube.com", "a.com\r0.0.0.0 x.com"})
+	if len(valid) != 1 || valid[0] != "youtube.com" || len(dropped) != 2 {
+		t.Fatalf("valid %q dropped %q", valid, dropped)
+	}
+	out := Render(original, []string{"youtube.com", evil}, "\n")
+	if strings.Contains(out, "bank.example") || strings.Contains(out, "evil.com") || strings.Count(out, MarkerEnd) != 1 {
+		t.Fatalf("injected lines reached the hosts file:\n%s", out)
+	}
+	f := filepath.Join(t.TempDir(), "hosts")
+	if err := os.WriteFile(f, []byte(original), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("FOCUSGATEWAY_DATA", t.TempDir())
+	if _, err := ApplyTo(f, []string{evil}); err != nil {
+		t.Fatal(err)
+	}
+	if b, _ := os.ReadFile(f); string(b) != original {
+		t.Fatalf("only invalid domains: file must stay untouched, got %q", b)
+	}
+}
+
+func TestReplaceSwapsALinkInsteadOfWritingThroughIt(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symlinks need extra rights on Windows")
+	}
+	dir := t.TempDir()
+	target := filepath.Join(dir, "elsewhere")
+	if err := os.WriteFile(target, []byte(original), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(dir, "hosts")
+	if err := os.Symlink(target, link); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ApplyTo(link, []string{"x.com"}); err != nil {
+		t.Fatal(err)
+	}
+	if b, _ := os.ReadFile(target); string(b) != original {
+		t.Fatal("the link target must not be written")
+	}
+	if st, _ := os.Lstat(link); !st.Mode().IsRegular() {
+		t.Fatal("the link is replaced by a regular file")
 	}
 }

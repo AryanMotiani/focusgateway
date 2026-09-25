@@ -24,6 +24,7 @@ import (
 	"focusgateway/agent/internal/paths"
 	"focusgateway/agent/internal/platform"
 	"focusgateway/agent/internal/policies"
+	"focusgateway/agent/internal/safefile"
 	"focusgateway/agent/internal/service"
 )
 
@@ -92,11 +93,23 @@ Usage: focusgateway-agent [command]
   uninstall [--purge]  Remove the agent (refused while a no-failsafe block runs)
   run       Run in the foreground (used by the service)
   version   Print the version
+
+  --no-pause  never wait for Enter before exiting (installers pass it)
 `
 }
 
 // Main runs the CLI and returns the process exit code.
 func Main(argv []string) int {
+	noPause := false
+	kept := []string{}
+	for _, a := range argv {
+		if a == "--no-pause" {
+			noPause = true
+			continue
+		}
+		kept = append(kept, a)
+	}
+	argv = kept
 	cmd := ""
 	if len(argv) > 0 {
 		cmd = argv[0]
@@ -107,7 +120,9 @@ func Main(argv []string) int {
 	}
 	code := dispatch(cmd, rest, argv)
 	// Started by a double click (or from Apps & Features): keep the window open.
-	if platform.OwnConsole() && cmd != "run" && code != elevatedElsewhere {
+	// Never when an installer runs us (--no-pause, or stdin is a pipe, not a
+	// console someone can press Enter in): that would hang the installer.
+	if !noPause && platform.OwnConsole() && platform.StdinIsConsole() && cmd != "run" && code != elevatedElsewhere {
 		fmt.Print("\nPress Enter to close.")
 		_, _ = bufio.NewReader(os.Stdin).ReadString('\n')
 	}
@@ -264,13 +279,69 @@ func health(timeout time.Duration) map[string]any {
 	return h
 }
 
+// prepareDataDir makes sure the data folder, and on macOS and Windows the
+// FocusGateway folder around it, were made by an administrator. On Windows a
+// standard user may create folders in ProgramData, and whoever creates a folder
+// owns it and can always grant themselves access again. So a folder that is
+// not owned by an administrator (or is a link or junction) is moved aside and
+// made fresh before anything private is written into it.
+func prepareDataDir() error {
+	if os.Getenv("FOCUSGATEWAY_DATA") == "" {
+		for _, dir := range []string{paths.OwnParent(), paths.DataDir()} {
+			if dir == "" {
+				continue
+			}
+			if _, err := os.Lstat(dir); err != nil {
+				continue // not there yet: we create it
+			}
+			if problem := safefile.AdminOwnedDir(dir); problem != nil {
+				aside := fmt.Sprintf("%s.untrusted-%d", dir, time.Now().Unix())
+				if err := os.Rename(dir, aside); err != nil {
+					return fmt.Errorf("%v, and it could not be moved aside: %v", problem, err)
+				}
+				fmt.Println(yellow("    " + problem.Error() + ". Moved it to " + aside + " and made a fresh one."))
+			}
+		}
+	}
+	if err := paths.EnsureDataDir(); err != nil {
+		return err
+	}
+	return safefile.AdminOwnedDir(paths.DataDir())
+}
+
 // lockDownDataDir: admins and the service only (config holds the pairing secret hash).
 func lockDownDataDir() {
 	if runtime.GOOS == "windows" {
-		_ = platform.Run("icacls", paths.DataDir(), "/inheritance:r", "/grant:r", "*S-1-5-18:(OI)(CI)F", "*S-1-5-32-544:(OI)(CI)F")
+		dirs := []string{paths.DataDir()}
+		if p := paths.OwnParent(); p != "" {
+			dirs = []string{p, paths.DataDir()}
+		}
+		for _, d := range dirs {
+			// Owner Administrators for everything inside, then only SYSTEM and
+			// Administrators on the ACL (/L: act on links themselves, never follow).
+			_ = platform.Run("icacls", d, "/setowner", "*S-1-5-32-544", "/T", "/C", "/L", "/Q")
+			_ = platform.Run("icacls", d, "/inheritance:r", "/grant:r", "*S-1-5-18:(OI)(CI)F", "*S-1-5-32-544:(OI)(CI)F", "/C", "/L", "/Q")
+		}
 		return
 	}
 	_ = os.Chmod(paths.DataDir(), 0o700)
+	// The parent (macOS) holds the program folder too: others need to reach it,
+	// for example `focusgateway-agent status` through /usr/local/bin.
+	if p := paths.OwnParent(); p != "" {
+		_ = os.Chmod(p, 0o755)
+	}
+}
+
+// newPairCode gives cfg a fresh typed pairing code that expires like the link.
+func newPairCode(cfg *paths.Config) {
+	code := PairingCode()
+	cfg.PairCode = &code
+	cfg.PairExpiresAt = time.Now().Add(LinkLifetime).UnixMilli()
+}
+
+// pairCodeLive reports whether the typed code can still be used.
+func pairCodeLive(cfg paths.Config) bool {
+	return paths.Val(cfg.PairCode) != "" && time.Now().UnixMilli() < cfg.PairExpiresAt
 }
 
 func newLink(cfg *paths.Config) string {
@@ -296,23 +367,28 @@ func openPairing(link string, noBrowser bool) {
 
 func install(rest args) exitCode {
 	banner()
-	if err := os.MkdirAll(paths.DataDir(), 0o700); err != nil {
-		fmt.Fprintln(os.Stderr, red("Could not create "+paths.DataDir()+": "+err.Error()))
+	if err := prepareDataDir(); err != nil {
+		fmt.Fprintln(os.Stderr, red("Could not set up "+paths.DataDir()+": "+err.Error()))
 		return 1
 	}
+	lockDownDataDir()
 	// one-time backup of the original hosts file (never overwritten)
 	bak := paths.File("hosts.original.bak")
-	if _, err := os.Stat(bak); errors.Is(err, fs.ErrNotExist) {
+	if _, err := os.Lstat(bak); errors.Is(err, fs.ErrNotExist) {
 		if content, err := hosts.Read(hosts.Path()); err == nil {
-			_ = os.WriteFile(bak, []byte(content), 0o600)
+			_ = safefile.WriteFile(bak, []byte(content), 0o600)
 		}
 	}
 	existing, _ := paths.ReadConfig()
 	keep := rest.flag("keep-settings")
 	cfg := existing
-	if existing.SecretHash == nil && paths.Val(existing.PairCode) == "" {
-		code := PairingCode()
-		cfg.PairCode = &code
+	switch {
+	case pairCodeLive(existing):
+		// keep the code that is still valid (someone may be typing it right now)
+	case existing.SecretHash == nil:
+		newPairCode(&cfg) // not paired yet: a fresh code, the old one expired
+	default:
+		cfg.PairCode, cfg.PairExpiresAt = nil, 0
 	}
 	cfg.Strict = rest.flag("strict") || (keep && existing.Strict)
 	if v := rest.option("chrome-extension-id"); v != "" {
@@ -332,7 +408,6 @@ func install(rest args) exitCode {
 		fmt.Fprintln(os.Stderr, red("Could not save the configuration: "+err.Error()))
 		return 1
 	}
-	lockDownDataDir()
 	service.Uninstall() // reinstall: stop the old copy cleanly first
 
 	fmt.Println("1/4 Copying the program to", paths.ProgramDir())
@@ -352,6 +427,11 @@ func install(rest args) exitCode {
 	if err := service.Install(exe); err != nil {
 		fmt.Fprintln(os.Stderr, red("    Could not register the service: "+err.Error()))
 		return 1
+	}
+	if !strings.EqualFold(exe, paths.FallbackBinary()) {
+		// the service runs from the program folder again: drop the copy that kept
+		// it running while its package was removed (see uninstall --package-removal)
+		_ = safefile.Remove(paths.FallbackBinary())
 	}
 	fmt.Println("4/4 Checking it runs...")
 	var h map[string]any
@@ -395,6 +475,9 @@ func uninstall(rest args) exitCode {
 	if until := lock.LockedUntil(readSnapshot(), time.Now().UnixMilli()); until != 0 {
 		fmt.Fprintln(os.Stderr, red("A no-failsafe block is running until "+time.UnixMilli(until).Format("Mon 2 Jan 15:04")+"."))
 		fmt.Fprintln(os.Stderr, "You chose no escape hatch for this one. Uninstall after it ends.")
+		if rest.flag("package-removal") {
+			keepRunningWithoutPackage()
+		}
 		return 2
 	}
 	// --yes is for installers and package managers, which ask for confirmation themselves.
@@ -420,6 +503,8 @@ func uninstall(rest args) exitCode {
 		// forget the installer package receipt, so a later .pkg install starts fresh
 		_ = platform.Run("pkgutil", "--forget", "app.focusgateway.agent")
 	}
+	// The copy that kept the agent running after its package was removed.
+	_ = safefile.Remove(paths.FallbackBinary())
 	if purge {
 		_ = os.RemoveAll(paths.DataDir())
 	}
@@ -428,6 +513,26 @@ func uninstall(rest args) exitCode {
 		fmt.Println(dim("Agent data kept in " + paths.DataDir()))
 	}
 	return 0
+}
+
+// keepRunningWithoutPackage is for package managers that remove the program
+// even when uninstall refuses (pacman can't stop a removal). The agent copies
+// itself into its data folder, which no package owns, and points the service
+// there, so blocking and `recover` keep working until the block ends. After
+// that, `sudo focusgateway-agent uninstall` removes this copy too.
+func keepRunningWithoutPackage() {
+	exe, err := service.CopyTo(paths.FallbackBinary())
+	if err == nil {
+		err = service.Install(exe)
+	}
+	if err != nil {
+		fmt.Fprintln(os.Stderr, red("Could not keep the agent running outside the package: "+err.Error()))
+		fmt.Fprintln(os.Stderr, "If blocked sites stay blocked after the package is gone, run: "+service.RecoveryHint)
+		return
+	}
+	paths.Log("package removed during a no-failsafe block: agent now runs from", exe)
+	fmt.Fprintln(os.Stderr, "The package can be removed, but the agent keeps running from "+exe+" until the block ends.")
+	fmt.Fprintln(os.Stderr, "After it ends, remove it with: sudo focusgateway-agent uninstall")
 }
 
 func recoverCmd() exitCode {
@@ -461,8 +566,10 @@ func status() exitCode {
 	}
 	if cfg, ok := paths.ReadConfig(); ok {
 		line := "Paired with the extension"
-		if paths.Val(cfg.PairCode) != "" {
-			line = "Pairing code: " + bold(paths.Val(cfg.PairCode))
+		if pairCodeLive(cfg) {
+			line = "Pairing code: " + bold(paths.Val(cfg.PairCode)) + dim(" (valid until "+time.UnixMilli(cfg.PairExpiresAt).Format("15:04")+")")
+		} else if cfg.SecretHash == nil {
+			line = "Not paired. The pairing code expired: run `focusgateway-agent pair` as admin for a new one."
 		} else if t, err := time.Parse(time.RFC3339, cfg.PairedAt); err == nil {
 			line += " on " + t.Local().Format("Mon 2 Jan 2006 15:04")
 		}
@@ -500,15 +607,19 @@ func status() exitCode {
 }
 
 func pair(rest args) exitCode {
+	if err := prepareDataDir(); err != nil {
+		fmt.Fprintln(os.Stderr, red("Could not set up "+paths.DataDir()+": "+err.Error()))
+		return 1
+	}
 	cfg, _ := paths.ReadConfig()
-	code := PairingCode()
-	cfg.PairCode = &code
+	newPairCode(&cfg) // replaces any older code, used or not
+	code := paths.Val(cfg.PairCode)
 	link := newLink(&cfg)
 	if err := paths.WriteJSON("config.json", cfg); err != nil {
 		fmt.Fprintln(os.Stderr, red("Could not save the pairing code: "+err.Error()))
 		return 1
 	}
 	openPairing(link, rest.flag("no-browser"))
-	fmt.Printf("\nNew pairing code: %s\nOr type it in FocusGateway, Settings, Lock agent.\n", bold(green(code)))
+	fmt.Printf("\nNew pairing code: %s\nOr type it in FocusGateway, Settings, Lock agent. It works once, for 30 minutes.\n", bold(green(code)))
 	return 0
 }

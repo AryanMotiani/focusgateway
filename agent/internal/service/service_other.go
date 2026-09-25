@@ -8,6 +8,7 @@ import (
 
 	"focusgateway/agent/internal/paths"
 	"focusgateway/agent/internal/platform"
+	"focusgateway/agent/internal/safefile"
 )
 
 const (
@@ -30,7 +31,7 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 `
-	if err := os.WriteFile(systemdUnit, []byte(unit), 0o644); err != nil {
+	if err := safefile.WriteFile(systemdUnit, []byte(unit), 0o644); err != nil {
 		return err
 	}
 	if out, err := platform.Output("systemctl", "daemon-reload"); err != nil {
@@ -47,7 +48,7 @@ WantedBy=multi-user.target
 		_ = os.Symlink(exe, cliLink)
 	}
 	_ = os.MkdirAll(filepath.Dir(desktopFile), 0o755)
-	_ = os.WriteFile(desktopFile, []byte("[Desktop Entry]\nType=Application\nName=FocusGateway Emergency Recovery\nExec=pkexec "+exe+
+	_ = safefile.WriteFile(desktopFile, []byte("[Desktop Entry]\nType=Application\nName=FocusGateway Emergency Recovery\nExec=pkexec "+exe+
 		" recover\nTerminal=true\nCategories=Utility;\n"), 0o644)
 	return nil
 }

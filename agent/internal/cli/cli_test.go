@@ -4,6 +4,9 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
+
+	"focusgateway/agent/internal/paths"
 )
 
 func TestPairingCodeFormat(t *testing.T) {
@@ -36,5 +39,33 @@ func TestArgs(t *testing.T) {
 	a := args{"--strict", "--chrome-extension-id", "abc"}
 	if !a.flag("strict") || a.flag("purge") || a.option("chrome-extension-id") != "abc" || a.option("firefox-xpi") != "" {
 		t.Fatal("flag parsing")
+	}
+}
+
+func TestNoPauseIsAcceptedAnywhere(t *testing.T) {
+	if code := Main([]string{"--no-pause", "version"}); code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+	if code := Main([]string{"version", "--no-pause"}); code != 0 {
+		t.Fatalf("exit %d", code)
+	}
+}
+
+func TestPairCodeExpires(t *testing.T) {
+	var cfg paths.Config
+	newPairCode(&cfg)
+	if !pairCodeLive(cfg) {
+		t.Fatal("a new code is live")
+	}
+	if d := time.Until(time.UnixMilli(cfg.PairExpiresAt)); d < 29*time.Minute || d > 31*time.Minute {
+		t.Fatalf("expiry %v", d)
+	}
+	cfg.PairExpiresAt = time.Now().Add(-time.Second).UnixMilli()
+	if pairCodeLive(cfg) {
+		t.Fatal("an old code is not live")
+	}
+	cfg.PairExpiresAt = 0
+	if pairCodeLive(cfg) {
+		t.Fatal("a code without expiry (older versions) is not live")
 	}
 }

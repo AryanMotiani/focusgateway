@@ -3,9 +3,13 @@
 ;   makensis -DVERSION=1.2.0 -DAMD64=path\to\amd64.exe -DARM64=path\to\arm64.exe \
 ;            -DLICENSE_FILE=LICENSE -DOUTFILE=FocusGateway-Setup.exe packaging/windows/focusgateway.nsi
 ;
-; The setup carries both builds, runs `focusgateway-agent install` with the right one
-; (that copies it to Program Files, sets browser policies, registers the Task
-; Scheduler service and opens the pairing link), and adds an Apps & Features entry.
+; The setup carries both builds, puts the right one into Program Files and runs
+; `focusgateway-agent install` from there (that sets browser policies, registers
+; the Task Scheduler service and opens the pairing link), and adds an Apps &
+; Features entry.
+;
+; Every agent call passes --no-pause: nsExec gives the agent a hidden console
+; with no one to press Enter, so it must never wait for input.
 
 Unicode true
 SetCompressor /SOLID lzma
@@ -73,25 +77,26 @@ FunctionEnd
 
 Section "Lock agent" SecAgent
   SectionIn RO
-  ; Unpack to a temp folder and let the agent install itself. It stops a running
-  ; older copy first, so upgrading never trips over a file that is in use.
-  InitPluginsDir
-  SetOutPath "$PLUGINSDIR"
+  ; Unpack next to the installed program, in the admin-only Program Files
+  ; folder (never the user-writable temp folder: this runs elevated), under a
+  ; setup name so a running older agent.exe is not in the way. The agent stops
+  ; the older copy first and then puts itself in place as focusgateway-agent.exe.
+  SetOutPath "$INSTDIR"
   ${If} ${IsNativeARM64}
-    File "/oname=focusgateway-agent.exe" "${ARM64}"
+    File "/oname=focusgateway-agent-setup.exe" "${ARM64}"
   ${Else}
-    File "/oname=focusgateway-agent.exe" "${AMD64}"
+    File "/oname=focusgateway-agent-setup.exe" "${AMD64}"
   ${EndIf}
 
   DetailPrint "Installing the lock agent service..."
-  nsExec::ExecToLog '"$PLUGINSDIR\focusgateway-agent.exe" install --keep-settings'
+  nsExec::ExecToLog '"$INSTDIR\focusgateway-agent-setup.exe" install --keep-settings --no-pause'
   Pop $0
+  Delete "$INSTDIR\focusgateway-agent-setup.exe"
   ${If} $0 != 0
     MessageBox MB_ICONSTOP "The lock agent could not be installed (code $0). See the details above, or TROUBLESHOOTING.md on the FocusGateway website." /SD IDOK
     Abort
   ${EndIf}
 
-  SetOutPath "$INSTDIR"
   WriteUninstaller "$INSTDIR\${UNINSTALLER}"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "${APP}"
   WriteRegStr HKLM "${UNINST_KEY}" "DisplayVersion" "${VERSION}"
@@ -107,7 +112,7 @@ SectionEnd
 
 Section "Uninstall"
   ; The agent refuses (exit code 2) while a no-failsafe block is running.
-  nsExec::ExecToLog '"$INSTDIR\focusgateway-agent.exe" uninstall --yes --keep-program'
+  nsExec::ExecToLog '"$INSTDIR\focusgateway-agent.exe" uninstall --yes --keep-program --no-pause'
   Pop $0
   ${If} $0 == 2
     MessageBox MB_ICONEXCLAMATION "A no-failsafe block is running right now. You chose no escape hatch for it, so the lock agent stays until the block ends. Try again after that." /SD IDOK
@@ -118,6 +123,7 @@ Section "Uninstall"
   ${EndIf}
   Delete "$INSTDIR\focusgateway-agent.exe"
   Delete "$INSTDIR\focusgateway-agent.exe.old"
+  Delete "$INSTDIR\focusgateway-agent-setup.exe"
   Delete "$INSTDIR\TROUBLESHOOTING.md"
   Delete "$INSTDIR\LICENSE"
   Delete "$INSTDIR\recover.cmd"

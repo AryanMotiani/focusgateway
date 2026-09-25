@@ -63,6 +63,18 @@ func OwnConsole() bool {
 	return n == 1
 }
 
+// StdinIsConsole reports whether stdin is a console someone can type into.
+// Installers (NSIS nsExec) give the program a hidden console with a pipe as
+// stdin: GetConsoleMode fails on a pipe, so we never wait for an Enter there.
+func StdinIsConsole() bool {
+	h, err := syscall.GetStdHandle(syscall.STD_INPUT_HANDLE)
+	if err != nil || h == syscall.InvalidHandle || h == 0 {
+		return false
+	}
+	var mode uint32
+	return syscall.GetConsoleMode(h, &mode) == nil
+}
+
 // OpenURL opens a link in the default browser. explorer.exe hands the link to the
 // already running, non-elevated shell, so the browser does not start as admin.
 func OpenURL(url string) error {

@@ -20,6 +20,9 @@ func IsAdmin() bool { return os.Geteuid() == 0 }
 // stays open by itself, so there is nothing to pause for.
 func OwnConsole() bool { return false }
 
+// StdinIsConsole reports whether someone can type into stdin.
+func StdinIsConsole() bool { return IsTerminal() }
+
 // ElevationHint tells people how to run a command as admin.
 const ElevationHint = "Run it again with sudo."
 

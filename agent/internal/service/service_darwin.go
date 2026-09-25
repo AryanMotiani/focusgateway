@@ -9,6 +9,7 @@ import (
 
 	"focusgateway/agent/internal/paths"
 	"focusgateway/agent/internal/platform"
+	"focusgateway/agent/internal/safefile"
 )
 
 const (
@@ -31,7 +32,7 @@ func Install(exe string) error {
   <key>StandardErrorPath</key><string>` + xmlEscape(filepath.Join(paths.DataDir(), "stderr.log")) + `</string>
 </dict></plist>
 `
-	if err := os.WriteFile(launchd, []byte(plist), 0o644); err != nil {
+	if err := safefile.WriteFile(launchd, []byte(plist), 0o644); err != nil {
 		return err
 	}
 	_ = platform.Run("launchctl", "bootout", "system", launchd)
@@ -46,7 +47,7 @@ func Install(exe string) error {
 	if err != nil {
 		return err
 	}
-	_ = os.WriteFile(recoveryCmd, []byte("#!/bin/sh\necho \"FocusGateway emergency recovery (asks for your password)\"\nsudo \""+exe+
+	_ = safefile.WriteFile(recoveryCmd, []byte("#!/bin/sh\necho \"FocusGateway emergency recovery (asks for your password)\"\nsudo \""+exe+
 		"\" recover\nread -p \"Press Enter to close\" _\n"), 0o755)
 	_ = os.MkdirAll(filepath.Dir(cliLink), 0o755)
 	_ = os.Remove(cliLink)

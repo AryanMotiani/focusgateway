@@ -11,6 +11,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"focusgateway/agent/internal/safefile"
 )
 
 // Port is the loopback port the extension talks to.
@@ -59,6 +61,11 @@ func BinaryName() string {
 // ProgramBinary is the installed executable.
 func ProgramBinary() string { return filepath.Join(ProgramDir(), BinaryName()) }
 
+// FallbackBinary is where the agent keeps a copy of itself when a package
+// manager removes the program while a no-failsafe block runs. No package owns
+// this path.
+func FallbackBinary() string { return filepath.Join(DataDir(), BinaryName()) }
+
 // DataDir holds root-owned data: config (pairing), last snapshot, hosts backup, log.
 // It survives uninstall unless --purge is used.
 func DataDir() string {
@@ -73,6 +80,30 @@ func DataDir() string {
 	default:
 		return "/var/lib/focusgateway"
 	}
+}
+
+// OwnParent is the FocusGateway folder that holds DataDir on macOS and Windows
+// ("" on Linux, where DataDir sits directly in /var/lib, and when
+// FOCUSGATEWAY_DATA overrides the location).
+func OwnParent() string {
+	if os.Getenv("FOCUSGATEWAY_DATA") != "" {
+		return ""
+	}
+	if p := filepath.Dir(DataDir()); filepath.Base(p) == "FocusGateway" {
+		return p
+	}
+	return ""
+}
+
+// EnsureDataDir creates the data folder as owner-only (0700). Missing parents
+// are created as 0755, never 0700: on macOS the parent also holds the program
+// folder, and the /usr/local/bin link only works for other users when they can
+// reach the program through it.
+func EnsureDataDir() error {
+	if err := os.MkdirAll(filepath.Dir(DataDir()), 0o755); err != nil {
+		return err
+	}
+	return os.MkdirAll(DataDir(), 0o700)
 }
 
 // File is a path inside the data folder.
@@ -91,7 +122,7 @@ func ReadJSON(name string, v any) bool {
 
 // WriteJSON writes a data file atomically (temp file and rename) with owner-only permissions.
 func WriteJSON(name string, v any) error {
-	if err := os.MkdirAll(DataDir(), 0o700); err != nil {
+	if err := EnsureDataDir(); err != nil {
 		return err
 	}
 	var buf bytes.Buffer
@@ -101,12 +132,7 @@ func WriteJSON(name string, v any) error {
 	if err := enc.Encode(v); err != nil {
 		return err
 	}
-	f := File(name)
-	tmp := f + ".tmp"
-	if err := os.WriteFile(tmp, bytes.TrimRight(buf.Bytes(), "\n"), 0o600); err != nil {
-		return err
-	}
-	return os.Rename(tmp, f)
+	return safefile.WriteFile(File(name), bytes.TrimRight(buf.Bytes(), "\n"), 0o600)
 }
 
 // ISO formats a time like JavaScript's Date.prototype.toISOString.
@@ -120,17 +146,12 @@ func Log(args ...any) {
 	}
 	line := fmt.Sprintf("[%s] %s", ISO(time.Now()), strings.Join(parts, " "))
 	fmt.Println(line)
-	if err := os.MkdirAll(DataDir(), 0o700); err != nil {
+	if err := EnsureDataDir(); err != nil {
 		return
 	}
 	f := File("agent.log")
-	if st, err := os.Stat(f); err == nil && st.Size() > 1_000_000 {
+	if st, err := os.Lstat(f); err == nil && st.Size() > 1_000_000 {
 		_ = os.Rename(f, f+".1")
 	}
-	fh, err := os.OpenFile(f, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o600)
-	if err != nil {
-		return
-	}
-	defer fh.Close()
-	_, _ = fh.WriteString(line + "\n")
+	_ = safefile.AppendFile(f, []byte(line+"\n"), 0o600)
 }

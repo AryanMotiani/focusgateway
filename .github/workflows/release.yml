@@ -68,10 +68,23 @@ jobs:
         with: { name: darwin-binaries, path: agent/dist }
       - name: Universal .pkg (unsigned)
         run: sh packaging/macos/build-pkg.sh "${GITHUB_REF_NAME#v}"
+      # FocusGateway.pkg is a product (distribution) archive: pkgutil --payload-files
+      # only reads component packages. --expand-full unpacks the product, its
+      # component and the component's payload, so the files can be checked directly.
       - name: Check the package
         run: |
-          pkgutil --payload-files packaging/out/FocusGateway.pkg | grep focusgateway-agent
-          pkgutil --expand packaging/out/FocusGateway.pkg expanded && ls expanded
+          set -eu
+          out="$RUNNER_TEMP/expanded"
+          pkgutil --expand-full packaging/out/FocusGateway.pkg "$out"
+          find "$out" -maxdepth 2
+          bin=$(find "$out" -type f -path '*/Payload/Library/Application Support/FocusGateway/app/focusgateway-agent' | head -n 1)
+          [ -n "$bin" ] || { echo "agent binary missing from the payload"; exit 1; }
+          [ -x "$bin" ] || { echo "agent binary is not executable"; exit 1; }
+          lipo -info "$bin" | grep -q arm64 && lipo -info "$bin" | grep -q x86_64
+          script=$(find "$out" -type f -path '*/Scripts/postinstall' | head -n 1)
+          [ -n "$script" ] && [ -x "$script" ] || { echo "postinstall script missing"; exit 1; }
+          grep -q -- '--no-pause' "$script"
+          grep -q 'app.focusgateway.agent' "$out/Distribution"
       - uses: actions/upload-artifact@v4
         with: { name: macos-pkg, path: packaging/out/FocusGateway.pkg, retention-days: 7 }
 
