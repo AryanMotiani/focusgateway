@@ -3,6 +3,7 @@ import { createBackend } from '../src/backend.js'
 import { migrate } from '../src/state.js'
 import { UNLOCKS } from '../src/unlocks.js'
 import { sanitizeLofi, mergeLofi } from '../src/lofi.js'
+import { trackOwned } from '../src/economy.js'
 import {
   TRACKS,
   TRACK_KEYS,
@@ -74,8 +75,14 @@ describe('track catalog', () => {
     expect(trackIsMinor(trackById('classic-tram-stop'))).toBe(true)
     expect(trackIsMinor(trackById('classic-rain-window'))).toBe(false)
     expect(isTrackUnlocked('classic-late-library', 1)).toBe(true)
-    expect(isTrackUnlocked('jazz-corner-booth', 5)).toBe(false)
-    expect(isTrackUnlocked('jazz-corner-booth', 6)).toBe(true)
+    expect(isTrackUnlocked('bossa-' + 'x', 99)).toBe(false)
+    const bossa = TRACKS.find((t) => t.style === 'music-bossa').id
+    expect(isTrackUnlocked(bossa, 12)).toBe(false)
+    expect(isTrackUnlocked(bossa, 13)).toBe(true)
+    // playing needs the style to be owned (bought in the shop, or free)
+    expect(trackOwned('classic-late-library', () => false)).toBe(false)
+    expect(trackOwned('classic-late-library', (id) => id === 'music-classic')).toBe(true)
+    expect(trackOwned('jazz-corner-booth', (id) => id === 'music-classic')).toBe(false)
     expect(isTrackUnlocked('nope', 99)).toBe(false)
   })
 })
@@ -100,16 +107,17 @@ describe('settings.lofi.track', () => {
     await expect(lofi({ style: 'music-jazz', track: 'jazz-corner-booth' })).rejects.toMatchObject({ code: 'VALIDATION' })
     await expect(lofi({ track: 'jazz-corner-booth' })).rejects.toMatchObject({
       code: 'VALIDATION',
-      message: 'Corner Booth is part of Rainy jazz, which unlocks at level 6.',
+      message: 'Corner Booth is part of Rainy jazz. Rainy jazz is in the shop for 450 coins.',
     })
     await expect(lofi({ track: 42 })).rejects.toMatchObject({ code: 'VALIDATION' })
   })
 
   it('keeps a saved locked track and clears a track when the style changes', () => {
     const cur = { ...migrate(null).settings.lofi, style: 'music-ambient', track: 'ambient-quiet-orbit' }
-    expect(mergeLofi(cur, { volume: 0.2 }, 1).value.track).toBe('ambient-quiet-orbit')
-    expect(mergeLofi(cur, { track: 'ambient-quiet-orbit' }, 1).value.track).toBe('ambient-quiet-orbit')
-    expect(mergeLofi(cur, { style: 'music-classic' }, 1).value.track).toBeUndefined()
+    const none = (id) => id === 'music-classic'
+    expect(mergeLofi(cur, { volume: 0.2 }, none).value.track).toBe('ambient-quiet-orbit')
+    expect(mergeLofi(cur, { track: 'ambient-quiet-orbit' }, none).value.track).toBe('ambient-quiet-orbit')
+    expect(mergeLofi(cur, { style: 'music-classic' }, none).value.track).toBeUndefined()
   })
 
   it('sanitizes stored and imported tracks', () => {

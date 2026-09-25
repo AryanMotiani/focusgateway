@@ -17,6 +17,7 @@ import {
 import { OPTION_UNLOCKS, optionsFor, isOptionUnlocked, optionLabel } from '../src/options.js'
 import { newlyUnlocked, nextUnlocks, unlockKind } from '../src/unlocks.js'
 import { xpToReach } from '../src/progress.js'
+import { ownsFn } from '../src/economy.js'
 
 function memoryStorage() {
   let saved = null
@@ -172,7 +173,7 @@ describe('option unlocks', () => {
       expect(optionsFor(field).map((o) => o.value)).toEqual(list)
   })
 
-  it('keeps the defaults and identity options free, and spreads the rest from 2 to 50', () => {
+  it('keeps the defaults and identity options free, prices the rest and gates the rare ones up to 50', () => {
     for (const [k, v] of Object.entries({ ...DEFAULT_AVATAR, ...DEFAULT_STYLE }))
       if (typeof v === 'string') expect(isOptionUnlocked(k, v, 1), k).toBe(true)
     for (const f of ['build', 'skin']) expect(optionsFor(f).every((o) => o.level === 1)).toBe(true)
@@ -180,26 +181,33 @@ describe('option unlocks', () => {
     expect(optionsFor('hair').length).toBeGreaterThanOrEqual(22)
     expect(optionsFor('hairColor').length).toBeGreaterThanOrEqual(14)
     expect(optionsFor('topColor').length).toBeGreaterThanOrEqual(17)
-    const locked = OPTION_UNLOCKS.filter((o) => o.level > 1)
-    expect(locked.length).toBeGreaterThan(80)
-    expect(Math.max(...locked.map((o) => o.level))).toBe(50)
-    // dense early, sparse late
-    expect(locked.filter((o) => o.level <= 15).length).toBeGreaterThan(locked.filter((o) => o.level > 30).length * 3)
+    for (const [k, v] of Object.entries({ ...DEFAULT_AVATAR, ...DEFAULT_STYLE }))
+      if (typeof v === 'string') expect(optionsFor(k).find((o) => o.value === v).price, k).toBe(0)
+    for (const f of ['build', 'skin']) expect(optionsFor(f).every((o) => o.price === 0)).toBe(true)
+    const sold = OPTION_UNLOCKS.filter((o) => o.price > 0)
+    expect(sold.length).toBeGreaterThan(80)
+    // free things never need a level, and a level gate only sits on rarer things
+    expect(OPTION_UNLOCKS.filter((o) => !o.price).every((o) => o.level === 1)).toBe(true)
+    expect(sold.filter((o) => o.level > 1).every((o) => o.level >= 10)).toBe(true)
+    expect(Math.max(...sold.map((o) => o.level))).toBe(50)
+    // cheap early, dear late
+    const avg = (l) => l.reduce((a, o) => a + o.price, 0) / l.length
+    expect(avg(sold.filter((o) => o.level >= 20))).toBeGreaterThan(avg(sold.filter((o) => o.level === 1)) * 3)
     expect(isOptionUnlocked('hair', 'mohawk', 21)).toBe(false)
     expect(isOptionUnlocked('hair', 'mohawk', 22)).toBe(true)
     expect(isOptionUnlocked('hair', 'nope', 99)).toBe(false)
   })
 
   it('shows up in level-up and coming-up lists with a clear kind', () => {
-    const got = newlyUnlocked(1, 2)
+    const got = newlyUnlocked(9, 10)
     expect(got.some((u) => u.kind === 'object')).toBe(true)
-    const buzz = got.find((u) => u.id === 'opt:hair:buzz')
-    expect(buzz).toMatchObject({ kind: 'option', field: 'hair', value: 'buzz', level: 2, name: 'Buzz cut' })
-    expect(unlockKind(buzz)).toBe('Hairstyle')
-    expect(optionLabel(buzz)).toBe('Hairstyle: Buzz cut')
+    const beanie = got.find((u) => u.id === 'opt:hair:beanie')
+    expect(beanie).toMatchObject({ kind: 'option', field: 'hair', value: 'beanie', level: 10, name: 'Beanie', price: 225 })
+    expect(unlockKind(beanie)).toBe('Hairstyle')
+    expect(optionLabel(beanie)).toBe('Hairstyle: Beanie')
     expect(unlockKind({ kind: 'object' })).toBe('Room object')
     const next = nextUnlocks(1, 5)
-    expect(next.every((u) => u.level === 2)).toBe(true)
+    expect(next.every((u) => u.level === 10)).toBe(true)
     expect(newlyUnlocked(1, 50).some((u) => u.level === 1)).toBe(false)
   })
 })
@@ -217,45 +225,66 @@ describe('room style', () => {
   })
 })
 
+const owning = (ids) => {
+  const has = ownsFn({ shop: { purchases: ids.map((id) => ({ id, price: 1, at: 1 })) } })
+  return has
+}
+
 describe('room locks', () => {
   it('reports the first locked change and ignores what is already saved', () => {
+    const free = owning([])
     const prev = defaultRoom()
     const next = sanitizeRoom({ avatar: { hair: 'afro', topColor: 'lavender' } }, prev)
-    expect(roomLockError(next, prev, 1)).toBe('Top colour Lavender unlocks at level 12.')
-    expect(roomLockError(next, prev, 12)).toBe(null)
-    // saved at a higher level, the level then dropped: keeping it is fine, other edits too
+    expect(roomLockError(next, prev, free)).toBe('Top colour Lavender unlocks at level 12, then it is in the shop for 275 coins.')
+    expect(roomLockError(next, prev, owning(['opt:topColor:lavender']))).toBe(null)
+    // saved before (grandfathered): keeping it is fine, other edits too
     const saved = sanitizeRoom({ avatar: { hair: 'mohawk' }, style: { light: 'rgb' }, items: [{ id: 'obj-trophy', x: 1, y: 1 }] })
-    expect(roomLockError(sanitizeRoom({ avatar: { skin: 's5' } }, saved), saved, 1)).toBe(null)
-    expect(roomLockError(sanitizeRoom({ style: { floor: 'tiles' } }, saved), saved, 3)).toBe('Floor Tiles unlocks at level 13.')
+    expect(roomLockError(sanitizeRoom({ avatar: { skin: 's5' } }, saved), saved, free)).toBe(null)
+    expect(roomLockError(sanitizeRoom({ style: { floor: 'tiles' } }, saved), saved, free)).toBe(
+      'Floor Tiles unlocks at level 13, then it is in the shop for 300 coins.',
+    )
     const items = sanitizeRoom({ items: [...saved.items, { id: 'obj-lamp', x: 700, y: 566 }] }, saved)
-    expect(roomLockError(items, saved, 4)).toBe('Desk lamp unlocks at level 5.')
-    expect(roomLockError(items, saved, 5)).toBe(null)
+    expect(roomLockError(items, saved, free)).toBe('Desk lamp is in the shop for 275 coins.')
+    expect(roomLockError(items, saved, owning(['obj-lamp']))).toBe(null)
     const badge = sanitizeRoom({ items: [{ id: 'badge:streak-7', x: 1, y: 1 }] }, saved)
-    expect(roomLockError(badge, saved, 50)).toMatch(/badge to place it/)
-    expect(roomLockError(badge, saved, 1, new Set(['streak-7']))).toBe(null)
+    expect(roomLockError(badge, saved, free)).toMatch(/badge to place it/)
+    expect(roomLockError(badge, saved, free, new Set(['streak-7']))).toBe(null)
   })
 
-  it('settings.update rejects locked options and items for the current level', async () => {
-    const be = backendWith(stateAtLevel(3))
+  it('settings.update only accepts owned options and items, and shop.buy makes them owned', async () => {
+    const state = stateAtLevel(4) // 20 high priority tasks: 160 coins
+    state.shop.giftAt = 1 // plus the 150 coin starter gift
+    const be = backendWith(state)
     await be.dispatch('setup.pin', { pin: '246810' })
     const update = (room) => be.dispatch('settings.update', { patch: { room } })
     await expect(update({ avatar: { hair: 'bob' } })).rejects.toMatchObject({
       code: 'VALIDATION',
-      message: 'Hairstyle Bob unlocks at level 5.',
+      message: 'Hairstyle Bob is in the shop for 130 coins.',
     })
-    await expect(update({ style: { wall: 'charcoal' } })).rejects.toThrow('Wall colour Charcoal unlocks at level 32.')
-    await expect(update({ items: [{ id: 'obj-cat', x: 700, y: 566 }] })).rejects.toThrow('Sleepy cat unlocks at level 7.')
+    await expect(update({ style: { wall: 'charcoal' } })).rejects.toThrow(
+      'Wall colour Charcoal unlocks at level 32, then it is in the shop for 675 coins.',
+    )
+    await expect(update({ items: [{ id: 'obj-cat', x: 700, y: 566 }] })).rejects.toThrow('Sleepy cat is in the shop for 375 coins.')
     await expect(update({ items: [{ id: 'badge:streak-7', x: 300, y: 300 }] })).rejects.toThrow(/badge/)
-    // level 3 things, identity options and brightness are fine
+    // free starter options, identity options and brightness are fine
     await update({
-      avatar: { hair: 'bun', hairColor: 'copper', top: 'sweater', skin: 's6', build: 'masc' },
-      style: { pattern: 'stripes', brightness: 0.5 },
+      avatar: { hair: 'afro', hairColor: 'auburn', top: 'tshirt', skin: 's6', build: 'masc' },
+      style: { pattern: 'plain', brightness: 0.5 },
+    })
+    // bought things are fine too
+    expect((await be.dispatch('shop.buy', { id: 'opt:hair:bob' })).data).toMatchObject({ price: 130, balance: 180 })
+    await update({ avatar: { hair: 'bob' } })
+    expect((await be.dispatch('shop.buy', { id: 'obj-corkboard' })).data.balance).toBe(0)
+    await expect(be.dispatch('shop.buy', { id: 'obj-mug' })).rejects.toMatchObject({
+      code: 'NOT_ENOUGH_COINS',
+      message: 'You need 130 more coins for Warm mug.',
     })
     await update({ items: [{ id: 'obj-corkboard', x: 300, y: 400 }] })
-    const { state } = await be.dispatch('state.get')
-    expect(state.settings.room.avatar).toMatchObject({ hair: 'bun', hairColor: 'copper', top: 'sweater', skin: 's6', build: 'masc' })
-    expect(state.settings.room.style).toMatchObject({ pattern: 'stripes', brightness: 0.5, wall: 'cream' })
-    expect(state.settings.room.items.map((i) => i.id)).toEqual(['obj-corkboard'])
+    const { state: after } = await be.dispatch('state.get')
+    expect(after.settings.room.avatar).toMatchObject({ hair: 'bob', hairColor: 'auburn', top: 'tshirt', skin: 's6', build: 'masc' })
+    expect(after.settings.room.style).toMatchObject({ pattern: 'plain', brightness: 0.5, wall: 'cream' })
+    expect(after.settings.room.items.map((i) => i.id)).toEqual(['obj-corkboard'])
+    expect(after.shop.purchases.map((p) => p.id)).toEqual(['opt:hair:bob', 'obj-corkboard'])
   })
 
   it('keeps values saved at a higher level after the level drops', async () => {

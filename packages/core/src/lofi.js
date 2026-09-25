@@ -1,8 +1,9 @@
 // The study room sound and scene settings (`settings.lofi`): validation shared by the
-// backend (settings.update, import) and migrate(). Scenes and music styles are level
-// unlocks from unlocks.js.
+// backend (settings.update, import) and migrate(). Scenes and music styles are sold in the
+// shop (unlocks.js for the catalog, economy.js for owning them).
 import { UNLOCKS } from './unlocks.js'
 import { trackById } from './tracks.js'
+import { shopHint } from './economy.js'
 
 export const LOFI_MIX_KEYS = ['rain', 'cafe', 'fire', 'noise']
 /** Scene names saved before scenes became unlocks. */
@@ -49,10 +50,10 @@ export function sanitizeLofi(input, base = DEFAULT_LOFI) {
 
 /**
  * Strict merge of a settings.update patch into the saved lofi settings.
- * Returns { value } or { error }. A scene or music style is only checked against the
- * level when it differs from the saved one, so what is already saved always stays.
+ * Returns { value } or { error }. `owns(id)` says whether a scene or music style is owned.
+ * It is only checked when the value differs from the saved one, so what is saved always stays.
  */
-export function mergeLofi(current, patch, level) {
+export function mergeLofi(current, patch, owns) {
   if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return { error: 'Room sound settings must be an object.' }
   const cur = sanitizeLofi(current)
   const value = { ...cur, mix: { ...cur.mix } }
@@ -80,13 +81,13 @@ export function mergeLofi(current, patch, level) {
     const id = normalizeScene(patch.scene)
     const u = SCENES[id]
     if (!u) return { error: 'Unknown scene.' }
-    if (id !== cur.scene && u.level > level) return { error: `${u.name} unlocks at level ${u.level}.` }
+    if (id !== cur.scene && !owns(id)) return { error: shopHint(u) }
     value.scene = id
   }
   if ('style' in patch) {
     const u = MUSIC[patch.style]
     if (!u) return { error: 'Unknown music style.' }
-    if (patch.style !== cur.style && u.level > level) return { error: `${u.name} unlocks at level ${u.level}.` }
+    if (patch.style !== cur.style && !owns(patch.style)) return { error: shopHint(u) }
     value.style = patch.style
   }
   if ('track' in patch) {
@@ -95,8 +96,7 @@ export function mergeLofi(current, patch, level) {
       const t = trackById(patch.track)
       if (!t) return { error: 'Unknown track.' }
       const u = MUSIC[t.style]
-      if (patch.track !== cur.track && u.level > level)
-        return { error: `${t.name} is part of ${u.name}, which unlocks at level ${u.level}.` }
+      if (patch.track !== cur.track && !owns(u.id)) return { error: `${t.name} is part of ${u.name}. ${shopHint(u)}` }
       if (t.style !== value.style) return { error: `${t.name} is not a ${MUSIC[value.style].name} track.` }
       value.track = patch.track
     }

@@ -1,15 +1,16 @@
 <script setup>
-// Every track of every music style. Tracks of a style you have not unlocked yet show with
-// a lock and the level that unlocks them. Click a track to play it.
+// Every track of every music style. Tracks of a style you do not own yet show with a lock
+// and its price in the shop (or the level it unlocks at). Click a track to play it.
 import { computed } from 'vue'
 import { UNLOCKS, tracksForStyle } from '@focusgateway/core'
 import RoomIcon from '../RoomIcon.vue'
 import EqBars from './EqBars.vue'
+import { ownsItem } from '../../../lib/shop.js'
 
-const props = defineProps({ current: String, level: { type: Number, default: 1 }, playing: Boolean })
+defineProps({ current: String, level: { type: Number, default: 1 }, playing: Boolean })
 const emit = defineEmits(['choose'])
 const groups = computed(() =>
-  UNLOCKS.filter((u) => u.kind === 'music').map((s) => ({ ...s, open: s.level <= props.level, tracks: tracksForStyle(s.id) })),
+  UNLOCKS.filter((u) => u.kind === 'music').map((s) => ({ ...s, open: ownsItem(s.id), tracks: tracksForStyle(s.id) })),
 )
 </script>
 
@@ -18,7 +19,9 @@ const groups = computed(() =>
     <section v-for="g in groups" :key="g.id">
       <p class="hud-label mb-1 flex items-center gap-1.5 px-2 text-muted">
         <RoomIcon :name="g.open ? 'music' : 'lock'" :size="11" />{{ g.name }}
-        <span v-if="!g.open" class="num ml-auto rounded-full bg-sunk px-1.5 py-px text-[10px] text-muted">LV {{ g.level }}</span>
+        <span v-if="!g.open" class="num ml-auto rounded-full bg-sunk px-1.5 py-px text-[10px] text-muted">{{
+          g.level > level ? `LV ${g.level}` : `${g.price} coins`
+        }}</span>
         <span v-else class="num ml-auto text-muted opacity-70">{{ g.tracks.length }}</span>
       </p>
       <button
@@ -32,7 +35,7 @@ const groups = computed(() =>
         ]"
         :disabled="!g.open"
         :aria-current="t.id === current ? 'true' : undefined"
-        :title="g.open ? `Play ${t.name}` : `${g.name} unlocks at level ${g.level}`"
+        :title="g.open ? `Play ${t.name}` : `${g.name} is in the shop`"
         @click="emit('choose', t)"
       >
         <span class="grid w-4 shrink-0 place-items-center text-[11px] text-muted">

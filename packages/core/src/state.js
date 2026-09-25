@@ -2,6 +2,7 @@ import { DEFAULT_APPEARANCE, migrateAppearance } from './appearance.js'
 import { defaultRoom, sanitizeRoom } from './room.js'
 import { DEFAULT_LOFI, sanitizeLofi } from './lofi.js'
 import { defaultStats, backfillStats, sanitizeStats } from './progress.js'
+import { defaultShop, sanitizeShop, grandfatherShop, defaultCoinStats, sanitizeCoinStats, backfillCoinStats } from './economy.js'
 
 export const SCHEMA_VERSION = 1
 
@@ -34,7 +35,8 @@ export function defaultState() {
     overrides: [],
     failsafe: null,
     log: [],
-    stats: defaultStats(0), // running XP and badge counters that survive the capped log, see progress.js
+    stats: { ...defaultStats(0), coins: defaultCoinStats() }, // running XP, coin and badge counters, see progress.js
+    shop: defaultShop(), // purchases and the starter gift, see economy.js
     runtime: { ruleStatus: {} },
     agent: { url: 'http://127.0.0.1:47621', token: null, pairCode: null, lastSyncAt: 0, lastError: null },
   }
@@ -75,6 +77,11 @@ export function migrate(saved, now = Date.now()) {
   if (!Array.isArray(out.focus.history)) out.focus.history = []
   // Old saves have no counters yet: start them from what the log and focus history still hold
   out.stats = saved.stats && typeof saved.stats === 'object' ? sanitizeStats(saved.stats, now) : backfillStats(out, now)
+  // Coins: saves from before the shop start with coins for their past focus time, and keep
+  // everything they placed or picked (see economy.js)
+  const coins = saved.stats?.coins
+  out.stats.coins = coins && typeof coins === 'object' ? sanitizeCoinStats(coins, now) : backfillCoinStats(out, now)
+  out.shop = saved.shop && typeof saved.shop === 'object' ? sanitizeShop(saved.shop) : grandfatherShop(out, now)
   out.schemaVersion = SCHEMA_VERSION
   return out
 }

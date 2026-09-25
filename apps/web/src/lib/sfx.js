@@ -34,6 +34,15 @@ export const sfx = {
   levelUp() {
     ;[523.25, 659.25, 783.99, 1046.5].forEach((f, i) => note(f, i * 0.09, 0.5, { type: 'triangle', gain: 0.1 }))
   },
+  /** a small coin clink, for coins ticking up */
+  coin() {
+    note(1567.98, 0, 0.09, { type: 'triangle', gain: 0.05 })
+    note(2093, 0.04, 0.14, { gain: 0.04 })
+  },
+  /** a cash register style run, for buying something */
+  purchase() {
+    ;[1046.5, 1318.51, 1567.98, 2093].forEach((f, i) => note(f, i * 0.05, 0.22, { type: 'triangle', gain: 0.07 }))
+  },
   badge() {
     ;[783.99, 1046.5].forEach((f, i) => note(f, i * 0.1, 0.4, { gain: 0.09 }))
   },

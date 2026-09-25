@@ -182,8 +182,13 @@ describe('scene and music locks', () => {
   const lofi = (patch) => be.dispatch('settings.update', { patch: { lofi: patch } })
 
   it('rejects locked scenes and music, accepts level 1 and legacy names', async () => {
-    await expectCode(lofi({ scene: 'scene-forest' }), 'VALIDATION', 'Forest cabin unlocks at level 4.')
-    await expectCode(lofi({ style: 'music-jazz' }), 'VALIDATION', 'Rainy jazz unlocks at level 6.')
+    await expectCode(lofi({ scene: 'scene-forest' }), 'VALIDATION', 'Forest cabin is in the shop for 350 coins.')
+    await expectCode(lofi({ style: 'music-jazz' }), 'VALIDATION', 'Rainy jazz is in the shop for 450 coins.')
+    await expectCode(
+      lofi({ scene: 'scene-space' }),
+      'VALIDATION',
+      'Orbit station unlocks at level 30, then it is in the shop for 1900 coins.',
+    )
     await expectCode(lofi({ scene: 'scene-mars' }), 'VALIDATION')
     const r = await lofi({ scene: 'sunset', style: 'music-classic', volume: 0.3 })
     expect(r.state.settings.lofi).toMatchObject({ scene: 'scene-sunset', style: 'music-classic', volume: 0.3 })

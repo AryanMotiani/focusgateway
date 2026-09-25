@@ -17,6 +17,7 @@ const routes = [
   { path: '/blocking', component: () => import('./views/Blocking.vue'), meta: { title: 'Blocking' } },
   { path: '/habits', component: () => import('./views/Habits.vue'), meta: { title: 'Habits' } },
   { path: '/stats', component: () => import('./views/Stats.vue'), meta: { title: 'Accountability' } },
+  { path: '/shop', component: () => import('./views/Shop.vue'), meta: { title: 'Shop' } },
   { path: '/settings', component: () => import('./views/Settings.vue'), meta: { title: 'Settings' } },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]

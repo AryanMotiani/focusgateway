@@ -15,6 +15,7 @@ import TodayRail from './components/TodayRail.vue'
 import Celebrate from './components/Celebrate.vue'
 import { startRewardWatch, isGame } from './lib/rewards.js'
 import { lofiState } from './lib/lofi.js'
+import { freshAffordable } from './lib/shop.js'
 
 const route = useRoute()
 const menu = ref(false)
@@ -41,9 +42,12 @@ const nav = [
   { to: '/blocking', label: 'Blocking', short: 'Blocks', icon: 'shield' },
   { to: '/habits', label: 'Habits', short: 'Habits', icon: 'target' },
   { to: '/stats', label: 'Accountability', short: 'Stats', icon: 'chart' },
+  { to: '/shop', label: 'Shop', short: 'Shop', icon: 'bag' },
   { to: '/settings', label: 'Settings', short: 'Settings', icon: 'settings' },
 ]
-const mobileNav = [nav[0], nav[1], nav[2], nav[5], nav[6]]
+const mobileNav = [nav[0], nav[1], nav[2], nav[5], nav[6], nav[7]]
+// a dot on the shop when something new is affordable
+const shopNew = computed(() => freshAffordable.value.length)
 const activeCount = computed(() => blocks.value.blocks.length)
 const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.path))
 </script>
@@ -91,6 +95,13 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
               >{{ activeCount }}</span
             >
             <span v-if="n.to === '/' && lofiState.playing" class="ml-auto h-2 w-2 animate-pulse rounded-full bg-warm" />
+            <span
+              v-if="n.to === '/shop' && shopNew"
+              class="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-[#ff5d8f] px-1.5 text-[11px] font-bold text-white"
+              :title="`${shopNew} new thing${shopNew === 1 ? '' : 's'} you can afford`"
+              data-shop-dot
+              >{{ shopNew }}</span
+            >
           </RouterLink>
         </nav>
         <div class="space-y-2">
@@ -137,17 +148,18 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
 
       <!-- mobile bottom nav -->
       <nav
-        class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+        class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
         aria-label="Quick"
       >
         <RouterLink
           v-for="n in mobileNav"
           :key="n.to"
           :to="n.to"
-          class="flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-muted"
+          class="relative flex flex-col items-center gap-0.5 py-2 text-[11px] font-medium text-muted"
           exact-active-class="!text-accent"
         >
           <Icon :name="n.icon" :size="20" /> {{ n.short }}
+          <span v-if="n.to === '/shop' && shopNew" class="absolute top-1.5 left-1/2 ml-2 h-2.5 w-2.5 rounded-full bg-[#ff5d8f]" />
         </RouterLink>
       </nav>
     </div>

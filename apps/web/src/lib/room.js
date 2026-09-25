@@ -2,10 +2,11 @@
 // items the player owns, and saving `settings.room`. Everything is in room units
 // (the room is 1600 x 900), and an item's x, y is the middle of its bottom edge.
 import { computed, reactive, watch } from 'vue'
-import { UNLOCKS, MILESTONES, defaultRoom, sanitizeRoom, isUnlocked } from '@focusgateway/core'
+import { UNLOCKS, MILESTONES, defaultRoom, sanitizeRoom } from '@focusgateway/core'
 import { ART, badgeArt } from '../components/room/art.js'
 import { store, call, toast } from './store.js'
 import { progress, milestones } from './rewards.js'
+import { ownsItem } from './shop.js'
 
 export const ROOM_W = 1600
 export const ROOM_H = 900
@@ -45,7 +46,7 @@ export function itemMeta(id) {
   const a = ART[id]
   if (!o || !a) return null
   const glow = a.glowWith ? a.glowWith(room.style) : a.glow
-  return { id, name: o.name, level: o.level, surface: o.surface, w: o.w, h: o.h, svg: a.svg, glow, flat: a.flat }
+  return { id, name: o.name, level: o.level, price: o.price || 0, surface: o.surface, w: o.w, h: o.h, svg: a.svg, glow, flat: a.flat }
 }
 
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
@@ -142,16 +143,21 @@ watch(
 export const level = computed(() => progress.value?.level || 1)
 const achieved = computed(() => new Set(milestones.value.filter((m) => m.achieved).map((m) => m.id)))
 
-/** Can this item be shown right now: an unlocked object, or an earned badge. */
+/** Can this item be shown right now: an owned object (free or bought), or an earned badge. */
 export function owns(id) {
   if (id.startsWith('badge:')) return achieved.value.has(id.slice(6))
-  return isUnlocked(id, level.value)
+  return ownsItem(id)
 }
 
-/** The tray: every object (locked ones too) and every badge, with their state. */
+/** The tray: every object (not owned ones too, with their price) and every badge, with their state. */
 export const inventory = computed(() => {
   const placed = new Set(room.items.map((i) => i.id))
-  const objects = OBJECTS.map((o) => ({ ...itemMeta(o.id), owned: isUnlocked(o.id, level.value), placed: placed.has(o.id) }))
+  const objects = OBJECTS.map((o) => ({
+    ...itemMeta(o.id),
+    owned: ownsItem(o.id),
+    locked: o.level > level.value,
+    placed: placed.has(o.id),
+  }))
   const badges = milestones.value.map((m) => ({
     ...itemMeta('badge:' + m.id),
     owned: m.achieved,
@@ -180,6 +186,9 @@ export function removeItem(id) {
   if (i >= 0) room.items.splice(i, 1)
   if (selection.id === id) selection.id = null
 }
+
+// asks the room to open decorate mode on a tab when it shows next (for "Place it now" in the shop)
+export const request = reactive({ decorate: null })
 
 // the item picked in decorate mode, for the move and remove buttons (and the arrow keys)
 export const selection = reactive({ id: null })

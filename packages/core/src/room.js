@@ -3,7 +3,8 @@
 // x, y is the middle of its bottom edge (where it touches its surface).
 import { UNLOCKS } from './unlocks.js'
 import { MILESTONES } from './milestones.js'
-import { optionsFor, optionOf, OPTION_FIELDS } from './options.js'
+import { optionsFor, optionOf } from './options.js'
+import { shopItem, shopHint, optionId } from './economy.js'
 
 export const ROOM_SIZE = { w: 1600, h: 900 }
 export const ROOM_MAX_ITEMS = 60
@@ -133,7 +134,7 @@ export function sanitizeItems(input) {
 
 /**
  * Validates a (partial) room patch against the current room. Unknown avatar and style values
- * fall back, items are checked, deduplicated, clamped to the room and capped. Levels are
+ * fall back, items are checked, deduplicated, clamped to the room and capped. Ownership is
  * checked separately by `roomLockError` (the backend runs it on every change).
  */
 export function sanitizeRoom(patch, current = defaultRoom()) {
@@ -147,12 +148,13 @@ export function sanitizeRoom(patch, current = defaultRoom()) {
 }
 
 /**
- * The first locked thing a room change tries to use, as an error message, or null.
+ * The first thing a room change tries to use without owning it, as an error message, or null.
+ * `owns(id)` says whether a shop item is owned (free ones always are, see economy.js).
  * Only changes are checked: an avatar or style value that differs from the saved one, or an
- * item that was not placed before. So what is already saved stays, even if the level drops.
+ * item that was not placed before. So what is already saved always stays.
  * `achieved` is the set of milestone ids earned so far (badges can be placed once earned).
  */
-export function roomLockError(next, prev, level, achieved = new Set()) {
+export function roomLockError(next, prev, owns, achieved = new Set()) {
   for (const [group, fields] of [
     ['avatar', AVATAR_OPTIONS],
     ['style', STYLE_OPTIONS],
@@ -160,8 +162,7 @@ export function roomLockError(next, prev, level, achieved = new Set()) {
     for (const field of Object.keys(fields)) {
       const v = next[group]?.[field]
       if (v === prev?.[group]?.[field]) continue
-      const o = optionOf(field, v)
-      if (o && o.level > level) return `${OPTION_FIELDS[field]} ${o.name} unlocks at level ${o.level}.`
+      if (optionOf(field, v) && !owns(optionId(field, v))) return shopHint(shopItem(optionId(field, v)))
     }
   }
   const had = new Set((prev?.items || []).map((i) => i.id))
@@ -171,8 +172,7 @@ export function roomLockError(next, prev, level, achieved = new Set()) {
       if (!achieved.has(it.id.slice(6))) return `Earn the ${MILESTONE_NAME[it.id.slice(6)]} badge to place it.`
       continue
     }
-    const u = OBJECTS[it.id]
-    if (u && u.level > level) return `${u.name} unlocks at level ${u.level}.`
+    if (OBJECTS[it.id] && !owns(it.id)) return shopHint(shopItem(it.id))
   }
   return null
 }

@@ -4,15 +4,19 @@
 // scene. Drag a window by its title bar, resize it from any edge or corner, minimize it to
 // the dock or maximize it. The layout is saved per device size (lib/windows.js).
 // On phones the windows stack in a column under the room, and can collapse or go full screen.
-// Scenes, decor and music styles unlock with your level (packages/core/src/unlocks.js).
+// Scenes, decor and music styles are bought with coins in the shop (packages/core/src/economy.js).
 // Keys: Space play, F full screen, C scene, D decorate, N scratchpad, Z hide panels,
 // T H B S planner tabs, Esc restores a maximized window.
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { UNLOCKS, isUnlocked, isTrackUnlocked, trackById } from '@focusgateway/core'
+import { UNLOCKS, trackOwned, trackById } from '@focusgateway/core'
 import { store, call, sessionRunning } from '../lib/store.js'
 import { lofi, lofiState, playWithSettings, savedTrack } from '../lib/lofi.js'
 import { createWindows } from '../lib/windows.js'
 import { progress } from '../lib/rewards.js'
+import { ownsItem, balance, freshAffordable } from '../lib/shop.js'
+import { request } from '../lib/room.js'
+import CoinIcon from '../components/shop/CoinIcon.vue'
+import WelcomeGift from '../components/shop/WelcomeGift.vue'
 import StudyRoom from '../components/room/StudyRoom.vue'
 import DecoratePanel from '../components/room/DecoratePanel.vue'
 import RoomClock from '../components/room/RoomClock.vue'
@@ -34,7 +38,8 @@ const player = lofi()
 const saved = store.state?.settings?.lofi || {}
 const LEGACY = { night: 'scene-night', sunset: 'scene-sunset', morning: 'scene-morning' }
 const level = computed(() => progress.value?.level || 1)
-const has = (id) => isUnlocked(id, level.value)
+// scenes and music styles are owned (free or bought in the shop, see core economy.js)
+const has = (id) => ownsItem(id)
 const onboarded = computed(() => !!store.state?.onboarding?.completed)
 
 const ui = reactive({
@@ -44,12 +49,12 @@ const ui = reactive({
   style: saved.style || 'music-classic',
   mix: { rain: 0.5, cafe: 0, fire: 0, noise: 0, ...(saved.mix || {}) },
 })
-// never show something that is not unlocked (for example after importing old data)
+// never show something that is not owned (for example after importing old data)
 if (!has(ui.scene)) ui.scene = 'scene-night'
 if (!has(ui.style)) ui.style = 'music-classic'
 
-// only tracks of unlocked styles play, and the saved track shows before anything plays
-player.setUnlockCheck((id) => isTrackUnlocked(id, level.value))
+// only tracks of owned styles play, and the saved track shows before anything plays
+player.setUnlockCheck((id) => trackOwned(id, ownsItem))
 if (!player.playing) player.setTrack(savedTrack({ lofi: { ...saved, style: ui.style } }).id)
 
 function recall(key, fallback) {
@@ -84,6 +89,7 @@ const NAV = [
   { to: '/blocking', label: 'Blocking', icon: 'shield' },
   { to: '/habits', label: 'Habits', icon: 'target' },
   { to: '/stats', label: 'Accountability', icon: 'chart' },
+  { to: '/shop', label: 'Shop', icon: 'bag' },
   { to: '/settings', label: 'Settings', icon: 'settings' },
 ]
 
@@ -156,7 +162,7 @@ async function toggle() {
   player.setMusic(ui.music)
 }
 function choose(t) {
-  if (!isTrackUnlocked(t.id, level.value)) return
+  if (!trackOwned(t.id, ownsItem)) return
   player.setTrack(t.id)
   ui.style = t.style
   if (!lofiState.playing) toggle()
@@ -198,7 +204,7 @@ watch(
     saveT = setTimeout(() => {
       const lofiPatch = { volume: ui.volume, scene: ui.scene, style: ui.style, mix: { ...ui.mix } }
       const t = trackById(lofiState.track)
-      if (t && t.style === ui.style && isTrackUnlocked(t.id, level.value)) lofiPatch.track = t.id
+      if (t && t.style === ui.style && trackOwned(t.id, ownsItem)) lofiPatch.track = t.id
       call('settings.update', { patch: { lofi: lofiPatch } }).catch(() => {})
     }, 800)
   },
@@ -207,6 +213,9 @@ watch(
 
 const roomEl = ref(null)
 const startDrag = (id, e) => roomEl.value?.startDrag(id, e)
+// the starter gift card: shows until claimed and closed (components/shop/WelcomeGift.vue)
+const giftPending = ref(!store.state?.shop?.giftAt)
+const shopNew = computed(() => freshAffordable.value.length)
 function decorate(tab) {
   if (!onboarded.value) return
   if (typeof tab === 'string') decorTab.value = tab
@@ -268,6 +277,11 @@ function onLeave(e) {
   e.returnValue = ''
 }
 onMounted(() => {
+  // "Place it now" in the shop page opens decorate mode here
+  if (request.decorate) {
+    decorate(request.decorate)
+    request.decorate = null
+  }
   window.addEventListener('beforeunload', onLeave)
   document.addEventListener('keydown', onKey)
   window.addEventListener('resize', onResize)
@@ -294,7 +308,13 @@ const chipOn = 'room-glass room-pill room-on'
       v-if="!narrow"
       ref="roomEl"
       class="absolute inset-x-0 top-0 transition-[bottom] duration-300"
-      :class="decorating ? (decorTab === 'avatar' || decorTab === 'room' ? 'bottom-[326px]' : 'bottom-[272px]') : 'bottom-0'"
+      :class="
+        decorating
+          ? decorTab === 'avatar' || decorTab === 'room' || decorTab === 'shop'
+            ? 'bottom-[326px]'
+            : 'bottom-[272px]'
+          : 'bottom-0'
+      "
       :scene="ui.scene"
       :rain="ui.mix.rain"
       :fit="decorating ? 'contain' : 'cover'"
@@ -330,6 +350,22 @@ const chipOn = 'room-glass room-pill room-on'
           </RouterLink>
         </nav>
         <div class="ml-auto flex items-center gap-1.5">
+          <button
+            v-if="onboarded"
+            class="relative flex items-center gap-1.5 px-3 py-2 text-xs font-bold"
+            :class="decorating && decorTab === 'shop' ? chipOn : pill"
+            :title="`Shop: ${balance} coins${shopNew ? `, ${shopNew} new thing${shopNew === 1 ? '' : 's'} you can afford` : ''}`"
+            data-room-shop-button
+            @click="decorating && decorTab === 'shop' ? (decorating = false) : decorate('shop')"
+          >
+            <CoinIcon :size="16" /> <span class="num">{{ balance }}</span> <span class="max-sm:hidden">Shop</span>
+            <span
+              v-if="shopNew"
+              class="absolute -top-1 -right-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#ff5d8f] px-1 text-[10px] text-white"
+              data-shop-dot
+              >{{ shopNew }}</span
+            >
+          </button>
           <button
             v-if="onboarded"
             class="flex items-center gap-1.5 px-3 py-2 text-xs font-bold"
@@ -377,7 +413,7 @@ const chipOn = 'room-glass room-pill room-on'
       <RoomWindow v-if="!onboarded" id="welcome" title="Welcome" icon="home" :ctl="ctl" :stacked="narrow">
         <p class="font-bold">This is the study room.</p>
         <p class="mt-1 text-sm text-muted">
-          Set up FocusGateway to keep tasks, habits and blocks right here, and to unlock new scenes and decor as you level up.
+          Set up FocusGateway to keep tasks, habits and blocks right here, and to earn coins for new scenes and decor.
         </p>
         <RouterLink to="/welcome" class="btn btn-primary btn-sm mt-3">Set up, it is free</RouterLink>
       </RoomWindow>
@@ -432,9 +468,22 @@ const chipOn = 'room-glass room-pill room-on'
       :start-drag="startDrag"
       class="z-20"
       :class="
-        narrow ? 'relative m-3' : ['absolute inset-x-5 bottom-4', decorTab === 'avatar' || decorTab === 'room' ? 'h-[306px]' : 'h-[252px]']
+        narrow
+          ? 'relative m-3'
+          : ['absolute inset-x-5 bottom-4', decorTab === 'avatar' || decorTab === 'room' || decorTab === 'shop' ? 'h-[306px]' : 'h-[252px]']
       "
       @close="decorating = false"
+      @scene="(id) => has(id) && (ui.scene = id)"
+      @style="setStyle"
+    />
+
+    <!-- the starter gift, once: how coins work, and enough for one small thing -->
+    <WelcomeGift
+      v-if="onboarded && giftPending && panels"
+      class="z-30"
+      :class="narrow ? 'fixed bottom-20 left-1/2 -translate-x-1/2' : 'absolute bottom-20 left-1/2 -translate-x-1/2'"
+      @shop="((giftPending = false), decorate('shop'))"
+      @close="giftPending = false"
     />
 
     <!-- panels hidden: only a small timer and the player -->

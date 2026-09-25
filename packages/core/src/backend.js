@@ -11,6 +11,7 @@ import { checkConfirmation } from './confirm.js'
 import { sanitizeRoom, roomLockError } from './room.js'
 import { progressOf, awardEvent, recordFocus } from './progress.js'
 import { mergeLofi } from './lofi.js'
+import { ownsFn, canBuy, coinsOf, sessionReward, payFocusCoins, defaultCoinStats, COINS } from './economy.js'
 import { computeMilestones } from './milestones.js'
 import {
   PRIORITIES,
@@ -288,6 +289,13 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     })
     if (s.focus.history.length > 1000) s.focus.history.shift()
     recordFocus(s.stats, s.focus.history.at(-1).focusedMin) // counters outlive the trimmed history
+    // coins for the session, kept on its history entry for the reward card (see economy.js)
+    s.stats.coins ||= defaultCoinStats()
+    const entry = s.focus.history.at(-1)
+    const reward = sessionReward(s.stats.coins, { minutes: entry.focusedMin, completed: status === 'completed', at: end })
+    payFocusCoins(s.stats.coins, reward, end)
+    const { base, bonus, first, streak, pct, coins, capped, xp } = reward
+    entry.reward = { coins, base, bonus, first, streak, pct, capped, xp }
     s.focus.active = null
     log(s, status === 'completed' ? 'focus_completed' : 'focus_stopped_early', { focusId: f.id, reason })
   }
@@ -796,13 +804,13 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         s.settings.appearance = r.value
       }
       if ('lofi' in patch) {
-        const r = mergeLofi(s.settings.lofi, patch.lofi, progressOf(s).level)
+        const r = mergeLofi(s.settings.lofi, patch.lofi, ownsFn(s))
         if (r.error) fail('VALIDATION', r.error)
         s.settings.lofi = r.value
       }
       if (patch.room) {
         const next = sanitizeRoom(patch.room, s.settings.room)
-        // only what changes is checked against the level, so saved choices always stay
+        // only what changes has to be owned, so saved choices always stay
         let earned = null // badges, worked out only when a new badge is placed
         const achieved = {
           has: (id) =>
@@ -812,11 +820,26 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
                 .map((m) => m.id),
             )).has(id),
         }
-        const err = roomLockError(next, s.settings.room, progressOf(s).level, achieved)
+        const err = roomLockError(next, s.settings.room, ownsFn(s), achieved)
         if (err) fail('VALIDATION', err)
         s.settings.room = next
       }
       return s.settings
+    },
+
+    // The shop (economy.js): buy with coins, once, for keeps
+    'shop.buy': (s, { id }) => {
+      const r = canBuy(s, id, progressOf(s).level)
+      if (!r.ok) fail(r.code === 'FUNDS' ? 'NOT_ENOUGH_COINS' : 'VALIDATION', r.reason)
+      s.shop.purchases.push({ id, price: r.item.price, at: now() })
+      log(s, 'shop_purchase', { itemId: id, price: r.item.price })
+      return { id, price: r.item.price, balance: coinsOf(s).balance }
+    },
+    // the starter gift from the welcome card in the room, once
+    'shop.gift': (s) => {
+      if (s.shop.giftAt) fail('VALIDATION', 'The starter gift is already yours.')
+      s.shop.giftAt = now()
+      return { coins: COINS.gift, balance: coinsOf(s).balance }
     },
     'agent.configure': async (s, { url, pairCode, pin }) => {
       if (s.agent.token) await checkPin(s, pin)

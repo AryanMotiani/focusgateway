@@ -11,6 +11,7 @@ import { countdown } from '../lib/format.js'
 import { lofi, lofiState, playWithSettings, savedTrack } from '../lib/lofi.js'
 import Icon from './Icon.vue'
 import BlockingOffBadge from './help/BlockingOffBadge.vue'
+import CoinCounter from './shop/CoinCounter.vue'
 
 const props = defineProps({ glass: Boolean, bare: Boolean })
 const player = lofi()
@@ -72,6 +73,8 @@ const sub = computed(() => (props.glass || props.bare ? 'text-muted' : isGame.va
       <Icon name="flame" :size="16" /><span class="num">{{ streak }}</span
       ><span class="hud-label hidden sm:inline" :class="sub">day streak</span>
     </span>
+
+    <CoinCounter :sub="sub" />
 
     <RouterLink v-if="focus" to="/room" class="flex items-center gap-2 text-sm" :title="focus.phase === 'work' ? 'Focus round' : 'Break'">
       <Icon name="target" :size="16" :class="focus.phase === 'work' ? 'text-accent' : 'text-warm'" />
