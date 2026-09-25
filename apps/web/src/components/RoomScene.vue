@@ -1,8 +1,10 @@
 <script setup>
-// The study room window. Scenes (unlocked by level) set the sky, the landscape and the
-// weather; objects (also unlocked by level) sit on the window sill. To add a scene, add
-// an entry to SCENES and an unlock in packages/core/src/unlocks.js.
+// The full-bleed window scene used on the landing page: sky and landscape (SceneSky),
+// canvas rain and weather, and optional sill objects. The study room itself is StudyRoom.
+// To add a scene, add an entry to SCENES in lib/scenes.js and an unlock in packages/core/src/unlocks.js.
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { sceneOf } from '../lib/scenes.js'
+import SceneSky from './SceneSky.vue'
 
 const props = defineProps({
   scene: { type: String, default: 'scene-night' },
@@ -14,161 +16,7 @@ const canvas = ref(null)
 let raf = 0
 let parts = []
 
-const SCENES = {
-  'scene-night': {
-    land: 'city',
-    sky: ['#0d0b24', '#231a4d', '#3b2a6b'],
-    glow: '#f6b25e',
-    far: '#1b163d',
-    near: '#120f2b',
-    win: '#f6c67a',
-    orb: '#f5efe6',
-    stars: true,
-  },
-  'scene-sunset': {
-    land: 'city',
-    sky: ['#2b1d4a', '#b0506b', '#f2a65a'],
-    glow: '#ffcf8a',
-    far: '#4a2640',
-    near: '#2a1830',
-    win: '#ffd79a',
-    orb: '#ffd3a1',
-    orbY: 330,
-  },
-  'scene-morning': {
-    land: 'city',
-    sky: ['#8ec5e8', '#c8e0ef', '#f4e2c8'],
-    glow: '#fff1d0',
-    far: '#8397b1',
-    near: '#5d6f8a',
-    win: '#fef3d7',
-    orb: '#fff6de',
-    winDim: 0.35,
-  },
-  'scene-forest': {
-    land: 'forest',
-    sky: ['#0f2027', '#2c5364', '#e0a96d'],
-    glow: '#ffcf8a',
-    far: '#20404a',
-    near: '#0d1f22',
-    orb: '#fbe3b8',
-    orbY: 300,
-    weather: 'fireflies',
-  },
-  'scene-snow': {
-    land: 'mountains',
-    sky: ['#3a4a6b', '#7f93b6', '#d7e1ee'],
-    glow: '#fff4dc',
-    far: '#6c7fa3',
-    near: '#3b4968',
-    cap: '#f4f7ff',
-    orb: '#f7f7ff',
-    weather: 'snow',
-  },
-  'scene-sea': {
-    land: 'sea',
-    sky: ['#243b6b', '#e38b8b', '#f7c59f'],
-    glow: '#ffd6a0',
-    far: '#5a6ea3',
-    near: '#2d3f6e',
-    orb: '#ffe2b0',
-    orbY: 520,
-  },
-  'scene-neon': {
-    land: 'city',
-    sky: ['#07030f', '#1d0633', '#3c0b4f'],
-    glow: '#ff4fd8',
-    far: '#1a0b2e',
-    near: '#0b0616',
-    win: '#43f0ff',
-    win2: '#ff4fd8',
-    orb: null,
-    neon: true,
-  },
-  'scene-aurora': {
-    land: 'mountains',
-    sky: ['#020814', '#06243a', '#0c3b4a'],
-    glow: '#7dffcf',
-    far: '#0a2233',
-    near: '#04121c',
-    cap: '#cfe8f0',
-    orb: null,
-    stars: true,
-    aurora: true,
-  },
-  'scene-space': { land: 'space', sky: ['#000005', '#070a1c', '#0e1433'], glow: '#8fb4ff', stars: true, orb: null },
-  'scene-blossom': {
-    land: 'forest',
-    blossom: true,
-    sky: ['#f6c7d6', '#fbe3e8', '#fff3e6'],
-    glow: '#fff0f3',
-    far: '#c98ba2',
-    near: '#8a4f67',
-    orb: '#fff8f2',
-    weather: 'petals',
-  },
-}
-const LEGACY = { night: 'scene-night', sunset: 'scene-sunset', morning: 'scene-morning' }
-const s = computed(() => SCENES[LEGACY[props.scene] || props.scene] || SCENES['scene-night'])
-
-function rng(seed) {
-  return () => (seed = (seed * 16807) % 2147483647) / 2147483647
-}
-const city = (() => {
-  const r = rng(7)
-  const back = []
-  const front = []
-  for (let x = -20; x < 1620;) {
-    const w = 50 + r() * 90
-    back.push({ x, w, h: 180 + r() * 260 })
-    x += w + 4
-  }
-  for (let x = -40; x < 1640;) {
-    const w = 70 + r() * 120
-    const h = 120 + r() * 220
-    const wins = []
-    for (let wy = 900 - h + 18; wy < 880; wy += 26)
-      for (let wx = x + 12; wx < x + w - 14; wx += 20) if (r() < 0.32) wins.push({ x: wx, y: wy, o: 0.5 + r() * 0.5, alt: r() < 0.4 })
-    front.push({ x, w, h, wins })
-    x += w + 8
-  }
-  return { back, front }
-})()
-const trees = (() => {
-  const r = rng(19)
-  const layer = (n, base, hmin, hmax) =>
-    Array.from({ length: n }, (_, i) => {
-      const x = (i / n) * 1700 - 50 + r() * 40
-      const h = hmin + r() * (hmax - hmin)
-      return { x, h, w: h * (0.32 + r() * 0.1), base }
-    })
-  return { far: layer(46, 860, 160, 300), near: layer(24, 900, 240, 420) }
-})()
-const peaks = (() => {
-  const r = rng(5)
-  const ridge = (count, base, hmin, hmax) => {
-    const pts = [[-50, 900]]
-    for (let i = 0; i <= count; i++) {
-      const x = -50 + (i / count) * 1700
-      pts.push([x, base - (hmin + r() * (hmax - hmin)) * (i % 2 ? 1 : 0.55)])
-    }
-    pts.push([1650, 900])
-    return pts
-  }
-  return { far: ridge(10, 760, 180, 360), near: ridge(7, 900, 160, 330) }
-})()
-const stars = (() => {
-  const r = rng(42)
-  return Array.from({ length: 110 }, () => ({ x: r() * 1600, y: r() * 480, s: r() * 1.6 + 0.3, d: r() * 4 }))
-})()
-const poly = (pts) => pts.map((p) => p.join(',')).join(' ')
-// snow caps: small triangles at the peak points of the far ridge
-const caps = computed(() =>
-  peaks.far
-    .slice(1, -1)
-    .filter((p, i) => i % 2 === 1)
-    .map(([x, y]) => `${x - 38},${y + 46} ${x},${y} ${x + 38},${y + 46}`),
-)
+const s = computed(() => sceneOf(props.scene))
 
 // ---- canvas: rain (from the ambience slider) + scene weather
 function resize() {
@@ -281,155 +129,14 @@ const sillItems = computed(
 
 <template>
   <div class="absolute inset-0 overflow-hidden" aria-hidden="true">
+    <SceneSky :scene="scene" id-prefix="rs-" class="absolute inset-0 h-full w-full" />
     <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" class="absolute inset-0 h-full w-full">
       <defs>
-        <linearGradient id="rs-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" :stop-color="s.sky[0]" />
-          <stop offset=".6" :stop-color="s.sky[1]" />
-          <stop offset="1" :stop-color="s.sky[2]" />
-        </linearGradient>
-        <radialGradient id="rs-orb">
-          <stop offset="0" :stop-color="s.orb || '#fff'" stop-opacity=".35" />
-          <stop offset="1" stop-color="#fff" stop-opacity="0" />
-        </radialGradient>
         <radialGradient id="rs-lamp" cx=".15" cy="1" r=".7">
           <stop offset="0" :stop-color="s.glow" stop-opacity=".45" />
           <stop offset="1" :stop-color="s.glow" stop-opacity="0" />
         </radialGradient>
-        <linearGradient id="rs-aurora" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#3dffb0" stop-opacity="0" />
-          <stop offset=".35" stop-color="#3dffb0" stop-opacity=".55" />
-          <stop offset=".7" stop-color="#6fa8ff" stop-opacity=".45" />
-          <stop offset="1" stop-color="#b86bff" stop-opacity="0" />
-        </linearGradient>
-        <linearGradient id="rs-sea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" :stop-color="s.far" />
-          <stop offset="1" :stop-color="s.near" />
-        </linearGradient>
-        <radialGradient id="rs-planet" cx=".35" cy=".35" r=".75">
-          <stop offset="0" stop-color="#f3b27a" />
-          <stop offset=".6" stop-color="#b35f5f" />
-          <stop offset="1" stop-color="#3a1f3f" />
-        </radialGradient>
       </defs>
-      <rect width="1600" height="900" fill="url(#rs-sky)" />
-      <g v-if="s.stars">
-        <circle
-          v-for="(st, i) in stars"
-          :key="i"
-          :cx="st.x"
-          :cy="st.y"
-          :r="st.s"
-          fill="#fff"
-          class="twinkle"
-          :style="{ animationDelay: st.d + 's' }"
-        />
-      </g>
-      <g v-if="s.aurora" class="aurora">
-        <path
-          d="M-50 260 C 300 120, 600 330, 900 200 S 1400 150, 1700 260 L1700 330 C 1300 250, 1000 380, 700 300 S 200 240, -50 340 Z"
-          fill="url(#rs-aurora)"
-        />
-        <path
-          d="M-50 180 C 350 60, 700 260, 1000 150 S 1450 110, 1700 190 L1700 230 C 1350 170, 1050 290, 750 220 S 250 160, -50 240 Z"
-          fill="url(#rs-aurora)"
-          opacity=".6"
-        />
-      </g>
-      <template v-if="s.orb">
-        <circle cx="1200" :cy="s.orbY || 230" r="170" fill="url(#rs-orb)" />
-        <circle cx="1200" :cy="s.orbY || 230" r="58" :fill="s.orb" />
-      </template>
-
-      <!-- landscapes -->
-      <template v-if="s.land === 'city'">
-        <g :fill="s.far" opacity=".85">
-          <rect v-for="(b, i) in city.back" :key="'b' + i" :x="b.x" :y="900 - b.h - 60" :width="b.w" :height="b.h + 60" />
-        </g>
-        <g v-for="(b, i) in city.front" :key="'f' + i">
-          <rect :x="b.x" :y="900 - b.h" :width="b.w" :height="b.h" :fill="s.near" />
-          <rect
-            v-for="(w, j) in b.wins"
-            :key="j"
-            :x="w.x"
-            :y="w.y"
-            width="8"
-            height="11"
-            rx="1"
-            :fill="s.neon && w.alt ? s.win2 : s.win"
-            :opacity="w.o * (s.winDim || 1)"
-          />
-        </g>
-        <g v-if="s.neon">
-          <rect x="210" y="560" width="120" height="34" rx="6" fill="none" stroke="#ff4fd8" stroke-width="4" class="flicker" />
-          <rect x="1010" y="520" width="90" height="28" rx="6" fill="none" stroke="#43f0ff" stroke-width="4" />
-        </g>
-      </template>
-      <template v-else-if="s.land === 'forest'">
-        <g :fill="s.far">
-          <polygon
-            v-for="(t, i) in trees.far"
-            :key="'tf' + i"
-            :points="`${t.x - t.w / 2},${t.base} ${t.x},${t.base - t.h} ${t.x + t.w / 2},${t.base}`"
-          />
-        </g>
-        <rect x="0" y="850" width="1600" height="50" :fill="s.far" />
-        <g :fill="s.near">
-          <polygon
-            v-for="(t, i) in trees.near"
-            :key="'tn' + i"
-            :points="`${t.x - t.w / 2},${t.base} ${t.x},${t.base - t.h} ${t.x + t.w / 2},${t.base}`"
-          />
-        </g>
-        <g v-if="s.blossom" fill="#ffb3c8" opacity=".85">
-          <circle v-for="(t, i) in trees.near" :key="'bl' + i" :cx="t.x" :cy="t.base - t.h * 0.62" :r="t.w * 0.55" />
-        </g>
-        <g v-else>
-          <rect x="1180" y="760" width="110" height="80" fill="#1a1410" />
-          <polygon points="1165,765 1235,712 1305,765" fill="#1a1410" />
-          <rect x="1205" y="785" width="22" height="22" :fill="s.glow" opacity=".85" />
-        </g>
-      </template>
-      <template v-else-if="s.land === 'mountains'">
-        <polygon :points="poly(peaks.far)" :fill="s.far" />
-        <polygon v-for="(c, i) in caps" :key="'c' + i" :points="c" :fill="s.cap" opacity=".9" />
-        <polygon :points="poly(peaks.near)" :fill="s.near" />
-      </template>
-      <template v-else-if="s.land === 'sea'">
-        <rect x="0" y="560" width="1600" height="340" fill="url(#rs-sea)" />
-        <g stroke="#ffe2b0" stroke-linecap="round" opacity=".55">
-          <line
-            v-for="i in 14"
-            :key="'w' + i"
-            :x1="1200 - i * 18"
-            :y1="575 + i * 22"
-            :x2="1200 + i * 18"
-            :y2="575 + i * 22"
-            :stroke-width="3 + i * 0.3"
-            class="glint"
-            :style="{ animationDelay: i * 0.2 + 's' }"
-          />
-        </g>
-        <rect x="260" y="430" width="34" height="150" fill="#f4efe6" />
-        <rect x="260" y="470" width="34" height="18" fill="#c94f4f" />
-        <rect x="252" y="410" width="50" height="26" :fill="s.glow" />
-      </template>
-      <template v-else-if="s.land === 'space'">
-        <circle cx="1150" cy="330" r="190" fill="url(#rs-planet)" />
-        <ellipse
-          cx="1150"
-          cy="330"
-          rx="330"
-          ry="58"
-          fill="none"
-          stroke="#f3cf9a"
-          stroke-width="10"
-          opacity=".55"
-          transform="rotate(-14 1150 330)"
-        />
-        <circle cx="330" cy="200" r="36" fill="#cfd8ff" opacity=".8" />
-      </template>
-
       <rect width="1600" height="900" fill="url(#rs-lamp)" :opacity="0.85 + pulse * 0.15" />
     </svg>
     <canvas ref="canvas" class="absolute inset-0 h-full w-full" />

@@ -8,6 +8,7 @@ import { rulesOverlap, validateSchedule, nextWindowStart, windowAt } from './sch
 import { findSite, parseDomainList, normalizeDomain } from './sites.js'
 import { hashSecret, verifySecret, generateRecoveryCode, normalizeRecoveryCode, randomId } from './crypto.js'
 import { checkConfirmation } from './confirm.js'
+import { sanitizeRoom } from './room.js'
 import {
   PRIORITIES,
   PRIORITY_RANK,
@@ -769,6 +770,7 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         s.settings.appearance = r.value
       }
       if (patch.lofi) s.settings.lofi = { ...s.settings.lofi, ...patch.lofi, mix: { ...s.settings.lofi.mix, ...(patch.lofi.mix || {}) } }
+      if (patch.room) s.settings.room = sanitizeRoom(patch.room, s.settings.room)
       return s.settings
     },
     'agent.configure': async (s, { url, pairCode, pin }) => {

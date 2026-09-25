@@ -1,4 +1,5 @@
 import { DEFAULT_APPEARANCE } from './appearance.js'
+import { defaultRoom, sanitizeRoom } from './room.js'
 
 export const SCHEMA_VERSION = 1
 
@@ -20,6 +21,7 @@ export function defaultState() {
       weeklyFocusGoalMin: 300,
       appearance: structuredClone(DEFAULT_APPEARANCE), // palette + heading font + body font, per mode
       lofi: { volume: 0.6, scene: 'night', style: 'music-classic', objects: true, mix: { rain: 0.5, cafe: 0, fire: 0, noise: 0 } },
+      room: defaultRoom(), // avatar + placed decor, see room.js
     },
     customSites: [],
     rules: [],
@@ -51,6 +53,7 @@ export function migrate(saved) {
     game: { ...base.settings.appearance.game, ...(look.game || {}) },
     minimal: { ...base.settings.appearance.minimal, ...(look.minimal || {}) },
   }
+  out.settings.room = saved.settings?.room ? sanitizeRoom(saved.settings.room, base.settings.room) : base.settings.room
   for (const k of ['customSites', 'rules', 'tasks', 'tags', 'habits', 'overrides', 'log']) {
     if (!Array.isArray(out[k])) out[k] = base[k]
   }
