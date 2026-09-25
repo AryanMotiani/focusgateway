@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -337,6 +338,15 @@ func TestSlowBodyDoesNotBlockTick(t *testing.T) {
 	bodyReadTimeout = 700 * time.Millisecond
 	t.Cleanup(func() { bodyReadTimeout = old })
 
+	// Windows TCP scheduling is slower than Linux/macOS; use wider margins so
+	// the test stays meaningful without flaking on the CI runner.
+	sleepMs := 100 * time.Millisecond
+	tickDeadline := 300 * time.Millisecond
+	if runtime.GOOS == "windows" {
+		sleepMs = 300 * time.Millisecond
+		tickDeadline = 900 * time.Millisecond
+	}
+
 	e := setup(t, paths.Config{PairCode: code("AAAA-BBBB-CCCC-DDDD-EEEE"), LinkCode: code("LINK-LINK-LINK-LINK-LINK")})
 	cfg, _ := paths.ReadConfig()
 	cfg.LinkExpiresAt = e.now + 60_000
@@ -347,13 +357,13 @@ func TestSlowBodyDoesNotBlockTick(t *testing.T) {
 
 	pairConn := stall(t, addr, "/v1/pair", "")
 	defer pairConn.Close()
-	time.Sleep(100 * time.Millisecond) // the handler is now waiting for the body
+	time.Sleep(sleepMs) // the handler is now waiting for the body
 
 	done := make(chan struct{})
 	go func() { e.agent.Tick(); close(done) }()
 	select {
 	case <-done:
-	case <-time.After(300 * time.Millisecond):
+	case <-time.After(tickDeadline):
 		t.Fatal("Tick waited for a stalled /v1/pair body")
 	}
 	// Other requests keep working too, including a real pairing.
@@ -373,12 +383,12 @@ func TestSlowBodyDoesNotBlockTick(t *testing.T) {
 	// The same for an authenticated sync that never sends its body.
 	syncConn := stall(t, addr, "/v1/sync", "Authorization: Bearer "+secret+"\r\n")
 	defer syncConn.Close()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(sleepMs)
 	done = make(chan struct{})
 	go func() { e.agent.Tick(); close(done) }()
 	select {
 	case <-done:
-	case <-time.After(300 * time.Millisecond):
+	case <-time.After(tickDeadline):
 		t.Fatal("Tick waited for a stalled /v1/sync body")
 	}
 	_ = syncConn.SetReadDeadline(time.Now().Add(3 * time.Second))
