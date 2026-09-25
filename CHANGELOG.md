@@ -4,6 +4,10 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-25
+
+First public release: the study room home, Game and Calm styles, visual accountability, and the single-file lock agent with installers.
+
 ### Changed
 
 - The lock agent is now one small Go program (about 7 MB) instead of a Node.js script. Nothing else to install. Same commands, same protocol, and an existing pairing and data folder carry over.
