@@ -65,7 +65,7 @@ const title = computed(() =>
     <span class="shrink-0" :class="state.tone === 'bad' ? 'text-bad' : state.tone === 'warn' ? 'text-caution' : 'text-good'">{{
       state.label
     }}</span>
-    <span class="min-w-0 truncate font-semibold text-muted" data-blocking-detail>{{ state.detail }}</span>
+    <span class="min-w-0 truncate font-semibold text-muted max-xl:hidden" data-blocking-detail>{{ state.detail }}</span>
   </button>
 </template>
 

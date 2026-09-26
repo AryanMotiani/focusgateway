@@ -88,7 +88,7 @@ watch(
     </div>
     <div
       v-if="celebration.nudge && giftDone && !celebration.badge && !celebration.session && !celebration.levelUp"
-      class="pointer-events-none fixed inset-x-0 top-16 z-[60] flex justify-center px-4 lg:top-20"
+      class="pointer-events-none fixed inset-x-0 top-16 z-[60] flex justify-center px-4 max-sm:top-auto max-sm:bottom-24 lg:top-20"
     >
       <div
         class="pop-in pointer-events-auto flex items-center gap-3 rounded-2xl bg-hud py-2 pr-2 pl-2.5 text-hud-ink shadow-2xl"

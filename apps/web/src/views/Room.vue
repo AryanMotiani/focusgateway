@@ -380,13 +380,21 @@ const chipOn = 'room-glass room-pill room-on'
     </div>
 
     <header
-      class="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-wrap items-center gap-2 p-3 sm:p-5 [&>*]:pointer-events-auto"
+      class="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-wrap items-center gap-2 p-3 sm:flex-nowrap sm:p-5 [&>*]:pointer-events-auto"
     >
       <template v-if="!hidden">
-        <RouterLink :to="onboarded ? '/today' : '/home'" class="flex items-center gap-2 py-1.5 pr-4 pl-1.5 text-sm font-bold" :class="pill">
-          <img :src="logo" alt="" class="h-7 w-7" /> <span class="max-lg:hidden">FocusGateway</span>
+        <RouterLink
+          :to="onboarded ? '/today' : '/home'"
+          class="flex shrink-0 items-center p-1.5"
+          :class="pill"
+          title="FocusGateway"
+          aria-label="FocusGateway home"
+        >
+          <img :src="logo" alt="" class="h-7 w-7" />
         </RouterLink>
-        <nav v-if="onboarded" class="flex items-center gap-0.5 p-1 max-sm:hidden" :class="pill" aria-label="Pages">
+        <!-- always: does blocking work in this browser? Left, next to the logo, so the row never wraps -->
+        <BlockingPill class="min-w-0 shrink max-sm:flex-1 sm:max-w-72" />
+        <nav v-if="onboarded" class="flex shrink-0 items-center gap-0.5 p-1 max-sm:hidden" :class="pill" aria-label="Pages">
           <RouterLink
             v-for="n in NAV"
             :key="n.to"
@@ -398,8 +406,6 @@ const chipOn = 'room-glass room-pill room-on'
             <Icon :name="n.icon" :size="16" />
           </RouterLink>
         </nav>
-        <!-- always: does blocking work in this browser? -->
-        <BlockingPill class="max-sm:flex-1 sm:max-w-80" />
         <RouterLink
           v-if="!onboarded"
           to="/welcome"
@@ -408,7 +414,7 @@ const chipOn = 'room-glass room-pill room-on'
           data-room-setup
           >Set up free</RouterLink
         >
-        <div class="ml-auto flex items-center gap-1.5">
+        <div class="ml-auto flex shrink-0 items-center gap-1.5">
           <button
             v-if="onboarded"
             class="relative flex items-center gap-1.5 px-3 py-2 text-xs font-bold"

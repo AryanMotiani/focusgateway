@@ -37,12 +37,14 @@ const size = computed(() => {
 
 // the tip goes where there is room: under the window, over it, or inside at the top
 const TIP_H = 140
+const HEADER_H = 96
 const tipSide = computed(() => {
   if (props.stacked) return 'inline'
   const r = rect.value
   if (!r || win.value?.max) return 'inside'
   if (props.ctl.wm.vh - (r.y + r.h) >= TIP_H) return 'below'
-  if (r.y >= TIP_H) return 'above'
+  // above only when it clears the room header bar, otherwise the header buttons would cover it
+  if (r.y - HEADER_H >= TIP_H) return 'above'
   return 'inside'
 })
 
