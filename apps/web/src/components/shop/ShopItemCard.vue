@@ -2,7 +2,7 @@
 // One thing in the shop: its picture, name, price and state (new, affordable, how far off,
 // locked by level, owned). The whole card is a button that opens the buy dialog.
 import { computed } from 'vue'
-import { shopKind } from '@focusgateway/core'
+import { shopKind } from '@regimen/core'
 import { balance } from '../../lib/shop.js'
 import ItemPreview from './ItemPreview.vue'
 import CoinIcon from './CoinIcon.vue'

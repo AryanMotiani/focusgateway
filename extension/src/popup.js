@@ -1,4 +1,4 @@
-import { computeBlocks } from '@focusgateway/core'
+import { computeBlocks } from '@regimen/core'
 import { appUrl, OFFLINE_KEY, prefersOffline } from './app-url.js'
 
 const ext = globalThis.browser ?? globalThis.chrome
@@ -14,12 +14,12 @@ async function render() {
     warn.hidden = false
     warn.classList.add('bad')
     warn.innerHTML =
-      '<b>Blocking is off.</b> Your browser has not given FocusGateway access to websites, so blocked sites still load. <button class="btn primary" id="grant" style="margin-top:6px;padding:6px 10px">Grant access</button>'
+      '<b>Blocking is off.</b> Your browser has not given Regimen access to websites, so blocked sites still load. <button class="btn primary" id="grant" style="margin-top:6px;padding:6px 10px">Grant access</button>'
     document.getElementById('grant').onclick = () => ext.permissions.request({ origins: ['<all_urls>'] }).then(render)
   } else if (perms?.ok && perms.data.incognito === false) {
     warn.hidden = false
     warn.textContent =
-      'Tip: allow FocusGateway in private/incognito windows (extension settings), or install the lock agent which disables them.'
+      'Tip: allow Regimen in private/incognito windows (extension settings), or install the lock agent which disables them.'
   }
   const pending = await ext.runtime.sendMessage({ type: 'fg-meta', action: 'pending' })
   const box = document.getElementById('pending')
@@ -33,7 +33,7 @@ async function render() {
       p.append(
         'Connect ',
         Object.assign(document.createElement('b'), { textContent: origin }),
-        '? Only allow your own or the official FocusGateway site.',
+        '? Only allow your own or the official Regimen site.',
       )
       const allow = Object.assign(document.createElement('button'), { className: 'btn primary', textContent: 'Allow' })
       const deny = Object.assign(document.createElement('button'), { className: 'btn', textContent: 'Ignore' })
@@ -48,7 +48,7 @@ async function render() {
   const state = res.state
   if (!state.onboarding.completed) {
     document.getElementById('status').innerHTML =
-      '<a href="app/index.html#/welcome" data-route="/welcome" target="_blank">Finish setting up FocusGateway →</a>'
+      '<a href="app/index.html#/welcome" data-route="/welcome" target="_blank">Finish setting up Regimen →</a>'
     return
   }
   const { blocks } = computeBlocks(state, Date.now())

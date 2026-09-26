@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { requiredPhrase } from '@focusgateway/core'
+import { requiredPhrase } from '@regimen/core'
 import { store, call, toast } from '../lib/store.js'
 import { countdown } from '../lib/format.js'
 import Modal from './Modal.vue'

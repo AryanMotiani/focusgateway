@@ -28,4 +28,4 @@ export function installTarget() {
 
 /** Short, honest words for phones, used wherever blocking is explained. */
 export const PHONE_NOTE =
-  'Site blocking uses a browser extension, and those run on computers. Firefox for Android runs some extensions, but FocusGateway does not support it yet. Tasks, habits and the room work here.'
+  'Site blocking uses a browser extension, and those run on computers. Firefox for Android runs some extensions, but Regimen does not support it yet. Tasks, habits and the room work here.'

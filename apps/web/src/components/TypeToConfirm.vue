@@ -2,7 +2,7 @@
 // Type-to-confirm: the exact sentence + a real reason. Paste and drop are blocked,
 // the backend re-checks the text anyway.
 import { computed } from 'vue'
-import { MIN_REASON_LENGTH } from '@focusgateway/core'
+import { MIN_REASON_LENGTH } from '@regimen/core'
 const props = defineProps({ phrase: String, modelValue: String })
 const emit = defineEmits(['update:modelValue'])
 const squash = (s) =>

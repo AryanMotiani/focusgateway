@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: AryanMotiani.Regimen
+PackageVersion: 1.0.0
+PackageLocale: en-US
+Publisher: Regimen
+PublisherUrl: https://github.com/AryanMotiani/regimen
+PublisherSupportUrl: https://github.com/AryanMotiani/regimen/issues
+PrivacyUrl: https://aryanmotiani.github.io/regimen/privacy.html
+PackageName: Regimen lock agent
+PackageUrl: https://aryanmotiani.github.io/regimen/
+License: MIT
+LicenseUrl: https://github.com/AryanMotiani/regimen/blob/master/LICENSE
+ShortDescription: Makes Regimen site blocks apply to every browser and app on this computer.
+Description: |-
+  The Regimen lock agent is a small background service that enforces your Regimen blocks
+  system-wide through the hosts file, and sets browser policies that turn off Secure DNS and private
+  windows. It pairs with the free Regimen browser extension. No account, no data leaves your computer.
+Moniker: regimen
+Tags:
+  - focus
+  - productivity
+  - site-blocker
+  - students
+  - pomodoro
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

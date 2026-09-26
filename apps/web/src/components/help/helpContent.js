@@ -5,8 +5,8 @@
 const blockingBasics = {
   h: 'How blocking works',
   items: [
-    'Blocking needs the free FocusGateway browser extension. Without it the app still works, but nothing is blocked. A red "Blocking is off" sign tells you when that is the case.',
-    "Blocked sites open FocusGateway's own page instead, with what unlocks them.",
+    'Blocking needs the free Regimen browser extension. Without it the app still works, but nothing is blocked. A red "Blocking is off" sign tells you when that is the case.',
+    "Blocked sites open Regimen's own page instead, with what unlocks them.",
     'The optional lock agent applies the same blocks to every browser and app on your computer.',
   ],
 }
@@ -29,11 +29,11 @@ const blockingOff = {
   h: 'Why is nothing blocked?',
   items: [
     'No extension in this browser: the app runs on its own. Tasks, habits, the timer and the room work, but sites still open. Add the extension from the Install page.',
-    'Extension installed, page not connected: reload this tab (it was open before the install). A copy on your own computer needs Allow once: the puzzle piece in the toolbar, then FocusGateway, then Allow.',
-    'Firefox without website access: click the FocusGateway icon and press Grant access, or use the Fix it button here.',
+    'Extension installed, page not connected: reload this tab (it was open before the install). A copy on your own computer needs Allow once: the puzzle piece in the toolbar, then Regimen, then Allow.',
+    'Firefox without website access: click the Regimen icon and press Grant access, or use the Fix it button here.',
     'Older extension: blocking still works, but update it from the Install page to use the latest features.',
-    "Private or incognito window: extensions are off there until you allow FocusGateway in your browser's extension settings.",
-    'Phones: browser extensions run on computers. Firefox for Android runs some extensions, but FocusGateway does not support it yet.',
+    "Private or incognito window: extensions are off there until you allow Regimen in your browser's extension settings.",
+    'Phones: browser extensions run on computers. Firefox for Android runs some extensions, but Regimen does not support it yet.',
     'Click the red "Blocking is off" chip for a checklist with a fix for each step, or open the Blocking page.',
   ],
 }
@@ -272,7 +272,7 @@ export const HELP = {
   },
   settings: {
     title: 'Settings',
-    intro: 'Make FocusGateway yours and keep it safe.',
+    intro: 'Make Regimen yours and keep it safe.',
     sections: [
       {
         h: 'What is here',
@@ -298,10 +298,10 @@ export const HELP = {
         h: 'Browser extension',
         items: [
           'Until the store listings are live, you load it by hand: download, unzip, open the extensions page, turn on Developer mode and choose Load unpacked.',
-          'Using the website? Click the FocusGateway icon (under the puzzle piece) and press Allow for this site. Until you do, nothing is blocked.',
+          'Using the website? Click the Regimen icon (under the puzzle piece) and press Allow for this site. Until you do, nothing is blocked.',
           'Firefox: allow access to all websites when asked, or blocking stays off.',
-          "Private windows: allow FocusGateway there in your browser's extension settings.",
-          'Phones: extensions run on computers, so blocking does too. Firefox for Android runs some extensions, but FocusGateway does not support it yet.',
+          "Private windows: allow Regimen there in your browser's extension settings.",
+          'Phones: extensions run on computers, so blocking does too. Firefox for Android runs some extensions, but Regimen does not support it yet.',
         ],
       },
       blockingOff,

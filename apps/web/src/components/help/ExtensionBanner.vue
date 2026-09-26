@@ -7,7 +7,7 @@ import { store, blockingIssue, extensionOutdated, APP_VERSION, requestHostAccess
 import { showBlockingOff } from './guard.js'
 import Icon from '../Icon.vue'
 
-const KEY = 'focusgateway:update-dismissed'
+const KEY = 'regimen:update-dismissed'
 function read() {
   try {
     return localStorage.getItem(KEY)

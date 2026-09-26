@@ -2,7 +2,7 @@
 // items the player owns, and saving `settings.room`. Everything is in room units
 // (the room is 1600 x 900), and an item's x, y is the middle of its bottom edge.
 import { computed, reactive, watch } from 'vue'
-import { UNLOCKS, MILESTONES, defaultRoom, sanitizeRoom } from '@focusgateway/core'
+import { UNLOCKS, MILESTONES, defaultRoom, sanitizeRoom } from '@regimen/core'
 import { ART, badgeArt } from '../components/room/art.js'
 import { store, call, toast } from './store.js'
 import { progress, milestones } from './rewards.js'

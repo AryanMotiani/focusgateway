@@ -16,9 +16,9 @@ import (
 	"strconv"
 	"strings"
 
-	"focusgateway/agent/internal/paths"
-	"focusgateway/agent/internal/platform"
-	"focusgateway/agent/internal/safefile"
+	"regimen/agent/internal/paths"
+	"regimen/agent/internal/platform"
+	"regimen/agent/internal/safefile"
 )
 
 // KV is one policy entry. Policies keep their order so files and plists are stable.
@@ -59,7 +59,7 @@ type Options struct {
 }
 
 // FirefoxExtensionID is the add-on id from extension/build.mjs.
-const FirefoxExtensionID = "focusgateway@focusgateway.app"
+const FirefoxExtensionID = "regimen@aryanmotiani.github.io"
 
 // OptionsFromConfig builds Options from config.json.
 func OptionsFromConfig(c paths.Config) Options {
@@ -251,7 +251,7 @@ func exists(p string) bool {
 }
 
 // backupSuffix marks the copy of a policy file that was there before us.
-const backupSuffix = ".focusgateway-backup"
+const backupSuffix = ".regimen-backup"
 
 // backupAndWrite writes a policy file as root. It refuses links (at the file
 // and at its backup) and folders that a user other than root could change, so
@@ -369,7 +369,7 @@ func Apply(o Options) []Written {
 			}
 		default:
 			var one Written
-			if one, err = backupAndWrite(filepath.Join(target, "focusgateway.json"), indentJSON(chrome)); err == nil {
+			if one, err = backupAndWrite(filepath.Join(target, "regimen.json"), indentJSON(chrome)); err == nil {
 				w = []Written{one}
 			}
 		}

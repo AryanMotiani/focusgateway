@@ -155,7 +155,7 @@ function promoHtml() {
     background:linear-gradient(135deg,#1b1640 0%,#3b2f8f 60%,#6152e8 100%);color:#fff;font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
     <div style="display:flex;align-items:center;gap:14px">
       <div style="width:56px;height:56px;border-radius:16px;background:#fff;display:grid;place-items:center">${logo.replace('<svg', '<svg width="40" height="40"')}</div>
-      <div style="font-size:30px;font-weight:800;letter-spacing:-0.5px">FocusGateway</div>
+      <div style="font-size:30px;font-weight:800;letter-spacing:-0.5px">Regimen</div>
     </div>
     <div>
       <div style="font-size:24px;font-weight:700;line-height:1.2">Sites stay blocked until<br/>your work is done.</div>
@@ -190,7 +190,7 @@ async function extensionWithDemo(mode) {
     reducedMotion: 'reduce',
     args: [`--disable-extensions-except=${EXT}`, `--load-extension=${EXT}`],
   })
-  await context.addInitScript(() => localStorage.setItem('focusgateway:seen-level', '999'))
+  await context.addInitScript(() => localStorage.setItem('regimen:seen-level', '999'))
   let [worker] = context.serviceWorkers()
   if (!worker) worker = await context.waitForEvent('serviceworker')
   const id = worker.url().split('/')[2]

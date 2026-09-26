@@ -3,7 +3,7 @@
 // It grows into its space: small shows the essentials with the track list and ambience in a
 // popover, taller shows the ambience inline, big shows the track list inline too.
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
-import { trackById, trackStyle } from '@focusgateway/core'
+import { trackById, trackStyle } from '@regimen/core'
 import { lofi, lofiState } from '../../../lib/lofi.js'
 import RoomIcon from '../RoomIcon.vue'
 import EqBars from './EqBars.vue'

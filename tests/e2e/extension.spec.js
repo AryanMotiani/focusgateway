@@ -83,7 +83,7 @@ test('a setup finished on the website moves into a newly installed extension (no
 
   const page = await context.newPage()
   await page.addInitScript((s) => {
-    if (!localStorage.getItem('focusgateway:v1')) localStorage.setItem('focusgateway:v1', s)
+    if (!localStorage.getItem('regimen:v1')) localStorage.setItem('regimen:v1', s)
   }, JSON.stringify(saved))
 
   // 2. Open the website: the extension asks for approval once.
@@ -101,6 +101,6 @@ test('a setup finished on the website moves into a newly installed extension (no
   const { state } = await send('state.get')
   expect(state.onboarding.completed).toBe(true)
   expect((await send('security.changePin', { oldPin: PIN, newPin: '135791' })).ok).toBe(true)
-  expect(await page.evaluate(() => localStorage.getItem('focusgateway:v1'))).toBeNull()
+  expect(await page.evaluate(() => localStorage.getItem('regimen:v1'))).toBeNull()
   expect(SITE_PORT).toBeGreaterThan(0)
 })

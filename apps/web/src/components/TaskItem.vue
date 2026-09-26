@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, onBeforeUnmount } from 'vue'
-import { taskColor, forwardsLeft, FORWARD_LIMITS, XP } from '@focusgateway/core'
+import { taskColor, forwardsLeft, FORWARD_LIMITS, XP } from '@regimen/core'
 import { store, call, attempt, toast } from '../lib/store.js'
 import { deadlineLabel, humanDuration } from '../lib/format.js'
 import { deleteTask } from '../lib/actions.js'

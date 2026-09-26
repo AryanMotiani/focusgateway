@@ -1,4 +1,4 @@
-package daemon
+﻿package daemon
 
 import (
 	"bufio"
@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"focusgateway/agent/internal/hosts"
-	"focusgateway/agent/internal/paths"
+	"regimen/agent/internal/hosts"
+	"regimen/agent/internal/paths"
 )
 
 const extOrigin = "chrome-extension://abcdefghijklmnopabcdefghijklmnop"
@@ -31,9 +31,9 @@ type env struct {
 func setup(t *testing.T, cfg paths.Config) *env {
 	t.Helper()
 	dir := t.TempDir()
-	t.Setenv("FOCUSGATEWAY_DATA", filepath.Join(dir, "data"))
+	t.Setenv("REGIMEN_DATA", filepath.Join(dir, "data"))
 	hostsFile := filepath.Join(dir, "hosts")
-	t.Setenv("FOCUSGATEWAY_HOSTS", hostsFile)
+	t.Setenv("REGIMEN_HOSTS", hostsFile)
 	if err := os.WriteFile(hostsFile, []byte("127.0.0.1 localhost\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}

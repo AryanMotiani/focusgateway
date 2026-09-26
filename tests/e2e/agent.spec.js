@@ -1,4 +1,4 @@
-// The real extension and the real Go lock agent, paired through the one-click link
+﻿// The real extension and the real Go lock agent, paired through the one-click link
 // the agent opens after installing. The agent runs with a temporary data folder
 // and a fake hosts file, so nothing on this computer changes.
 // Needs the agent binary: npm run agent:build -- --target <os>/<arch>
@@ -12,7 +12,7 @@ import { test, expect, windowAroundNow } from './fixtures.js'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const goos = { win32: 'windows', darwin: 'darwin', linux: 'linux' }[process.platform]
 const goarch = { x64: 'amd64', arm64: 'arm64' }[process.arch]
-const BIN = path.join(root, 'agent/dist', `focusgateway-agent-${goos}-${goarch}${goos === 'windows' ? '.exe' : ''}`)
+const BIN = path.join(root, 'agent/dist', `regimen-agent-${goos}-${goarch}${goos === 'windows' ? '.exe' : ''}`)
 const HEALTH = 'http://127.0.0.1:47621/health'
 
 const healthy = () =>
@@ -44,7 +44,7 @@ test('one-click pairing link connects the extension to the lock agent, which the
     }),
   )
   const agent = spawn(BIN, ['run'], {
-    env: { ...process.env, FOCUSGATEWAY_DATA: path.join(dir, 'data'), FOCUSGATEWAY_HOSTS: hostsFile },
+    env: { ...process.env, REGIMEN_DATA: path.join(dir, 'data'), REGIMEN_HOSTS: hostsFile },
     stdio: 'ignore',
   })
   try {

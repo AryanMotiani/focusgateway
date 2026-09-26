@@ -1,0 +1,45 @@
+# Arch packages don't start services on their own, so the agent is set up by hand
+# once. It keeps its settings across upgrades.
+#
+# Removal during a no-failsafe block: pacman can't cancel a removal from a
+# script, so it would delete the binary while the service still needs it. The
+# agent refuses to uninstall then, and with --package-removal it first copies
+# itself to /var/lib/regimen/regimen-agent (a path no package owns)
+# and points the service there. Blocking and `sudo regimen-agent recover`
+# keep working until the block ends. Then `sudo regimen-agent uninstall`
+# removes that copy too.
+
+BIN=/opt/regimen/regimen-agent
+
+post_install() {
+  if [ -f /etc/systemd/system/regimen-agent.service ]; then
+    # Reinstalled while an earlier copy still runs (for example the one kept
+    # during a block): point the service back at the packaged binary.
+    "$BIN" install --keep-settings --no-browser --no-pause >/dev/null || true
+    return 0
+  fi
+  echo "==> Finish setting up the Regimen lock agent:"
+  echo "    sudo regimen-agent install"
+  echo "    It registers the service and opens Regimen in your browser to pair."
+}
+
+post_upgrade() {
+  if [ -f /etc/systemd/system/regimen-agent.service ]; then
+    "$BIN" install --keep-settings --no-browser --no-pause >/dev/null || true
+  fi
+}
+
+pre_remove() {
+  [ -x "$BIN" ] || return 0
+  "$BIN" uninstall --yes --keep-program --package-removal --no-pause
+  rc=$?
+  if [ "$rc" = 2 ]; then
+    echo "==> A Regimen no-failsafe block is running, so the lock agent stays active."
+    echo "    It now runs from /var/lib/regimen/regimen-agent until the block ends."
+    echo "    After that, remove it for good with: sudo regimen-agent uninstall"
+  elif [ "$rc" != 0 ]; then
+    echo "==> The Regimen lock agent reported a problem while removing itself (code $rc)."
+    echo "    If sites stay blocked, see TROUBLESHOOTING.md or run: sudo regimen-agent recover"
+  fi
+  return 0
+}

@@ -95,7 +95,7 @@ function copy(t) {
 // After installing, the agent opens this page as #/install?pair=<one-time code>.
 // The code lives after the #, so it never reaches a web server. We take it out of
 // the address bar right away and keep it only in this tab until it is used.
-const PAIR_KEY = 'focusgateway:pair-link'
+const PAIR_KEY = 'regimen:pair-link'
 const PAIR_TTL = 30 * 60_000
 const route = useRoute()
 const router = useRouter()
@@ -253,7 +253,7 @@ const agentPaired = computed(() => !!store.state?.agent?.paired)
         <p class="mt-1 text-sm text-muted">
           {{
             store.pendingApproval
-              ? 'Approve this site in the FocusGateway extension (toolbar icon, Allow). The agent connects right after.'
+              ? 'Approve this site in the Regimen extension (toolbar icon, Allow). The agent connects right after.'
               : 'Add the browser extension below. The agent connects as soon as the extension is ready, no code to type.'
           }}
         </p>
@@ -276,7 +276,7 @@ const agentPaired = computed(() => !!store.state?.agent?.paired)
       <template v-else-if="pair.status === 'error'">
         <p class="flex items-center gap-2 font-semibold text-bad"><Icon name="alert" :size="18" /> Could not connect: {{ pair.message }}</p>
         <p class="mt-1 text-sm text-muted">
-          Pairing links work once and for 30 minutes. Open the lock agent again (or run <code>focusgateway-agent pair</code> as admin) for a
+          Pairing links work once and for 30 minutes. Open the lock agent again (or run <code>regimen-agent pair</code> as admin) for a
           fresh link, or type the code it shows below.
         </p>
       </template>
@@ -298,13 +298,13 @@ const agentPaired = computed(() => !!store.state?.agent?.paired)
 
       <div v-if="!extensionReady && store.health.extension" class="mt-4 rounded-xl border-2 border-bad bg-bad-soft p-4 text-sm">
         <p class="font-semibold text-bad">The extension is installed, but this site is not connected to it, so nothing is blocked.</p>
-        <p class="mt-1 text-muted">Reload, then click the puzzle piece, FocusGateway, and press Allow.</p>
+        <p class="mt-1 text-muted">Reload, then click the puzzle piece, Regimen, and press Allow.</p>
         <button class="btn btn-primary btn-sm mt-3" @click="reload">Connect now</button>
       </div>
       <template v-if="!extensionReady">
         <div v-if="browser === 'safari'" class="mt-4 text-sm">
           <p>
-            Safari does not run the FocusGateway extension. Install the <b>lock agent</b> in step 2: it blocks in Safari and every other
+            Safari does not run the Regimen extension. Install the <b>lock agent</b> in step 2: it blocks in Safari and every other
             app. Using another browser too? Open this page there.
           </p>
         </div>
@@ -328,7 +328,7 @@ const agentPaired = computed(() => !!store.state?.agent?.paired)
             <template v-if="EDGE_STORE_URL || FIREFOX_ADDONS_URL">Have Edge or Firefox? The store buttons above are one click.</template>
           </p>
           <ol v-if="browser !== 'firefox'" class="list-decimal space-y-1 pl-5 text-muted">
-            <li>Unzip the download into a folder you will keep (for example Documents/FocusGateway).</li>
+            <li>Unzip the download into a folder you will keep (for example Documents/Regimen).</li>
             <li>
               Open
               <code
@@ -340,7 +340,7 @@ const agentPaired = computed(() => !!store.state?.agent?.paired)
             </li>
             <li>Click <b>Load unpacked</b> and pick the unzipped folder.</li>
             <li>
-              Come back to this tab and reload it. Click the <b>puzzle piece</b> in the toolbar, then <b>FocusGateway</b>, and press
+              Come back to this tab and reload it. Click the <b>puzzle piece</b> in the toolbar, then <b>Regimen</b>, and press
               <b>Allow</b>. Anything you set up here moves in. Until you allow it, nothing is blocked.
             </li>
           </ol>
@@ -408,8 +408,8 @@ const agentPaired = computed(() => !!store.state?.agent?.paired)
           <li><a :href="RELEASES_URL" target="_blank" rel="noopener" class="text-accent underline">All files of the latest release</a></li>
         </ul>
         <p class="mt-3 text-muted">
-          Want the extensions page and developer tools locked too? Run <code>focusgateway-agent install --strict</code> as admin. Remove it
-          with <code>focusgateway-agent uninstall</code> (refused while a no-failsafe block is running).
+          Want the extensions page and developer tools locked too? Run <code>regimen-agent install --strict</code> as admin. Remove it
+          with <code>regimen-agent uninstall</code> (refused while a no-failsafe block is running).
         </p>
       </details>
 

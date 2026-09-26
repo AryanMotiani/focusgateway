@@ -5,7 +5,7 @@
 // what you do not own yet shows its price (or the level it unlocks at), and tapping it opens
 // the buy dialog (see packages/core/src/economy.js for prices and levels).
 import { computed, ref, watch } from 'vue'
-import { optionsFor, BRIGHTNESS_RANGE, OPTION_FIELDS, DEFAULT_STYLE, optionId, shopItem } from '@focusgateway/core'
+import { optionsFor, BRIGHTNESS_RANGE, OPTION_FIELDS, DEFAULT_STYLE, optionId, shopItem } from '@regimen/core'
 import { inventory, room, quickPlace, removeItem, level } from '../../lib/room.js'
 import { ownsItem, balance, freshAffordable } from '../../lib/shop.js'
 import { HEADWEAR } from './avatarStyle.js'

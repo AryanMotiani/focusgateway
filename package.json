@@ -1,5 +1,5 @@
 {
-  "name": "focusgateway",
+  "name": "regimen",
   "version": "1.2.0",
   "private": true,
   "description": "Free, open-source focus system: hard-to-bypass site blocker, tasks, habits and a lofi study room.",
@@ -45,10 +45,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/AryanMotiani/focusgateway.git"
+    "url": "https://github.com/AryanMotiani/regimen.git"
   },
-  "homepage": "https://AryanMotiani.github.io/focusgateway/",
+  "homepage": "https://AryanMotiani.github.io/regimen/",
   "bugs": {
-    "url": "https://github.com/AryanMotiani/focusgateway/issues"
+    "url": "https://github.com/AryanMotiani/regimen/issues"
   }
 }

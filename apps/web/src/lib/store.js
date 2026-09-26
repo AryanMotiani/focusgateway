@@ -1,5 +1,5 @@
 import { reactive, computed, ref } from 'vue'
-import { computeBlocks, allSites, focusEndsAt, isOlderVersion } from '@focusgateway/core'
+import { computeBlocks, allSites, focusEndsAt, isOlderVersion } from '@regimen/core'
 import { connect, createLocalAdapter, readLocalState, clearLocalData, extensionPresent } from './api.js'
 
 export const store = reactive({
@@ -19,7 +19,7 @@ export const store = reactive({
 })
 
 /** This web app's version (root package.json, injected by vite.config.js). */
-export const APP_VERSION = typeof __FG_VERSION__ === 'string' ? __FG_VERSION__ : null
+export const APP_VERSION = typeof __R_VERSION__ === 'string' ? __R_VERSION__ : null
 
 let adapter = null
 
@@ -100,7 +100,7 @@ export async function checkApproval() {
 }
 
 /**
- * Someone set up FocusGateway on the website first (PIN, tutorial, maybe rules),
+ * Someone set up Regimen on the website first (PIN, tutorial, maybe rules),
  * then installed the extension. Hand that setup to the extension once, so the
  * tutorial never runs twice. Only happens while the extension is still empty.
  */

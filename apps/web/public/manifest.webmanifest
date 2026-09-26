@@ -1,6 +1,6 @@
 {
-  "name": "FocusGateway",
-  "short_name": "FocusGateway",
+  "name": "Regimen",
+  "short_name": "Regimen",
   "start_url": "./#/",
   "display": "standalone",
   "background_color": "#f6f3ee",

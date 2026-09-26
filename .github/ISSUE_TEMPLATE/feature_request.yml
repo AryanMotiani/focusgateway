@@ -17,7 +17,7 @@ body:
     id: bypass
     attributes:
       label: Could this be used to get around a block?
-      description: FocusGateway's whole point is making it hard to give in. Think about how a tired student at 1 am might misuse the feature.
+      description: Regimen's whole point is making it hard to give in. Think about how a tired student at 1 am might misuse the feature.
   - type: checkboxes
     id: help
     attributes:

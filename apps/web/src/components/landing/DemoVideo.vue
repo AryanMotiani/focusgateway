@@ -64,7 +64,7 @@ function start() {
           playsinline
           preload="metadata"
           :controls="started"
-          aria-label="Demo of FocusGateway: the study room, adding and finishing a task, habits, stats and decorating"
+          aria-label="Demo of Regimen: the study room, adding and finishing a task, habits, stats and decorating"
           @play="playing = true"
           @pause="playing = false"
           @loadedmetadata="onMeta"

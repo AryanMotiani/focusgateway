@@ -1,4 +1,4 @@
-# FocusGateway — Technical PRD (Implementation-Ready)
+﻿# Regimen — Technical PRD (Implementation-Ready)
 
 Source of truth for all product decisions: `SPEC.md`. This document translates every locked decision into file-level, function-level implementation detail. No open questions remain — anything genuinely undecidable by local software is listed under Documented Limitations, not left ambiguous.
 
@@ -29,7 +29,7 @@ Two independent deployables:
 - **Landing Site** — static/Express marketing page, MongoDB-backed analytics, Bootstrap waitlist form. Deployed by the project maintainer (GitHub Pages/Vercel/etc.), not by end users.
 
 ```
-focusgateway/
+regimen/
 ├── app/                        # Main app (what end users install)
 │   ├── server/                 # Node backend
 │   ├── client/                 # Vue + Tailwind frontend
@@ -203,15 +203,15 @@ app/recovery/restore.js               (separate standalone script)
 CONST HOSTS_PATH = process.platform === 'win32'
   ? 'C:\\Windows\\System32\\drivers\\etc\\hosts'
   : '/etc/hosts'
-CONST MARKER_START = '# FOCUSGATEWAY-MANAGED-START'
-CONST MARKER_END   = '# FOCUSGATEWAY-MANAGED-END'
+CONST MARKER_START = '# REGIMEN-MANAGED-START'
+CONST MARKER_END   = '# REGIMEN-MANAGED-END'
 
 FUNCTION readHostsFile():
   RETURN fs.readFileSync(HOSTS_PATH, 'utf8')
 
 FUNCTION writeHostsFileAtomic(newContent):
   // Atomic write: temp file + rename, never a partial write on disk.
-  tempPath = HOSTS_PATH + '.fg_tmp'
+  tempPath = HOSTS_PATH + '.r_tmp'
   fs.writeFileSync(tempPath, newContent)
   fs.renameSync(tempPath, HOSTS_PATH)  // atomic on POSIX; near-atomic on Windows
 
@@ -221,7 +221,7 @@ FUNCTION getCurrentlyBlockedDomains():
   RETURN parseDomainLines(block)   // returns array of domain strings
 
 FUNCTION setBlockedDomains(domainList):
-  // Full replace of the FocusGateway-managed section. Never touches
+  // Full replace of the Regimen-managed section. Never touches
   // any hosts-file content outside the markers (preserves other apps'/OS entries).
   content = readHostsFile()
   before, after = splitOutsideMarkers(content, MARKER_START, MARKER_END)
@@ -366,7 +366,7 @@ FUNCTION watchdogTick():   // runs every 5 seconds
     IF crashCountInLast(CRASH_LOOP_WINDOW_SECONDS) >= CRASH_LOOP_THRESHOLD:
       // Crash-loop: stop retrying, fail OPEN (never fail permanently closed)
       setBlockedDomains([])   // clear all hosts-file entries directly
-      fireNativeNotification("FocusGateway crashed repeatedly and cleared active blocks. Please check the app.")
+      fireNativeNotification("Regimen crashed repeatedly and cleared active blocks. Please check the app.")
       RETURN  // do not attempt further restarts until user intervenes
     ELSE:
       restartMainProcess()
@@ -388,7 +388,7 @@ FUNCTION main():
   // Either signal shows failure → proceed (SPEC.md: gate opens if EITHER is true)
   backup = fs.readFileSync('app-data/hosts.original.bak')
   writeHostsFileAtomic(backup)
-  print("Hosts file restored from backup. Please restart FocusGateway.")
+  print("Hosts file restored from backup. Please restart Regimen.")
 ```
 Placement: Start Menu/Applications-folder shortcut launches this script directly +
 tray right-click "Emergency Help" also invokes it + `TROUBLESHOOTING.md` documents
@@ -404,10 +404,10 @@ calls in 3.3 and 3.8) — defining them here.
 IMPORT notifier FROM 'node-notifier'
 
 FUNCTION fireNotification(message):
-  notifier.notify({ title: 'FocusGateway', message: message, sound: false })
+  notifier.notify({ title: 'Regimen', message: message, sound: false })
 
 FUNCTION fireNativeNotification(message):   // used for crash/error-tier alerts, same
-  notifier.notify({ title: 'FocusGateway — Attention', message: message, sound: true })
+  notifier.notify({ title: 'Regimen — Attention', message: message, sound: true })
 ```
 
 ```
@@ -419,9 +419,9 @@ FUNCTION initTray():
     menu: {
       icon: ICON_BASE64,
       items: [
-        { title: 'Dashboard', tooltip: 'Open FocusGateway', enabled: true },
+        { title: 'Dashboard', tooltip: 'Open Regimen', enabled: true },
         { title: 'Emergency Help', tooltip: 'Recovery options', enabled: true },
-        { title: 'Quit', tooltip: 'Stop FocusGateway', enabled: true }
+        { title: 'Quit', tooltip: 'Stop Regimen', enabled: true }
       ]
     }
   })
@@ -460,8 +460,8 @@ level — completing that here.
 FUNCTION initTray():
   menu = {
     icon: DEFAULT_ICON_BASE64,
-    title: "FocusGateway",
-    tooltip: "FocusGateway",
+    title: "Regimen",
+    tooltip: "Regimen",
     items: [
       { title: "Open Dashboard", onClick: () => openBrowser(`http://localhost:${PORT}`) },
       { title: "Emergency Help", onClick: () => invokeRecoveryScript() },
@@ -475,7 +475,7 @@ FUNCTION initTray():
 
 // app/server/modules/notifier.js — node-notifier wrapper
 FUNCTION fireNotification(message, options = {}):
-  notifier.notify({ title: "FocusGateway", message: message, sound: false, ...options })
+  notifier.notify({ title: "Regimen", message: message, sound: false, ...options })
 ```
 Both are thin native wrappers (no Electron), consistent with the low-RAM-footprint
 requirement from earlier discussion — idle overhead stays in the ~10-20MB range
@@ -761,7 +761,7 @@ STEP 2 — PIN Creation
 
 STEP 3 — Recovery Code
   On step entry: POST /api/setup/recovery-code → display code on screen.
-  Trigger browser download (Blob + <a download="focusgateway-recovery-code.txt">)
+  Trigger browser download (Blob + <a download="regimen-recovery-code.txt">)
   so a real OS save-dialog/download happens, not a silent write.
   Checkbox: "I have saved this code somewhere safe" — required, unchecked by default.
   "Next" disabled until checkbox is checked.
@@ -1164,7 +1164,7 @@ app/recovery/restore.js  -- standalone recovery script (also see Section 3.8)
 
 ```
 1. git clone <repo> OR download release zip
-2. cd focusgateway/app
+2. cd regimen/app
 3. npm install
 4. npm run setup
 ```
@@ -1173,7 +1173,7 @@ app/recovery/restore.js  -- standalone recovery script (also see Section 3.8)
 
 ```
 FUNCTION main():
-  printAsciiArt("FocusGateway")            // practical 1: "Hello World" via ASCII art
+  printAsciiArt("Regimen")            // practical 1: "Hello World" via ASCII art
   answer = promptTerminal("What is your default blocklist? (comma-separated sites, or 'default')")
   IF answer == 'default':
     defaults = JSON.parse(fs.readFileSync('./defaults.json'))  // practical 2.II: read external JSON
@@ -1189,7 +1189,7 @@ FUNCTION main():
               CASE 'darwin': require('./platform/macos.js').install()
               CASE 'linux':  require('./platform/linux.js').install()
 
-  printToTerminal("Setup complete. Launching FocusGateway...")
+  printToTerminal("Setup complete. Launching Regimen...")
   spawnBackgroundService()
 ```
 
@@ -1199,34 +1199,34 @@ FUNCTION main():
 // platform/windows.js
 FUNCTION install():
   createScheduledTask({
-    name: "FocusGatewayService",
+    name: "RegimenService",
     runAtLogon: true,
     runAsAdmin: true,           // required for hosts-file write access
     command: `node "${SERVICE_ENTRY_PATH}"`
   })
-  createStartMenuShortcut("FocusGateway - Emergency Help", RECOVERY_SCRIPT_PATH)
+  createStartMenuShortcut("Regimen - Emergency Help", RECOVERY_SCRIPT_PATH)
 
 // platform/macos.js
 FUNCTION install():
   writeLaunchdPlist({
-    label: "com.focusgateway.service",
+    label: "com.regimen.service",
     programArguments: ["node", SERVICE_ENTRY_PATH],
     runAtLoad: true,
     keepAlive: true             // launchd's own restart-on-crash, additional to watchdog.js
   })
   loadLaunchAgent()
-  createApplicationsShortcut("FocusGateway Emergency Help", RECOVERY_SCRIPT_PATH)
+  createApplicationsShortcut("Regimen Emergency Help", RECOVERY_SCRIPT_PATH)
 
 // platform/linux.js
 FUNCTION install():
   writeSystemdUserUnit({
-    name: "focusgateway.service",
+    name: "regimen.service",
     execStart: `node ${SERVICE_ENTRY_PATH}`,
     restart: "on-failure",
     wantedBy: "default.target"
   })
-  runCommand("systemctl --user enable --now focusgateway.service")
-  createDesktopEntry("FocusGateway Emergency Help", RECOVERY_SCRIPT_PATH, applicationsMenu = true)
+  runCommand("systemctl --user enable --now regimen.service")
+  createDesktopEntry("Regimen Emergency Help", RECOVERY_SCRIPT_PATH, applicationsMenu = true)
 ```
 
 Admin/sudo elevation: hosts-file write access requires elevated privileges on all
@@ -1245,9 +1245,9 @@ Linux:   /etc/hosts
 ### 11.6 App-data directory (DB + config persistence across uninstall)
 
 ```
-Windows: %APPDATA%\FocusGateway\
-macOS:   ~/Library/Application Support/FocusGateway/
-Linux:   ~/.local/share/focusgateway/
+Windows: %APPDATA%\Regimen\
+macOS:   ~/Library/Application Support/Regimen/
+Linux:   ~/.local/share/regimen/
 ```
 MySQL data directory OR SQLite-equivalent file (if MySQL server itself isn't
 bundled per-user — see note below) lives here, NOT inside the installed program
@@ -1274,7 +1274,7 @@ assumed.
 // macOS drag-to-trash or uninstaller script, Linux package manager / manual removal)
 ON uninstall initiated:
   showConfirmationScreen({
-    message: "Uninstalling FocusGateway. You'll lose access to it, but your data " +
+    message: "Uninstalling Regimen. You'll lose access to it, but your data " +
              "stays on this machine unless you choose to delete it below. " +
              "Current streak: {streak} days, {completedCount} tasks completed.",
     checkbox: { label: "Also permanently delete my data", default: false }
@@ -1618,7 +1618,7 @@ this document, so nothing from the original assignment list is left unaccounted 
 | 1 | Embed JS in HTML | `index.html` inline bootstrap script, Section 1 |
 | 1 | Install Node, server-side "Hello World" | `setup.js` `printAsciiArt()`, Section 11.3 |
 | 1 | Create/store JSON to file | `setup.js` writes `config.json`, Section 11.3 |
-| 1 | Define App Title | "FocusGateway", used throughout |
+| 1 | Define App Title | "Regimen", used throughout |
 | 2 | Print JSON, read external JSON file | `setup.js` reads `defaults.json`, Section 11.3 |
 | 2 | Multi-dimensional JSON arrays | `sites.json`'s nested `bundles[].domains[]` (Section 12.2); `schedule_rules.days_of_week` JSON array combined with `start_minutes`/`end_minutes` forms the site × day × time-range structure discussed early on |
 | 2 | Web JS/JSON To-Do list (add/complete/remove) | `TaskBoard.vue` + `/api/tasks` routes, Sections 6, 9, 10 |

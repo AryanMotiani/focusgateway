@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds packaging/out/FocusGateway-Setup.exe with NSIS (works on Linux: apt install nsis).
+# Builds packaging/out/Regimen-Setup.exe with NSIS (works on Linux: apt install nsis).
 # Needs the Windows agent binaries first: npm run agent:build
 #   packaging/windows/build.sh 1.2.0
 set -eu
@@ -9,9 +9,9 @@ OUT="$ROOT/packaging/out"
 mkdir -p "$OUT"
 makensis -V2 \
   -DVERSION="$VERSION" \
-  -DAMD64="$ROOT/agent/dist/focusgateway-agent-windows-amd64.exe" \
-  -DARM64="$ROOT/agent/dist/focusgateway-agent-windows-arm64.exe" \
+  -DAMD64="$ROOT/agent/dist/regimen-agent-windows-amd64.exe" \
+  -DARM64="$ROOT/agent/dist/regimen-agent-windows-arm64.exe" \
   -DLICENSE_FILE="$ROOT/LICENSE" \
-  -DOUTFILE="$OUT/FocusGateway-Setup.exe" \
-  "$ROOT/packaging/windows/focusgateway.nsi"
-ls -l "$OUT/FocusGateway-Setup.exe"
+  -DOUTFILE="$OUT/Regimen-Setup.exe" \
+  "$ROOT/packaging/windows/regimen.nsi"
+ls -l "$OUT/Regimen-Setup.exe"

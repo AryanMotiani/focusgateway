@@ -1,12 +1,12 @@
-// FocusGateway background: owns the Backend (all rules + data), turns the current
+// Regimen background: owns the Backend (all rules + data), turns the current
 // block set into declarativeNetRequest rules, redirects already-open tabs, sends
 // notifications, and mirrors a snapshot to the optional lock agent.
-import { createBackend, toErrorPayload, computeBlocks, hostMatches, BUNDLES } from '@focusgateway/core'
+import { createBackend, toErrorPayload, computeBlocks, hostMatches, BUNDLES } from '@regimen/core'
 import { appUrl, isOfficialApp, isDevApp } from './app-url.js'
 
 const ext = globalThis.browser ?? globalThis.chrome
-const STORE_KEY = 'fg_state'
-const ORIGINS_KEY = 'fg_approved_origins'
+const STORE_KEY = 'r_state'
+const ORIGINS_KEY = 'r_approved_origins'
 const EXT_ORIGIN = new URL(ext.runtime.getURL('/')).origin
 
 const storage = {
@@ -35,7 +35,7 @@ let applying = Promise.resolve()
 let lastBlockKeys = null
 
 function scheduleApply() {
-  applying = applying.then(apply).catch((e) => console.error('[FocusGateway] apply failed', e))
+  applying = applying.then(apply).catch((e) => console.error('[Regimen] apply failed', e))
   return applying
 }
 
@@ -90,7 +90,7 @@ async function apply() {
   }
 
   // 3. Badge + transition notifications (remember across service-worker restarts).
-  if (lastBlockKeys === null) lastBlockKeys = new Set((await ext.storage.session?.get('fg_keys').catch(() => ({})))?.fg_keys || [])
+  if (lastBlockKeys === null) lastBlockKeys = new Set((await ext.storage.session?.get('r_keys').catch(() => ({})))?.r_keys || [])
   const keys = new Set(blocks.map((b) => b.ruleId || b.focusId))
   // "!" in red: the extension can not show its blocked page (see hasHostAccess)
   ext.action.setBadgeText({ text: !hostAccess ? '!' : blocks.length ? String(blocks.length) : '' })
@@ -105,7 +105,7 @@ async function apply() {
     }
   }
   lastBlockKeys = keys
-  ext.storage.session?.set({ fg_keys: [...keys] }).catch?.(() => {})
+  ext.storage.session?.set({ r_keys: [...keys] }).catch?.(() => {})
 
   // 4. Mirror to the lock agent (if paired).
   syncAgent(state).catch(() => {})
@@ -119,7 +119,7 @@ function describeBlock(b) {
 
 function notify(title, message) {
   ext.notifications
-    ?.create({ type: 'basic', iconUrl: ext.runtime.getURL('icons/icon-128.png'), title: 'FocusGateway: ' + title, message })
+    ?.create({ type: 'basic', iconUrl: ext.runtime.getURL('icons/icon-128.png'), title: 'Regimen: ' + title, message })
     .catch?.(() => {})
 }
 
@@ -207,10 +207,10 @@ async function approvedOrigins() {
 // window for it; the request waits in the toolbar popup until the user allows it. The official
 // hosted app does not ask: it is trusted by its exact origin and path (see app-url.js).
 async function requestApproval(origin) {
-  const list = new Set((await ext.storage.session.get('fg_pending_origins')).fg_pending_origins || [])
+  const list = new Set((await ext.storage.session.get('r_pending_origins')).r_pending_origins || [])
   if (list.has(origin)) return
   list.add(origin)
-  await ext.storage.session.set({ fg_pending_origins: [...list].slice(-5) })
+  await ext.storage.session.set({ r_pending_origins: [...list].slice(-5) })
   ext.action.setBadgeText({ text: '?' })
 }
 
@@ -243,14 +243,14 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         if (msg.allow) list.add(msg.origin)
         else list.delete(msg.origin)
         await ext.storage.local.set({ [ORIGINS_KEY]: [...list] })
-        const pending = ((await ext.storage.session.get('fg_pending_origins')).fg_pending_origins || []).filter((o) => o !== msg.origin)
-        await ext.storage.session.set({ fg_pending_origins: pending })
+        const pending = ((await ext.storage.session.get('r_pending_origins')).r_pending_origins || []).filter((o) => o !== msg.origin)
+        await ext.storage.session.set({ r_pending_origins: pending })
         scheduleApply()
         return { ok: true }
       }
       if (msg.action === 'origins') return { ok: true, data: await approvedOrigins() }
       if (msg.action === 'pending')
-        return { ok: true, data: (await ext.storage.session.get('fg_pending_origins')).fg_pending_origins || [] }
+        return { ok: true, data: (await ext.storage.session.get('r_pending_origins')).r_pending_origins || [] }
       if (msg.action === 'bundles') return { ok: true, data: BUNDLES }
       if (msg.action === 'permissions') {
         const incognito = await ext.extension.isAllowedIncognitoAccess?.().catch?.(() => null)
@@ -260,7 +260,7 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg?.type === 'fg-bridge' && sender.id === ext.runtime.id && sender.url) {
       // the bridge only runs on these (manifest matches + bridge.js), checked here once more
       const official = isOfficialApp(sender.url)
-      if (!official && !isDevApp(sender.url)) return { ok: false, error: { code: 'FORBIDDEN', message: 'Not the FocusGateway app.' } }
+      if (!official && !isDevApp(sender.url)) return { ok: false, error: { code: 'FORBIDDEN', message: 'Not the Regimen app.' } }
       const origin = new URL(sender.url).origin
       const approved = official || (await approvedOrigins()).includes(origin)
       if (msg.cmd === 'hello') {
@@ -268,7 +268,7 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return { ok: true, data: { approved, version: ext.runtime.getManifest().version, hostAccess: await hasHostAccess() } }
       }
       if (!approved)
-        return { ok: false, error: { code: 'NOT_APPROVED', message: 'Approve this site in the FocusGateway extension first.' } }
+        return { ok: false, error: { code: 'NOT_APPROVED', message: 'Approve this site in the Regimen extension first.' } }
       return runCommand(msg.cmd, msg.payload)
     }
     return { ok: false, error: { code: 'FORBIDDEN', message: 'Unknown sender.' } }
@@ -299,14 +299,14 @@ ext.runtime.onInstalled.addListener(async (details) => {
   // because permission prompts need a click and blocking does nothing without it.
   if (!(await hasHostAccess())) ext.tabs.create({ url: ext.runtime.getURL('grant.html') }).catch(() => {})
   if (details.reason === 'install') {
-    // Came from a FocusGateway website tab? Reload it (content scripts are not injected
+    // Came from a Regimen website tab? Reload it (content scripts are not injected
     // into pages that were open before install) and send the user back there, so a setup
     // done on the website carries over instead of starting the tutorial again.
     const tabs = await ext.tabs.query({ url: ['http://*/*', 'https://*/*'] }).catch(() => [])
     const appTab = tabs.find(
       (t) =>
         (isOfficialApp(t.url) || isDevApp(t.url)) &&
-        (/(^| · )FocusGateway($|:)/.test(t.title || '') || /FocusGateway: study without the scroll/.test(t.title || '')),
+        (/(^| · )Regimen($|:)/.test(t.title || '') || /Regimen: study without the scroll/.test(t.title || '')),
     )
     if (appTab) {
       await ext.tabs.reload(appTab.id).catch(() => {})

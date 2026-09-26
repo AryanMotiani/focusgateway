@@ -3,7 +3,7 @@
 // Prices, levels and the earning rules live in packages/core/src/economy.js.
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { COINS, STREAK_DAY_MIN, studyStreak, streakPct, dateKey } from '@focusgateway/core'
+import { COINS, STREAK_DAY_MIN, studyStreak, streakPct, dateKey } from '@regimen/core'
 import { store, call, toast } from '../lib/store.js'
 import { wallet, balance, catalog, live } from '../lib/shop.js'
 import { room, quickPlace, request } from '../lib/room.js'

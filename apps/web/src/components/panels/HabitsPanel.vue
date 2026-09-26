@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { isHabitDue, isHabitDone, habitStreak } from '@focusgateway/core'
+import { isHabitDue, isHabitDone, habitStreak } from '@regimen/core'
 import { store, call, attempt } from '../../lib/store.js'
 import { popXp, playHabit, currentXp } from '../../lib/rewards.js'
 import Icon from '../Icon.vue'

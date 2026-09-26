@@ -271,7 +271,7 @@ async function contextFor(browser, state, level, extra = {}) {
   })
   await context.addInitScript((lvl) => {
     // init scripts can run before <html> exists: mark it as soon as it does
-    const mark = () => document.documentElement && (document.documentElement.dataset.focusgatewayExtension = 'demo')
+    const mark = () => document.documentElement && (document.documentElement.dataset.regimenExtension = 'demo')
     if (!mark()) new MutationObserver((_, o) => mark() && o.disconnect()).observe(document, { childList: true })
     window.addEventListener('message', async (e) => {
       if (e.source !== window || e.data?.__fg !== 'req') return
@@ -280,11 +280,11 @@ async function contextFor(browser, state, level, extra = {}) {
     })
     if (sessionStorage.getItem('fg-seeded')) return
     sessionStorage.setItem('fg-seeded', '1')
-    localStorage.setItem('focusgateway:seen-level', String(lvl))
-    localStorage.setItem('focusgateway:room-drawer', 'false')
+    localStorage.setItem('regimen:seen-level', String(lvl))
+    localStorage.setItem('regimen:room-drawer', 'false')
     // no first-run tours in the marketing media
     const pages = ['room', 'today', 'tasks', 'schedule', 'blocking', 'habits', 'stats', 'settings', 'install', 'decorate', 'shop']
-    localStorage.setItem('focusgateway:tours-seen', JSON.stringify(pages))
+    localStorage.setItem('regimen:tours-seen', JSON.stringify(pages))
   }, level)
   return context
 }

@@ -9,7 +9,7 @@ const DIST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../e
 // The release build: its official hosted app is the real website, so the local preview
 // (localhost:4173) is a development copy that needs "Allow" in the popup, like any localhost.
 export const RELEASE_BUILD = path.join(DIST, 'chromium')
-// The same build with the local preview as its hosted app (build.mjs, FG_E2E_APP_URL): opened by
+// The same build with the local preview as its hosted app (build.mjs, R_E2E_APP_URL): opened by
 // the popup and the install welcome, and trusted without "Allow". Use with test.use({ extensionPath: E2E_BUILD }).
 export const E2E_BUILD = path.join(DIST, 'e2e-chromium')
 

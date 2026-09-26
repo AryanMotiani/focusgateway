@@ -6,13 +6,13 @@ import HabitsPanel from './panels/HabitsPanel.vue'
 import Icon from './Icon.vue'
 let saved = true
 try {
-  saved = localStorage.getItem('focusgateway:rail') !== '0'
+  saved = localStorage.getItem('regimen:rail') !== '0'
 } catch {}
 const open = ref(saved)
 function toggle() {
   open.value = !open.value
   try {
-    localStorage.setItem('focusgateway:rail', open.value ? '1' : '0')
+    localStorage.setItem('regimen:rail', open.value ? '1' : '0')
   } catch {}
 }
 </script>

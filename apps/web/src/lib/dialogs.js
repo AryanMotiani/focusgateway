@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { requiredPhrase } from '@focusgateway/core'
+import { requiredPhrase } from '@regimen/core'
 
 // Promise-based prompts rendered by <DialogHost/>.
 export const dialogs = reactive({ current: null })

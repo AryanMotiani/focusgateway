@@ -68,7 +68,7 @@ const items = computed(() => {
       id: 'approved',
       label: 'This site approved',
       state: 'bad',
-      text: 'Not allowed yet: puzzle piece, FocusGateway, Allow.',
+      text: 'Not allowed yet: puzzle piece, Regimen, Allow.',
       fix: { label: 'Connect', run: () => showBlockingOff('not-approved', 'info') },
     })
   else list.push({ id: 'approved', label: 'This site approved', state: 'off', text: 'Needs the extension first.' })
@@ -195,7 +195,7 @@ const allGood = computed(() => !blockingIssue.value && !extensionOutdated.value)
     <div class="mt-3 border-t border-line pt-3">
       <BlockingTest compact />
       <p class="mt-2 text-xs text-muted">
-        Private window? Allow FocusGateway there in your browser's extension settings.
+        Private window? Allow Regimen there in your browser's extension settings.
         <a :href="TROUBLE" target="_blank" rel="noopener" class="font-semibold text-accent underline" data-trouble-link
           >Troubleshooting guide</a
         >

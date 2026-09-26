@@ -11,7 +11,7 @@
 // Keys: Space play, F full screen, C scene, D decorate, N scratchpad, Z hide panels,
 // T H B S planner tabs, Esc restores a maximized window.
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { UNLOCKS, trackOwned, trackById } from '@focusgateway/core'
+import { UNLOCKS, trackOwned, trackById } from '@regimen/core'
 import { store, call, sessionRunning } from '../lib/store.js'
 import { lofi, lofiState, playWithSettings, savedTrack } from '../lib/lofi.js'
 import { createWindows } from '../lib/windows.js'
@@ -82,12 +82,12 @@ function remember(key, v) {
 
 const width = ref(window.innerWidth)
 const narrow = computed(() => width.value < 768)
-const drawerTab = ref(recall('focusgateway:room-drawer-tab', 'tasks'))
-watch(drawerTab, (v) => remember('focusgateway:room-drawer-tab', v))
+const drawerTab = ref(recall('regimen:room-drawer-tab', 'tasks'))
+watch(drawerTab, (v) => remember('regimen:room-drawer-tab', v))
 const decorating = ref(false)
 const decorTab = ref('items')
-const hidden = ref(recall('focusgateway:room-hidden', false))
-watch(hidden, (v) => remember('focusgateway:room-hidden', v))
+const hidden = ref(recall('regimen:room-hidden', false))
+watch(hidden, (v) => remember('regimen:room-hidden', v))
 
 const unlockedCount = computed(() => UNLOCKS.filter((u) => has(u.id)).length)
 const NAV = [
@@ -165,7 +165,7 @@ const ctl = createWindows({
   area: (vw, vh) => ({ l: 12, t: 12, r: vw - 12, b: vh - 12 }),
   // a maximized window leaves the header and the dock free
   maxArea: (vw, vh) => ({ l: 12, t: 76, r: vw - 12, b: vh - 66 }),
-  storageKey: `focusgateway:room-layout:${onboarded.value ? 'v1' : 'guest'}`,
+  storageKey: `regimen:room-layout:${onboarded.value ? 'v1' : 'guest'}`,
 })
 // on phones a maximized window covers the whole screen, header and dock included
 const phoneFull = computed(() => narrow.value && WINDOWS.some((w) => ctl.wm.wins[w.id]?.max && !ctl.wm.wins[w.id]?.min))
@@ -410,8 +410,8 @@ const chipOn = 'room-glass room-pill room-on'
           :to="onboarded ? '/today' : '/home'"
           class="flex shrink-0 items-center p-1.5"
           :class="pill"
-          title="FocusGateway"
-          aria-label="FocusGateway home"
+          title="Regimen"
+          aria-label="Regimen home"
         >
           <img :src="logo" alt="" class="h-7 w-7" />
         </RouterLink>
@@ -433,7 +433,7 @@ const chipOn = 'room-glass room-pill room-on'
           v-if="!onboarded"
           to="/welcome"
           class="room-on room-pill px-3 py-2 text-xs font-bold"
-          title="Set up FocusGateway for tasks, habits, blocking and coins"
+          title="Set up Regimen for tasks, habits, blocking and coins"
           data-room-setup
           >Set up free</RouterLink
         >
@@ -518,7 +518,7 @@ const chipOn = 'room-glass room-pill room-on'
       <RoomWindow v-if="!onboarded" id="welcome" title="Welcome" icon="home" :ctl="ctl" :stacked="narrow">
         <p class="font-bold">This is the study room.</p>
         <p class="mt-1 text-sm text-muted">
-          Set up FocusGateway to keep tasks, habits and blocks right here, and to earn coins for new scenes and decor.
+          Set up Regimen to keep tasks, habits and blocks right here, and to earn coins for new scenes and decor.
         </p>
         <RouterLink to="/welcome" class="btn btn-primary btn-sm mt-3">Set up, it is free</RouterLink>
       </RoomWindow>

@@ -1,4 +1,4 @@
-package paths
+﻿package paths
 
 import (
 	"os"
@@ -12,8 +12,8 @@ func TestEnsureDataDirKeepsTheParentReachable(t *testing.T) {
 		t.Skip("Unix modes")
 	}
 	root := t.TempDir()
-	parent := filepath.Join(root, "FocusGateway")
-	t.Setenv("FOCUSGATEWAY_DATA", filepath.Join(parent, "data"))
+	parent := filepath.Join(root, "Regimen")
+	t.Setenv("REGIMEN_DATA", filepath.Join(parent, "data"))
 	if err := WriteJSON("config.json", Config{}); err != nil {
 		t.Fatal(err)
 	}
@@ -29,6 +29,6 @@ func TestEnsureDataDirKeepsTheParentReachable(t *testing.T) {
 		t.Fatal("fallback binary lives in the data folder")
 	}
 	if OwnParent() != "" {
-		t.Fatal("no own parent when FOCUSGATEWAY_DATA overrides the location")
+		t.Fatal("no own parent when REGIMEN_DATA overrides the location")
 	}
 }

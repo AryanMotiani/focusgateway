@@ -50,8 +50,8 @@ async function createPin() {
 }
 function saveCode() {
   download(
-    'focusgateway-recovery-code.txt',
-    `FocusGateway recovery code\n\n${code.value}\n\nIf you forget your PIN, open FocusGateway > Settings > Forgot PIN and enter this code.\nIt works once. Keep it somewhere safe, away from this computer (a photo on your phone or on paper).\n`,
+    'regimen-recovery-code.txt',
+    `Regimen recovery code\n\n${code.value}\n\nIf you forget your PIN, open Regimen > Settings > Forgot PIN and enter this code.\nIt works once. Keep it somewhere safe, away from this computer (a photo on your phone or on paper).\n`,
   )
 }
 async function regenerate() {
@@ -120,7 +120,7 @@ const firstRule = computed(() => s.value.rules[0])
   >
     <div class="mx-auto max-w-xl">
       <div class="mb-6 flex items-center justify-between">
-        <div class="flex items-center gap-2"><img :src="logo" alt="" class="h-8 w-8" /><span class="font-semibold">FocusGateway</span></div>
+        <div class="flex items-center gap-2"><img :src="logo" alt="" class="h-8 w-8" /><span class="font-semibold">Regimen</span></div>
         <span class="flex items-center gap-2 text-xs text-muted">Step {{ step + 1 }} of {{ STEPS.length }} <QuickTheme /></span>
       </div>
       <div class="mb-6 flex gap-1" aria-hidden="true">
@@ -132,7 +132,7 @@ const firstRule = computed(() => s.value.rules[0])
         <div v-if="step === 0" class="space-y-4">
           <h1 class="h-display text-4xl">Let's protect your focus.</h1>
           <p class="text-muted">
-            FocusGateway blocks distracting sites while you work, and only unlocks them when your tasks are actually done. Setup takes about
+            Regimen blocks distracting sites while you work, and only unlocks them when your tasks are actually done. Setup takes about
             three minutes and it's worth doing properly.
           </p>
           <ul class="space-y-2 text-sm">
@@ -153,8 +153,8 @@ const firstRule = computed(() => s.value.rules[0])
             <b>Extension connected.</b> Blocking will work in this browser.
           </div>
           <div v-if="extensionTab" class="rounded-xl border border-line p-4 text-sm text-muted">
-            <b class="text-ink">Already set up on the FocusGateway website?</b> Go back to that tab instead. It reloads by itself; click the
-            FocusGateway icon in your toolbar, press <b>Allow</b>, and your PIN and rules move over. No need to do this again.
+            <b class="text-ink">Already set up on the Regimen website?</b> Go back to that tab instead. It reloads by itself; click the
+            Regimen icon in your toolbar, press <b>Allow</b>, and your PIN and rules move over. No need to do this again.
           </div>
           <div>
             <p class="label">Pick a style (change it any time from the palette button)</p>
@@ -271,7 +271,7 @@ const firstRule = computed(() => s.value.rules[0])
           >
             <Icon name="terminal" class="text-accent" /><span
               ><b>If something breaks</b> (sites stay blocked after the lock agent crashed): run
-              <code class="rounded bg-sunk px-1">focusgateway-agent recover</code>, or open <b>TROUBLESHOOTING.md</b> in the install folder.
+              <code class="rounded bg-sunk px-1">regimen-agent recover</code>, or open <b>TROUBLESHOOTING.md</b> in the install folder.
               The recovery tool refuses to run while the agent is healthy, so it can't be used as a shortcut.</span
             >
           </button>
@@ -342,7 +342,7 @@ const firstRule = computed(() => s.value.rules[0])
             </div>
             <div class="flex justify-between gap-4 p-3">
               <dt class="text-muted">Recovery code</dt>
-              <dd class="text-right font-medium">focusgateway-recovery-code.txt in your downloads</dd>
+              <dd class="text-right font-medium">regimen-recovery-code.txt in your downloads</dd>
             </div>
             <div class="flex justify-between gap-4 p-3">
               <dt class="text-muted">Failsafe</dt>
@@ -354,7 +354,7 @@ const firstRule = computed(() => s.value.rules[0])
             </div>
             <div class="flex justify-between gap-4 p-3">
               <dt class="text-muted">Agent broken?</dt>
-              <dd class="text-right font-medium">focusgateway-agent recover, TROUBLESHOOTING.md</dd>
+              <dd class="text-right font-medium">regimen-agent recover, TROUBLESHOOTING.md</dd>
             </div>
             <div class="flex justify-between gap-4 p-3">
               <dt class="text-muted">Blocking</dt>

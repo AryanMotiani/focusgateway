@@ -10,7 +10,7 @@ export default [
     languageOptions: {
       ecmaVersion: 2023,
       sourceType: 'module',
-      globals: { ...globals.browser, ...globals.node, ...globals.webextensions, __FG_VERSION__: 'readonly', __FG_APP_URL__: 'readonly' },
+      globals: { ...globals.browser, ...globals.node, ...globals.webextensions, __R_VERSION__: 'readonly', __R_APP_URL__: 'readonly' },
     },
     rules: {
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrors: 'none', ignoreRestSiblings: true }],

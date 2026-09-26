@@ -42,8 +42,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: FocusGateway version
-      description: Shown in the extension's details page, or `focusgateway-agent status`.
+      label: Regimen version
+      description: Shown in the extension's details page, or `regimen-agent status`.
   - type: textarea
     id: logs
     attributes:

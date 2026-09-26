@@ -1,10 +1,10 @@
 <script setup>
 import { computed, nextTick, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { computeStats, fromDateKey } from '@focusgateway/core'
+import { computeStats, fromDateKey } from '@regimen/core'
 import { store } from '../lib/store.js'
 import { dateTime } from '../lib/format.js'
-import { yearGrid, taskBoxes, weekRings, taskStreak, bestTaskStreak } from '@focusgateway/core'
+import { yearGrid, taskBoxes, weekRings, taskStreak, bestTaskStreak } from '@regimen/core'
 import BarChart from '../components/BarChart.vue'
 import YearHeatmap from '../components/viz/YearHeatmap.vue'
 import TaskBoxes from '../components/viz/TaskBoxes.vue'

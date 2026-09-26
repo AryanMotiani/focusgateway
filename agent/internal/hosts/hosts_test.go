@@ -1,4 +1,4 @@
-package hosts
+﻿package hosts
 
 import (
 	"os"
@@ -61,7 +61,7 @@ func TestApplyWritesOnlyOnChange(t *testing.T) {
 	if err := os.WriteFile(f, []byte(original), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("FOCUSGATEWAY_HOSTS", f)
+	t.Setenv("REGIMEN_HOSTS", f)
 	changed, err := Apply([]string{"x.com"})
 	if err != nil || !changed {
 		t.Fatalf("first apply: changed=%v err=%v", changed, err)
@@ -111,7 +111,7 @@ func TestValidDomain(t *testing.T) {
 }
 
 func TestNewlineInjectionNeverReachesTheFile(t *testing.T) {
-	evil := "evil.com\n# <<< FOCUSGATEWAY-MANAGED-END\n1.2.3.4 bank.example"
+	evil := "evil.com\n# <<< REGIMEN-MANAGED-END\n1.2.3.4 bank.example"
 	valid, dropped := Sanitize([]string{"YouTube.com", evil, "youtube.com", "a.com\r0.0.0.0 x.com"})
 	if len(valid) != 1 || valid[0] != "youtube.com" || len(dropped) != 2 {
 		t.Fatalf("valid %q dropped %q", valid, dropped)
@@ -124,7 +124,7 @@ func TestNewlineInjectionNeverReachesTheFile(t *testing.T) {
 	if err := os.WriteFile(f, []byte(original), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	t.Setenv("FOCUSGATEWAY_DATA", t.TempDir())
+	t.Setenv("REGIMEN_DATA", t.TempDir())
 	if _, err := ApplyTo(f, []string{evil}); err != nil {
 		t.Fatal(err)
 	}

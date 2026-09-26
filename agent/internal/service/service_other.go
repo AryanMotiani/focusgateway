@@ -6,21 +6,21 @@ import (
 	"os"
 	"path/filepath"
 
-	"focusgateway/agent/internal/paths"
-	"focusgateway/agent/internal/platform"
-	"focusgateway/agent/internal/safefile"
+	"regimen/agent/internal/paths"
+	"regimen/agent/internal/platform"
+	"regimen/agent/internal/safefile"
 )
 
 const (
-	systemdUnit = "/etc/systemd/system/focusgateway-agent.service"
-	cliLink     = "/usr/local/bin/focusgateway-agent"
-	desktopFile = "/usr/share/applications/focusgateway-recovery.desktop"
+	systemdUnit = "/etc/systemd/system/regimen-agent.service"
+	cliLink     = "/usr/local/bin/regimen-agent"
+	desktopFile = "/usr/share/applications/regimen-recovery.desktop"
 )
 
 // Install writes a systemd unit (Restart=always), enables and starts it.
 func Install(exe string) error {
 	unit := `[Unit]
-Description=FocusGateway lock agent
+Description=Regimen lock agent
 After=network.target
 
 [Service]
@@ -37,18 +37,18 @@ WantedBy=multi-user.target
 	if out, err := platform.Output("systemctl", "daemon-reload"); err != nil {
 		return &cmdError{"systemctl daemon-reload", err, out}
 	}
-	if out, err := platform.Output("systemctl", "enable", "--now", "focusgateway-agent.service"); err != nil {
+	if out, err := platform.Output("systemctl", "enable", "--now", "regimen-agent.service"); err != nil {
 		return &cmdError{"systemctl enable", err, out}
 	}
 	// restart picks up a new binary when this is a reinstall or upgrade
-	_ = platform.Run("systemctl", "restart", "focusgateway-agent.service")
+	_ = platform.Run("systemctl", "restart", "regimen-agent.service")
 	if exe != cliLink {
 		_ = os.MkdirAll(filepath.Dir(cliLink), 0o755)
 		_ = os.Remove(cliLink)
 		_ = os.Symlink(exe, cliLink)
 	}
 	_ = os.MkdirAll(filepath.Dir(desktopFile), 0o755)
-	_ = safefile.WriteFile(desktopFile, []byte("[Desktop Entry]\nType=Application\nName=FocusGateway Emergency Recovery\nExec=pkexec "+exe+
+	_ = safefile.WriteFile(desktopFile, []byte("[Desktop Entry]\nType=Application\nName=Regimen Emergency Recovery\nExec=pkexec "+exe+
 		" recover\nTerminal=true\nCategories=Utility;\n"), 0o644)
 	return nil
 }
@@ -63,7 +63,7 @@ func (e *cmdError) Error() string { return e.what + ": " + e.err.Error() + " " +
 
 // Uninstall stops and removes the unit and the helpers.
 func Uninstall() {
-	_ = platform.Run("systemctl", "disable", "--now", "focusgateway-agent.service")
+	_ = platform.Run("systemctl", "disable", "--now", "regimen-agent.service")
 	_ = os.Remove(systemdUnit)
 	_ = platform.Run("systemctl", "daemon-reload")
 	if t, err := os.Readlink(cliLink); err == nil && filepath.Base(t) == paths.BinaryName() {
@@ -81,4 +81,4 @@ func Installed() bool {
 }
 
 // RecoveryHint is where people find the emergency recovery tool.
-const RecoveryHint = "sudo focusgateway-agent recover"
+const RecoveryHint = "sudo regimen-agent recover"

@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"focusgateway/agent/internal/assets"
-	"focusgateway/agent/internal/paths"
-	"focusgateway/agent/internal/safefile"
+	"regimen/agent/internal/assets"
+	"regimen/agent/internal/paths"
+	"regimen/agent/internal/safefile"
 )
 
 // Self is the running executable with symlinks resolved.

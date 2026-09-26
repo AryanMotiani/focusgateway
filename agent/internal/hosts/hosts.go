@@ -1,4 +1,4 @@
-// Package hosts is the hosts-file layer. FocusGateway only ever touches the lines
+﻿// Package hosts is the hosts-file layer. Regimen only ever touches the lines
 // between its markers, writes atomically (temp file and rename) so a crash can't
 // leave a half-written file, and never edits anything else in the file.
 package hosts
@@ -16,22 +16,22 @@ import (
 	"strings"
 	"time"
 
-	"focusgateway/agent/internal/paths"
-	"focusgateway/agent/internal/platform"
-	"focusgateway/agent/internal/safefile"
+	"regimen/agent/internal/paths"
+	"regimen/agent/internal/platform"
+	"regimen/agent/internal/safefile"
 )
 
 const (
-	markerPrefix = "# >>> FOCUSGATEWAY-MANAGED-START"
+	markerPrefix = "# >>> REGIMEN-MANAGED-START"
 	// MarkerStart opens the managed block.
-	MarkerStart = "# >>> FOCUSGATEWAY-MANAGED-START (do not edit; run `focusgateway-agent recover` if stuck)"
+	MarkerStart = "# >>> REGIMEN-MANAGED-START (do not edit; run `regimen-agent recover` if stuck)"
 	// MarkerEnd closes the managed block.
-	MarkerEnd = "# <<< FOCUSGATEWAY-MANAGED-END"
+	MarkerEnd = "# <<< REGIMEN-MANAGED-END"
 )
 
-// Path is the system hosts file. FOCUSGATEWAY_HOSTS overrides it (tests and development).
+// Path is the system hosts file. REGIMEN_HOSTS overrides it (tests and development).
 func Path() string {
-	if v := os.Getenv("FOCUSGATEWAY_HOSTS"); v != "" {
+	if v := os.Getenv("REGIMEN_HOSTS"); v != "" {
 		return v
 	}
 	if runtime.GOOS == "windows" {
@@ -269,7 +269,7 @@ func ApplyTo(file string, domains []string) (bool, error) {
 	if err := WriteAtomic(next, file); err != nil {
 		return false, err
 	}
-	if os.Getenv("FOCUSGATEWAY_HOSTS") == "" {
+	if os.Getenv("REGIMEN_HOSTS") == "" {
 		FlushDNS()
 	}
 	return true, nil

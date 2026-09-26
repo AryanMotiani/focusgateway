@@ -1,32 +1,32 @@
 # nfpm config for the lock agent's .deb and .rpm (see packaging/linux/build.sh).
 # build.sh replaces ${VERSION}, ${GOARCH} and ${ROOT} before calling nfpm.
-name: focusgateway-agent
+name: regimen-agent
 arch: ${GOARCH}
 platform: linux
 version: ${VERSION}
 section: utils
 priority: optional
-maintainer: FocusGateway maintainers <noreply@github.com>
+maintainer: Regimen maintainers <noreply@github.com>
 description: |
-  FocusGateway lock agent. Enforces your FocusGateway blocks in every browser
+  Regimen lock agent. Enforces your Regimen blocks in every browser
   and app through the hosts file, and sets browser policies that turn off
-  Secure DNS and private windows. Pairs with the FocusGateway browser extension.
-vendor: FocusGateway (open source)
-homepage: https://github.com/AryanMotiani/focusgateway
+  Secure DNS and private windows. Pairs with the Regimen browser extension.
+vendor: Regimen (open source)
+homepage: https://github.com/AryanMotiani/regimen
 license: MIT
 
 contents:
-  - src: ${ROOT}/agent/dist/focusgateway-agent-linux-${GOARCH}
-    dst: /opt/focusgateway/focusgateway-agent
+  - src: ${ROOT}/agent/dist/regimen-agent-linux-${GOARCH}
+    dst: /opt/regimen/regimen-agent
     file_info:
       mode: 0755
-  - src: /opt/focusgateway/focusgateway-agent
-    dst: /usr/bin/focusgateway-agent
+  - src: /opt/regimen/regimen-agent
+    dst: /usr/bin/regimen-agent
     type: symlink
   - src: ${ROOT}/TROUBLESHOOTING.md
-    dst: /usr/share/doc/focusgateway-agent/TROUBLESHOOTING.md
+    dst: /usr/share/doc/regimen-agent/TROUBLESHOOTING.md
   - src: ${ROOT}/LICENSE
-    dst: /usr/share/doc/focusgateway-agent/copyright
+    dst: /usr/share/doc/regimen-agent/copyright
 
 scripts:
   postinstall: ${ROOT}/packaging/linux/postinstall.sh

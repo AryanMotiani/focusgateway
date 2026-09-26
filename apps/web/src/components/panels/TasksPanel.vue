@@ -2,7 +2,7 @@
 // Every open task, grouped by when it is due, with quick add on top.
 // Used in the study room drawer (dark) and the Today rail (light).
 import { computed, ref } from 'vue'
-import { startOfDay, addDays, XP } from '@focusgateway/core'
+import { startOfDay, addDays, XP } from '@regimen/core'
 import { store, call, attempt, toast } from '../../lib/store.js'
 import { deadlineLabel, endOfToday } from '../../lib/format.js'
 import { popXp, playTick, isGame, currentXp } from '../../lib/rewards.js'

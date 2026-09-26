@@ -1,4 +1,4 @@
-# FocusGateway — Spec (living doc, updated per grilling session)
+# Regimen — Spec (living doc, updated per grilling session)
 
 ## Problem Statement
 Self-discipline tool: block distracting sites during work hours unless tasks completed, while satisfying fixed academic practical requirements (Node, JSON, responsive CSS, JS APIs, Bootstrap, Tailwind, Vue, MySQL, RBAC, MongoDB, Git/GitHub deploy) in one coherent, genuinely usable open-source project — not a bolted-together checklist.

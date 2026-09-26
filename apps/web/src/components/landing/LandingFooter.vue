@@ -35,7 +35,7 @@ const year = new Date().getFullYear()
   <footer class="foot">
     <div class="lp-wrap cols">
       <div class="brand">
-        <span class="logo"><img :src="logo" alt="" width="32" height="32" /> FocusGateway</span>
+        <span class="logo"><img :src="logo" alt="" width="32" height="32" /> Regimen</span>
         <p>A cozy study room with a site blocker you can't talk your way out of. Made for students who want their evenings back.</p>
       </div>
       <nav aria-label="Product">
@@ -59,7 +59,7 @@ const year = new Date().getFullYear()
     </div>
     <div class="lp-wrap">
       <div class="bottom">
-        <span>© {{ year }} FocusGateway contributors · MIT licensed</span>
+        <span>© {{ year }} Regimen contributors · MIT licensed</span>
         <span class="love">Made with <Icon name="heart" :size="13" /> and a lot of lofi</span>
       </div>
     </div>

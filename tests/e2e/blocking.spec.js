@@ -33,8 +33,8 @@ async function connectedApp(context, extensionId, hash = '#/today') {
   const saved = await websiteSetup()
   const page = await context.newPage()
   await page.addInitScript((s) => {
-    if (!localStorage.getItem('focusgateway:v1')) localStorage.setItem('focusgateway:v1', s)
-    localStorage.setItem('focusgateway:tours-seen', '["*"]') // the intro is tested in room.spec.js
+    if (!localStorage.getItem('regimen:v1')) localStorage.setItem('regimen:v1', s)
+    localStorage.setItem('regimen:tours-seen', '["*"]') // the intro is tested in room.spec.js
   }, JSON.stringify(saved))
   await page.goto(APP + hash)
   await expect(page.getByText('Approve this site in the extension')).toBeVisible()
@@ -119,7 +119,7 @@ test('Test blocking in Settings reports that blocking works', async ({ context, 
 
 test('without approving the site, starting focus says loudly that nothing is blocked', async ({ context }) => {
   const page = await context.newPage()
-  await page.addInitScript(() => localStorage.setItem('focusgateway:tours-seen', '["*"]'))
+  await page.addInitScript(() => localStorage.setItem('regimen:tours-seen', '["*"]'))
   await page.goto(APP + '#/room')
   await page.getByRole('button', { name: 'Continue without blocking' }).click()
   await page.locator('[data-dock="focus"]').click()

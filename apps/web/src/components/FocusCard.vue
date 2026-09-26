@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
-import { focusPhase } from '@focusgateway/core'
+import { focusPhase } from '@regimen/core'
 import { store, call, attempt, blockingIssue, focusDraft } from '../lib/store.js'
 import { ensureBlocking } from './help/guard.js'
 import BlockingOffBadge from './help/BlockingOffBadge.vue'

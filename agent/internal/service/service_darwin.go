@@ -7,15 +7,15 @@ import (
 	"path/filepath"
 	"time"
 
-	"focusgateway/agent/internal/paths"
-	"focusgateway/agent/internal/platform"
-	"focusgateway/agent/internal/safefile"
+	"regimen/agent/internal/paths"
+	"regimen/agent/internal/platform"
+	"regimen/agent/internal/safefile"
 )
 
 const (
-	launchd     = "/Library/LaunchDaemons/app.focusgateway.agent.plist"
-	recoveryCmd = "/Applications/FocusGateway Emergency Recovery.command"
-	cliLink     = "/usr/local/bin/focusgateway-agent"
+	launchd     = "/Library/LaunchDaemons/app.regimen.agent.plist"
+	recoveryCmd = "/Applications/Regimen Emergency Recovery.command"
+	cliLink     = "/usr/local/bin/regimen-agent"
 )
 
 // Install writes a LaunchDaemon (starts at boot, KeepAlive restarts it) and loads it.
@@ -23,7 +23,7 @@ func Install(exe string) error {
 	plist := `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-  <key>Label</key><string>app.focusgateway.agent</string>
+  <key>Label</key><string>app.regimen.agent</string>
   <key>ProgramArguments</key><array><string>` + xmlEscape(exe) + `</string><string>run</string></array>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
@@ -47,7 +47,7 @@ func Install(exe string) error {
 	if err != nil {
 		return err
 	}
-	_ = safefile.WriteFile(recoveryCmd, []byte("#!/bin/sh\necho \"FocusGateway emergency recovery (asks for your password)\"\nsudo \""+exe+
+	_ = safefile.WriteFile(recoveryCmd, []byte("#!/bin/sh\necho \"Regimen emergency recovery (asks for your password)\"\nsudo \""+exe+
 		"\" recover\nread -p \"Press Enter to close\" _\n"), 0o755)
 	_ = os.MkdirAll(filepath.Dir(cliLink), 0o755)
 	_ = os.Remove(cliLink)
@@ -74,4 +74,4 @@ func Installed() bool {
 }
 
 // RecoveryHint is where people find the emergency recovery tool.
-const RecoveryHint = "Applications, FocusGateway Emergency Recovery"
+const RecoveryHint = "Applications, Regimen Emergency Recovery"

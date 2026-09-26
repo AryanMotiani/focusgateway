@@ -29,7 +29,7 @@ const STEPS = [
   },
 ]
 
-const URLS = ['focusgateway / tasks', 'youtube.com', 'youtube.com', 'focusgateway / failsafe']
+const URLS = ['regimen / tasks', 'youtube.com', 'youtube.com', 'regimen / failsafe']
 const root = ref(null)
 const pinned = useMedia(PINNABLE)
 const progress = ref(0)

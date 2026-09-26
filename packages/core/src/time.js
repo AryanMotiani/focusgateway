@@ -1,4 +1,4 @@
-// Local-clock time helpers. FocusGateway deliberately reads the system clock and
+// Local-clock time helpers. Regimen deliberately reads the system clock and
 // stores no timezone (see SPEC.md "Timezone Handling"). All instants are epoch ms.
 
 export const MINUTE = 60_000

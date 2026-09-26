@@ -1,6 +1,6 @@
 <script setup>
 // "Allow this site" in two steps, with a small drawing of the browser toolbar and the
-// FocusGateway popup. Used by the approval screen (App.vue) and the not-connected dialog.
+// Regimen popup. Used by the approval screen (App.vue) and the not-connected dialog.
 // Check again asks the extension right away (pending approval) or reloads the page (after
 // "Continue without blocking", when the page runs on its own).
 import { ref } from 'vue'
@@ -34,17 +34,17 @@ async function retry() {
           class="mt-1.5 ml-auto flex w-40 items-center gap-2 rounded-xl bg-card px-2 py-1.5 text-xs font-bold shadow-sm"
           aria-hidden="true"
         >
-          <img :src="logo" alt="" class="h-5 w-5" /> FocusGateway
+          <img :src="logo" alt="" class="h-5 w-5" /> Regimen
         </div>
         <p class="mt-2.5 flex gap-2">
           <b class="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent text-[11px] text-on-accent">1</b>
-          <span>Click the <b>puzzle piece</b> in the toolbar (top right), then <b>FocusGateway</b>.</span>
+          <span>Click the <b>puzzle piece</b> in the toolbar (top right), then <b>Regimen</b>.</span>
         </p>
       </li>
       <li class="rounded-2xl border border-line bg-sunk p-3">
         <!-- the popup: this site with its Allow button -->
         <div class="rounded-xl bg-card p-2 shadow-sm" aria-hidden="true">
-          <div class="flex items-center gap-1.5 text-xs font-bold"><img :src="logo" alt="" class="h-4 w-4" /> FocusGateway</div>
+          <div class="flex items-center gap-1.5 text-xs font-bold"><img :src="logo" alt="" class="h-4 w-4" /> Regimen</div>
           <div class="mt-1.5 flex items-center gap-2 rounded-lg bg-sunk px-2 py-1.5 text-xs">
             <Icon name="globe" :size="13" class="text-muted" />
             <span class="min-w-0 flex-1 truncate text-muted">this site</span>
@@ -57,7 +57,7 @@ async function retry() {
         </p>
       </li>
     </ol>
-    <p class="text-xs text-muted">Tip: pin FocusGateway to the toolbar, so it is always one click away.</p>
+    <p class="text-xs text-muted">Tip: pin Regimen to the toolbar, so it is always one click away.</p>
     <div class="flex flex-wrap items-center gap-2">
       <button class="btn btn-primary" data-approve-retry :disabled="status === 'checking'" @click="retry">
         <Icon :name="store.pendingApproval ? 'refresh' : 'puzzle'" :size="15" />

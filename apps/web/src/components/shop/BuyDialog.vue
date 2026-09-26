@@ -2,7 +2,7 @@
 // Buy one thing: a confirm step with the price and what is left after, then a "yours now"
 // step with a coin burst and the obvious next move (place it, wear it, use it).
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { shopKind } from '@focusgateway/core'
+import { shopKind } from '@regimen/core'
 import { balance, buy, shopLevel } from '../../lib/shop.js'
 import ItemPreview from './ItemPreview.vue'
 import CoinIcon from './CoinIcon.vue'

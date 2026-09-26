@@ -11,7 +11,7 @@ import {
   habitBestStreak,
   yearGrid,
   XP,
-} from '@focusgateway/core'
+} from '@regimen/core'
 import { store, call, attempt } from '../lib/store.js'
 import { askYesNo } from '../lib/dialogs.js'
 import { DAY_NAMES, daysLabel } from '../lib/format.js'

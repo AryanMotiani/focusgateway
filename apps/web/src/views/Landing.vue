@@ -28,7 +28,7 @@ import { useFrame } from '../components/landing/motion.js'
 const started = computed(() => !!store.state?.onboarding?.completed)
 
 // ------------------------------------------------ light or dark, just for this page
-const THEME_KEY = 'focusgateway:landing-theme'
+const THEME_KEY = 'regimen:landing-theme'
 function savedTheme() {
   try {
     const v = localStorage.getItem(THEME_KEY)
@@ -76,9 +76,9 @@ function go(id) {
   <div class="lp" :data-theme="theme">
     <header class="nav" :class="{ scrolled }">
       <div class="lp-wrap nav-in">
-        <RouterLink to="/home" class="brand" aria-label="FocusGateway home">
+        <RouterLink to="/home" class="brand" aria-label="Regimen home">
           <img :src="logo" alt="" width="30" height="30" />
-          <span>FocusGateway</span>
+          <span>Regimen</span>
         </RouterLink>
         <nav class="links" aria-label="Page">
           <button @click="go('how')">How it works</button>
@@ -98,7 +98,7 @@ function go(id) {
             </Transition>
           </button>
           <RouterLink :to="started ? '/' : '/welcome'" class="lp-btn lp-btn-primary lp-btn-sm get">
-            {{ started ? 'Open app' : 'Get FocusGateway' }}
+            {{ started ? 'Open app' : 'Get Regimen' }}
           </RouterLink>
         </div>
       </div>

@@ -1,5 +1,5 @@
 <script setup>
-// The one sentence that says what FocusGateway is, set huge. The section pins while you scroll
+// The one sentence that says what Regimen is, set huge. The section pins while you scroll
 // and the words fill in one after another, with two small inline pictures sliding open from
 // the sides. With reduced motion it is just the sentence, fully lit.
 import { ref } from 'vue'

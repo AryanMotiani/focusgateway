@@ -55,8 +55,8 @@ async function newRecovery() {
   if (!r) return
   recoveryCode.value = r.recoveryCode
   download(
-    'focusgateway-recovery-code.txt',
-    `FocusGateway recovery code\n\n${r.recoveryCode}\n\nUse it at Settings > Forgot PIN if you lose your PIN. It works once.\n`,
+    'regimen-recovery-code.txt',
+    `Regimen recovery code\n\n${r.recoveryCode}\n\nUse it at Settings > Forgot PIN if you lose your PIN. It works once.\n`,
   )
 }
 
@@ -80,7 +80,7 @@ const unpair = () =>
 
 async function exportData() {
   const r = await attempt(() => call('data.export'))
-  download(`focusgateway-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(r, null, 2), 'application/json')
+  download(`regimen-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(r, null, 2), 'application/json')
 }
 async function importData(e) {
   const file = e.target.files?.[0]
@@ -144,7 +144,7 @@ async function revoke(o) {
     <section v-if="localData" class="card border-accent p-5">
       <h2 class="font-semibold">Data found from before the extension</h2>
       <p class="mt-1 text-sm text-muted">
-        You used FocusGateway in this browser without the extension. Move those tasks, rules and habits into the extension so they are
+        You used Regimen in this browser without the extension. Move those tasks, rules and habits into the extension so they are
         enforced.
       </p>
       <div class="mt-3 flex gap-2">
@@ -301,7 +301,7 @@ async function revoke(o) {
 
     <section v-if="store.mode !== 'local' && origins.length" class="card p-5">
       <h2 class="font-semibold">Connected websites</h2>
-      <p class="text-sm text-muted">Hosted copies of FocusGateway allowed to use this extension.</p>
+      <p class="text-sm text-muted">Hosted copies of Regimen allowed to use this extension.</p>
       <div v-for="o in origins" :key="o" class="mt-2 flex items-center justify-between rounded-xl bg-sunk px-3 py-2 text-sm">
         <code>{{ o }}</code
         ><button class="btn btn-sm" @click="revoke(o)">Remove</button>
@@ -345,7 +345,7 @@ async function revoke(o) {
 
     <section class="text-xs text-muted">
       <p>
-        FocusGateway is free and open source (MIT). Running in <b>{{ store.mode === 'local' ? 'standalone' : store.mode }}</b> mode.
+        Regimen is free and open source (MIT). Running in <b>{{ store.mode === 'local' ? 'standalone' : store.mode }}</b> mode.
       </p>
       <p class="mt-1">
         It is a commitment tool, not a prison. Someone with admin rights on this computer can always undo it with enough effort. The point

@@ -1,5 +1,5 @@
 // Plain sentences for explainRule() (packages/core/src/engine.js): is a rule blocking now, and why not.
-import { explainRule } from '@focusgateway/core'
+import { explainRule } from '@regimen/core'
 
 const time = (ms) => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 function when(ms, now) {

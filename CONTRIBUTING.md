@@ -1,6 +1,6 @@
-# Contributing to FocusGateway
+﻿# Contributing to Regimen
 
-Thanks for helping! FocusGateway is built by and for students who want their focus back. Every kind of help counts: code, adding sites to the block list, testing on your browser or OS, design, docs and translations.
+Thanks for helping! Regimen is built by and for students who want their focus back. Every kind of help counts: code, adding sites to the block list, testing on your browser or OS, design, docs and translations.
 
 ## Ground rules
 
@@ -11,7 +11,7 @@ Thanks for helping! FocusGateway is built by and for students who want their foc
 ## Good first contributions
 
 - **Add a site to the block list.** Edit `packages/core/src/bundles.js`, add the site's domains (main site, CDN, video, API), and open a PR. Look for issues labelled `site-bundle` or `good first issue`.
-- Try FocusGateway on a browser or OS we have not tested (Firefox, Safari with the agent, macOS, Windows) and report what breaks.
+- Try Regimen on a browser or OS we have not tested (Firefox, Safari with the agent, macOS, Windows) and report what breaks.
 - Improve wording in the app. Keep it short, plain and friendly.
 
 ## Set up
@@ -19,8 +19,8 @@ Thanks for helping! FocusGateway is built by and for students who want their foc
 You need Node.js 20.19 or newer (`.nvmrc` pins the version we use) and Git. Working on the lock agent also needs [Go](https://go.dev/dl/) 1.24 or newer.
 
 ```bash
-git clone https://github.com/AryanMotiani/focusgateway.git
-cd focusgateway
+git clone https://github.com/AryanMotiani/regimen.git
+cd regimen
 npm install
 npm run dev          # web app at http://localhost:5173 (standalone mode, no blocking)
 ```
@@ -38,7 +38,7 @@ Then in Chrome open `chrome://extensions`, turn on Developer mode, click **Load 
 The agent is a Go module in `agent/` with no dependencies outside the standard library:
 
 ```
-agent/cmd/focusgateway-agent   main package (the CLI)
+agent/cmd/regimen-agent   main package (the CLI)
 agent/internal/cli             commands: install, pair, status, recover, policies, uninstall, run
 agent/internal/daemon          HTTP API on 127.0.0.1:47621 (/health, /v1/pair, /v1/sync) and the hosts loop
 agent/internal/core            Go port of the engine parts it needs (windows, task gating, computeBlocks)
@@ -52,19 +52,19 @@ agent/internal/assets          embedded copies of the site bundles, TROUBLESHOOT
 
 ```bash
 npm run agent:test            # go vet + go test (or: cd agent && go test ./...)
-npm run agent:build           # agent/dist/focusgateway-agent-<os>-<arch>, all six targets
-cd agent && go run ./cmd/focusgateway-agent help
+npm run agent:build           # agent/dist/regimen-agent-<os>-<arch>, all six targets
+cd agent && go run ./cmd/regimen-agent help
 ```
 
 Try it without touching your real hosts file or needing admin rights. Put a `config.json` with a pairing code in a temp folder and point the agent at a fake hosts file:
 
 ```bash
 mkdir -p /tmp/fg && echo '{"pairCode":"ABCD-EFGH-JKLM-NPQR-STUV"}' > /tmp/fg/config.json
-cd agent && FOCUSGATEWAY_DATA=/tmp/fg FOCUSGATEWAY_HOSTS=/tmp/hosts go run ./cmd/focusgateway-agent run
+cd agent && REGIMEN_DATA=/tmp/fg REGIMEN_HOSTS=/tmp/hosts go run ./cmd/regimen-agent run
 curl http://127.0.0.1:47621/health
 ```
 
-`FOCUSGATEWAY_APP_URL=http://localhost:5173` makes `pair` and `install` open your local dev server instead of the hosted app.
+`REGIMEN_APP_URL=http://localhost:5173` makes `pair` and `install` open your local dev server instead of the hosted app.
 
 Two things keep the Go agent honest against the JavaScript engine:
 

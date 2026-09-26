@@ -4,7 +4,7 @@
 // Before there is any saved state (the approval screen, a moment on the public room) the
 // choice lives in localStorage as a "guest look" and moves into settings once state exists.
 import { computed, ref, watch } from 'vue'
-import { APPEARANCE, APPEARANCE_MODES, appearanceFor, colorModeOf, findTheme, mergeAppearance, variantOf } from '@focusgateway/core'
+import { APPEARANCE, APPEARANCE_MODES, appearanceFor, colorModeOf, findTheme, mergeAppearance, variantOf } from '@regimen/core'
 import { store, call, toast } from './store.js'
 
 // only read for the Auto colour mode, light and dark ignore the device
@@ -12,7 +12,7 @@ const media = typeof window !== 'undefined' ? window.matchMedia?.('(prefers-colo
 export const systemDark = ref(!!media?.matches)
 media?.addEventListener?.('change', (e) => (systemDark.value = e.matches))
 
-const GUEST_KEY = 'focusgateway:look'
+const GUEST_KEY = 'regimen:look'
 function readGuest() {
   try {
     const g = JSON.parse(localStorage.getItem(GUEST_KEY) || 'null')

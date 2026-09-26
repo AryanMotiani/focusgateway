@@ -10,25 +10,25 @@ import (
 	"strings"
 	"unicode/utf16"
 
-	"focusgateway/agent/internal/paths"
-	"focusgateway/agent/internal/platform"
-	"focusgateway/agent/internal/safefile"
+	"regimen/agent/internal/paths"
+	"regimen/agent/internal/platform"
+	"regimen/agent/internal/safefile"
 )
 
-const uninstallKey = `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\FocusGateway`
+const uninstallKey = `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Regimen`
 
 func startMenuDir() string {
 	pd := os.Getenv("ProgramData")
 	if pd == "" {
 		pd = `C:\ProgramData`
 	}
-	return filepath.Join(pd, "Microsoft", "Windows", "Start Menu", "Programs", "FocusGateway")
+	return filepath.Join(pd, "Microsoft", "Windows", "Start Menu", "Programs", "Regimen")
 }
 
 func taskXML(exe string) string {
 	return `<?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
-  <RegistrationInfo><Description>FocusGateway lock agent</Description></RegistrationInfo>
+  <RegistrationInfo><Description>Regimen lock agent</Description></RegistrationInfo>
   <Triggers><BootTrigger><Enabled>true</Enabled></BootTrigger><LogonTrigger><Enabled>true</Enabled></LogonTrigger></Triggers>
   <Principals><Principal id="Author"><UserId>S-1-5-18</UserId><RunLevel>HighestAvailable</RunLevel></Principal></Principals>
   <Settings>
@@ -57,7 +57,7 @@ func utf16LE(s string) []byte {
 func Install(exe string) error {
 	// The task definition goes through the locked-down data folder, not %TEMP%,
 	// where the signed-in user could swap it between writing and schtasks reading it.
-	tmp := paths.File("focusgateway-task.xml")
+	tmp := paths.File("regimen-task.xml")
 	if err := safefile.WriteFile(tmp, utf16LE(taskXML(exe)), 0o600); err != nil {
 		return err
 	}
@@ -98,8 +98,8 @@ func createShortcuts(exe string) {
 	cmd := filepath.Join(paths.ProgramDir(), "recover.cmd")
 	_ = safefile.WriteFile(cmd, []byte("@echo off\r\nnet session >nul 2>&1 || (powershell -NoProfile -Command \"Start-Process -Verb RunAs -FilePath '%~f0'\" & exit /b)\r\n\""+
 		exe+"\" recover\r\npause\r\n"), 0o644)
-	shortcut(filepath.Join(dir, "FocusGateway Emergency Recovery.lnk"), cmd, "")
-	shortcut(filepath.Join(dir, "FocusGateway Lock Agent.lnk"), exe, "")
+	shortcut(filepath.Join(dir, "Regimen Emergency Recovery.lnk"), cmd, "")
+	shortcut(filepath.Join(dir, "Regimen Lock Agent.lnk"), exe, "")
 }
 
 // registerUninstall adds an Apps & Features entry for a self-install. The Windows
@@ -111,8 +111,8 @@ func registerUninstall(exe string) {
 	add := func(name, typ, data string) {
 		_ = platform.Run("reg", "add", uninstallKey, "/v", name, "/t", typ, "/d", data, "/f")
 	}
-	add("DisplayName", "REG_SZ", "FocusGateway lock agent")
-	add("Publisher", "REG_SZ", "FocusGateway (open source)")
+	add("DisplayName", "REG_SZ", "Regimen lock agent")
+	add("Publisher", "REG_SZ", "Regimen (open source)")
 	add("DisplayIcon", "REG_SZ", exe)
 	add("InstallLocation", "REG_SZ", paths.ProgramDir())
 	add("UninstallString", "REG_SZ", `"`+exe+`" uninstall`)
@@ -122,7 +122,7 @@ func registerUninstall(exe string) {
 
 func unregisterUninstall() {
 	out, err := platform.Output("reg", "query", uninstallKey, "/v", "UninstallString")
-	if err == nil && strings.Contains(strings.ToLower(string(out)), "focusgateway-agent.exe") {
+	if err == nil && strings.Contains(strings.ToLower(string(out)), "regimen-agent.exe") {
 		_ = platform.Run("reg", "delete", uninstallKey, "/f")
 	}
 }
@@ -154,4 +154,4 @@ func removeProgram(dir string) {
 func Installed() bool { return platform.Run("schtasks", "/Query", "/TN", paths.ServiceName) == nil }
 
 // RecoveryHint is where people find the emergency recovery tool.
-const RecoveryHint = "Start Menu, FocusGateway, FocusGateway Emergency Recovery"
+const RecoveryHint = "Start Menu, Regimen, Regimen Emergency Recovery"

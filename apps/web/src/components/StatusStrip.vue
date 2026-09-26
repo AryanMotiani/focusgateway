@@ -4,7 +4,7 @@
 // bare: inside a study room window (the window draws the glass). glass: its own room glass.
 // Both use the theme's room colours (style.css .room-ui and .room-glass).
 import { computed } from 'vue'
-import { focusPhase, taskStreak, trackById, trackStyle } from '@focusgateway/core'
+import { focusPhase, taskStreak, trackById, trackStyle } from '@regimen/core'
 import { store, blocks, extensionOutdated, blockingIssue } from '../lib/store.js'
 import { progress, isGame } from '../lib/rewards.js'
 import { countdown } from '../lib/format.js'

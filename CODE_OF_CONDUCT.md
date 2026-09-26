@@ -2,7 +2,7 @@
 
 ## Our pledge
 
-We want FocusGateway to be a friendly, welcoming project for everyone, whatever their age, background, experience level, identity or where they come from. Many contributors are students and first-time open source contributors. Treat every question as a good question.
+We want Regimen to be a friendly, welcoming project for everyone, whatever their age, background, experience level, identity or where they come from. Many contributors are students and first-time open source contributors. Treat every question as a good question.
 
 ## What we expect
 

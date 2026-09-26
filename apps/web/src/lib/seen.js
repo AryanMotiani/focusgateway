@@ -12,17 +12,17 @@
 // Once state exists, anything seen only in this browser is merged into it, and anything in state
 // is mirrored back here (startSeenSync). Seen never becomes unseen.
 import { computed, reactive, watch } from 'vue'
-import { SHOP_ITEMS, UI_FLAGS } from '@focusgateway/core'
+import { SHOP_ITEMS, UI_FLAGS } from '@regimen/core'
 import { store, call } from './store.js'
 
 const KEYS = {
-  tours: 'focusgateway:tours-seen',
-  tips: 'focusgateway:room-tips-seen',
-  flags: 'focusgateway:ui-flags',
+  tours: 'regimen:tours-seen',
+  tips: 'regimen:room-tips-seen',
+  flags: 'regimen:ui-flags',
 }
-const KNOWN_KEY = 'focusgateway:shop-known'
+const KNOWN_KEY = 'regimen:shop-known'
 // notices that had their own key before the seen list existed
-const OLD_FLAG_KEYS = { 'no-extension-seen': 'focusgateway:no-extension-seen' }
+const OLD_FLAG_KEYS = { 'no-extension-seen': 'regimen:no-extension-seen' }
 const ID = /^(\*|[a-z][a-z0-9-]{0,39})$/
 const MAX = 40
 

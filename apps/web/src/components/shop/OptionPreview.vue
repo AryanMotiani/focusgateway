@@ -4,7 +4,7 @@
 // the player's own avatar and walls, so it shows how it will really look.
 // Used by the decorate panel and the shop.
 import { computed } from 'vue'
-import { DEFAULT_AVATAR } from '@focusgateway/core'
+import { DEFAULT_AVATAR } from '@regimen/core'
 import { room } from '../../lib/room.js'
 import { SKIN, swatchOf } from '../room/avatarStyle.js'
 import { wallOf, woodOf, PATTERNS, FLOORS, CURTAINS, LAMPS, FAIRY, styleSwatch } from '../room/roomStyle.js'

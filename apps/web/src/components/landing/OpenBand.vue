@@ -31,7 +31,7 @@ const PILLARS = [
   [
     'info',
     'Honest about limits',
-    'Anyone with admin rights can undo software on their own machine. FocusGateway makes that slow, deliberate and visible.',
+    'Anyone with admin rights can undo software on their own machine. Regimen makes that slow, deliberate and visible.',
   ],
 ]
 </script>

@@ -1,4 +1,4 @@
-// The Backend is the single authority for every rule in FocusGateway: PIN checks,
+// The Backend is the single authority for every rule in Regimen: PIN checks,
 // cooldowns, type-to-confirm friction, conflict and empty-window validation.
 // It runs inside the extension's service worker (or in the page in standalone
 // mode). UIs only ever call dispatch(command, payload).
@@ -362,7 +362,7 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
     // Only allowed while the extension has nothing to protect yet.
     'setup.adopt': (s, { state: incoming }) => {
       if (s.security.pin || s.onboarding.completed || s.rules.length || s.tasks.length) {
-        fail('NOT_FRESH', 'FocusGateway is already set up here. Use Settings, Backup, Import to bring data over.')
+        fail('NOT_FRESH', 'Regimen is already set up here. Use Settings, Backup, Import to bring data over.')
       }
       if (!incoming || typeof incoming !== 'object' || !Array.isArray(incoming.tasks)) fail('VALIDATION', 'Nothing to move.')
       const sec = incoming.security || {}
@@ -900,7 +900,7 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       readonly: true,
       run: (s) => {
         const { security, agent, runtime, failsafe, ...rest } = s
-        return { app: 'FocusGateway', exportedAt: now(), data: structuredClone(rest) }
+        return { app: 'Regimen', exportedAt: now(), data: structuredClone(rest) }
       },
     },
     'data.import': async (s, { data, pin }) => {
@@ -908,7 +908,7 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       if (anyLockedLive(s)) fail('LOCKED', 'A no-failsafe rule is active. Import after it ends.')
       const payload = data?.data || data
       if (!payload || typeof payload !== 'object' || !Array.isArray(payload.tasks))
-        fail('VALIDATION', 'That file is not a FocusGateway export.')
+        fail('VALIDATION', 'That file is not a Regimen export.')
       const next = sanitizeIncoming(payload, { security: s.security, agent: s.agent, onboarding: s.onboarding })
       next.ui = unionUi(s.ui, payload.ui)
       Object.keys(s).forEach((k) => delete s[k])

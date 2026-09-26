@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { nextWindowStart } from '@focusgateway/core'
+import { nextWindowStart } from '@regimen/core'
 import { store, blocks, canBlock } from '../../lib/store.js'
 import { countdown, time, date } from '../../lib/format.js'
 import Icon from '../Icon.vue'

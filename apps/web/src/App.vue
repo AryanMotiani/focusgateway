@@ -68,7 +68,7 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
         <img :src="logo" alt="" class="mx-auto h-12 w-12" />
         <h1 class="mt-3 text-xl font-semibold">Approve this site in the extension</h1>
         <p class="mt-1.5 text-sm text-muted">
-          The FocusGateway extension is installed. Two quick steps let this site use it to block sites.
+          The Regimen extension is installed. Two quick steps let this site use it to block sites.
         </p>
       </div>
       <div class="mt-4">
@@ -88,7 +88,7 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
       <aside class="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-line px-4 py-5 lg:flex">
         <RouterLink to="/" class="mb-6 flex items-center gap-2.5 px-2">
           <img :src="logo" alt="" class="h-8 w-8" />
-          <span class="text-[17px] font-semibold tracking-tight game:font-black">FocusGateway</span>
+          <span class="text-[17px] font-semibold tracking-tight game:font-black">Regimen</span>
         </RouterLink>
         <nav class="flex flex-1 flex-col gap-0.5" aria-label="Main">
           <RouterLink
@@ -131,7 +131,7 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
       <!-- mobile top bar -->
       <header class="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-paper px-4 py-3 lg:hidden">
         <RouterLink to="/" class="flex items-center gap-2"
-          ><img :src="logo" alt="" class="h-7 w-7" /><span class="font-semibold">FocusGateway</span></RouterLink
+          ><img :src="logo" alt="" class="h-7 w-7" /><span class="font-semibold">Regimen</span></RouterLink
         >
         <div class="flex items-center gap-1">
           <QuickTheme />

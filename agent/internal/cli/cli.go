@@ -1,4 +1,4 @@
-// Package cli is the focusgateway-agent command line. Running it with no
+﻿// Package cli is the regimen-agent command line. Running it with no
 // arguments (a double click) does the natural thing: install when it is not
 // installed, open a fresh pairing link when it is not connected yet, and show
 // the status otherwise.
@@ -17,15 +17,15 @@ import (
 	"strings"
 	"time"
 
-	"focusgateway/agent/internal/buildinfo"
-	"focusgateway/agent/internal/daemon"
-	"focusgateway/agent/internal/hosts"
-	"focusgateway/agent/internal/lock"
-	"focusgateway/agent/internal/paths"
-	"focusgateway/agent/internal/platform"
-	"focusgateway/agent/internal/policies"
-	"focusgateway/agent/internal/safefile"
-	"focusgateway/agent/internal/service"
+	"regimen/agent/internal/buildinfo"
+	"regimen/agent/internal/daemon"
+	"regimen/agent/internal/hosts"
+	"regimen/agent/internal/lock"
+	"regimen/agent/internal/paths"
+	"regimen/agent/internal/platform"
+	"regimen/agent/internal/policies"
+	"regimen/agent/internal/safefile"
+	"regimen/agent/internal/service"
 )
 
 // LinkLifetime is how long the code inside a pairing link stays valid.
@@ -72,16 +72,16 @@ func red(s string) string    { return paint("31", s) }
 func dim(s string) string    { return paint("2", s) }
 
 func banner() {
-	fmt.Println(bold("\n  FocusGateway lock agent " + buildinfo.Version + "\n  Blocks your distractions in every browser and app on this computer.\n"))
+	fmt.Println(bold("\n  Regimen lock agent " + buildinfo.Version + "\n  Blocks your distractions in every browser and app on this computer.\n"))
 }
 
 // Help is the usage text.
 func Help() string {
-	return `FocusGateway lock agent ` + buildinfo.Version + `
+	return `Regimen lock agent ` + buildinfo.Version + `
 
-Usage: focusgateway-agent [command]
+Usage: regimen-agent [command]
 
-  (no command)  Install if needed, then connect it to FocusGateway in your browser
+  (no command)  Install if needed, then connect it to Regimen in your browser
   install [--strict] [--chrome-extension-id ID] [--firefox-xpi URL] [--no-browser]
             Install as a background service (admin). Opens a pairing link and prints the pairing code.
             --strict  also lock the extensions page, flags and developer tools
@@ -239,7 +239,7 @@ func smart(argv []string) exitCode {
 		}
 		code := status()
 		fmt.Println("\nThe lock agent is installed and connected. Nothing else to do.")
-		fmt.Println(dim("To remove it: focusgateway-agent uninstall (as admin)"))
+		fmt.Println(dim("To remove it: regimen-agent uninstall (as admin)"))
 		return code
 	}
 }
@@ -280,13 +280,13 @@ func health(timeout time.Duration) map[string]any {
 }
 
 // prepareDataDir makes sure the data folder, and on macOS and Windows the
-// FocusGateway folder around it, were made by an administrator. On Windows a
+// Regimen folder around it, were made by an administrator. On Windows a
 // standard user may create folders in ProgramData, and whoever creates a folder
 // owns it and can always grant themselves access again. So a folder that is
 // not owned by an administrator (or is a link or junction) is moved aside and
 // made fresh before anything private is written into it.
 func prepareDataDir() error {
-	if os.Getenv("FOCUSGATEWAY_DATA") == "" {
+	if os.Getenv("REGIMEN_DATA") == "" {
 		for _, dir := range []string{paths.OwnParent(), paths.DataDir()} {
 			if dir == "" {
 				continue
@@ -326,7 +326,7 @@ func lockDownDataDir() {
 	}
 	_ = os.Chmod(paths.DataDir(), 0o700)
 	// The parent (macOS) holds the program folder too: others need to reach it,
-	// for example `focusgateway-agent status` through /usr/local/bin.
+	// for example `regimen-agent status` through /usr/local/bin.
 	if p := paths.OwnParent(); p != "" {
 		_ = os.Chmod(p, 0o755)
 	}
@@ -354,13 +354,13 @@ func newLink(cfg *paths.Config) string {
 func openPairing(link string, noBrowser bool) {
 	if !noBrowser {
 		if err := platform.OpenURL(link); err == nil {
-			fmt.Println(green("Your browser opens FocusGateway to connect the agent. Click Connect there if it asks."))
+			fmt.Println(green("Your browser opens Regimen to connect the agent. Click Connect there if it asks."))
 			fmt.Println(dim("If nothing opened, visit this link (valid for 30 minutes, works once):"))
 			fmt.Println("  " + link)
 			return
 		}
 	}
-	fmt.Println("To connect in one click, open this link in the browser that has the FocusGateway extension")
+	fmt.Println("To connect in one click, open this link in the browser that has the Regimen extension")
 	fmt.Println(dim("(valid for 30 minutes, works once):"))
 	fmt.Println("  " + link)
 }
@@ -442,15 +442,15 @@ func install(rest args) exitCode {
 	if h != nil {
 		fmt.Println(green("    Agent is running."))
 	} else {
-		fmt.Println(yellow("    The agent did not answer yet. It may need a moment, check `focusgateway-agent status`."))
+		fmt.Println(yellow("    The agent did not answer yet. It may need a moment, check `regimen-agent status`."))
 	}
 	fmt.Println()
 	if link != "" {
 		openPairing(link, rest.flag("no-browser"))
-		fmt.Printf("\nOr type the pairing code in FocusGateway, Settings, Lock agent:  %s\n", green(bold(paths.Val(cfg.PairCode))))
+		fmt.Printf("\nOr type the pairing code in Regimen, Settings, Lock agent:  %s\n", green(bold(paths.Val(cfg.PairCode))))
 		fmt.Println("Each code works once. After pairing, only the extension holds the connection secret.")
 	} else {
-		fmt.Println("Already paired with your extension. Run `focusgateway-agent pair` for a new code.")
+		fmt.Println("Already paired with your extension. Run `regimen-agent pair` for a new code.")
 	}
 	fmt.Println("\nRestart your browsers so the new policies apply.")
 	fmt.Println("\nEmergency recovery if the agent ever breaks: " + bold(service.RecoveryHint))
@@ -481,7 +481,7 @@ func uninstall(rest args) exitCode {
 		return 2
 	}
 	// --yes is for installers and package managers, which ask for confirmation themselves.
-	if !rest.flag("yes") && readLine(`Type "uninstall" to remove the FocusGateway agent: `) != "uninstall" {
+	if !rest.flag("yes") && readLine(`Type "uninstall" to remove the Regimen agent: `) != "uninstall" {
 		fmt.Println("Cancelled.")
 		return 0
 	}
@@ -501,7 +501,7 @@ func uninstall(rest args) exitCode {
 	}
 	if runtime.GOOS == "darwin" {
 		// forget the installer package receipt, so a later .pkg install starts fresh
-		_ = platform.Run("pkgutil", "--forget", "app.focusgateway.agent")
+		_ = platform.Run("pkgutil", "--forget", "app.regimen.agent")
 	}
 	// The copy that kept the agent running after its package was removed.
 	_ = safefile.Remove(paths.FallbackBinary())
@@ -519,7 +519,7 @@ func uninstall(rest args) exitCode {
 // even when uninstall refuses (pacman can't stop a removal). The agent copies
 // itself into its data folder, which no package owns, and points the service
 // there, so blocking and `recover` keep working until the block ends. After
-// that, `sudo focusgateway-agent uninstall` removes this copy too.
+// that, `sudo regimen-agent uninstall` removes this copy too.
 func keepRunningWithoutPackage() {
 	exe, err := service.CopyTo(paths.FallbackBinary())
 	if err == nil {
@@ -532,7 +532,7 @@ func keepRunningWithoutPackage() {
 	}
 	paths.Log("package removed during a no-failsafe block: agent now runs from", exe)
 	fmt.Fprintln(os.Stderr, "The package can be removed, but the agent keeps running from "+exe+" until the block ends.")
-	fmt.Fprintln(os.Stderr, "After it ends, remove it with: sudo focusgateway-agent uninstall")
+	fmt.Fprintln(os.Stderr, "After it ends, remove it with: sudo regimen-agent uninstall")
 }
 
 func recoverCmd() exitCode {
@@ -569,7 +569,7 @@ func status() exitCode {
 		if pairCodeLive(cfg) {
 			line = "Pairing code: " + bold(paths.Val(cfg.PairCode)) + dim(" (valid until "+time.UnixMilli(cfg.PairExpiresAt).Format("15:04")+")")
 		} else if cfg.SecretHash == nil {
-			line = "Not paired. The pairing code expired: run `focusgateway-agent pair` as admin for a new one."
+			line = "Not paired. The pairing code expired: run `regimen-agent pair` as admin for a new one."
 		} else if t, err := time.Parse(time.RFC3339, cfg.PairedAt); err == nil {
 			line += " on " + t.Local().Format("Mon 2 Jan 2006 15:04")
 		}
@@ -620,6 +620,6 @@ func pair(rest args) exitCode {
 		return 1
 	}
 	openPairing(link, rest.flag("no-browser"))
-	fmt.Printf("\nNew pairing code: %s\nOr type it in FocusGateway, Settings, Lock agent. It works once, for 30 minutes.\n", bold(green(code)))
+	fmt.Printf("\nNew pairing code: %s\nOr type it in Regimen, Settings, Lock agent. It works once, for 30 minutes.\n", bold(green(code)))
 	return 0
 }

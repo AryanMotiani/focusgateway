@@ -5,7 +5,7 @@
 // and a small nod on the music beat (the --nod variable is set by StudyRoom).
 // `still` turns the motion off and `bare` leaves out the chair and notebook (for previews).
 import { computed } from 'vue'
-import { DEFAULT_AVATAR } from '@focusgateway/core'
+import { DEFAULT_AVATAR } from '@regimen/core'
 import { SKIN, HAIR, WRAP, TOP, HEADWEAR, PHONES, GLASSES, EARRING } from './avatarStyle.js'
 import { shade, luma, woodOf } from './roomStyle.js'
 

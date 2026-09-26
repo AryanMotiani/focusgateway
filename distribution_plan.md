@@ -7,7 +7,7 @@ Two independent tracks, both reduce friction to zero for the end user.
 ## Track 1 — Self-Contained Agent (no Node.js required)
 
 ### The problem
-The current agent is a Node.js script (`bin/focusgateway-agent.js`).  
+The current agent is a Node.js script (`bin/regimen-agent.js`).  
 Users must have Node ≥ 18.17 already installed, **and** run an admin terminal to install the service.  
 That's a multi-step setup most non-developers won't complete.
 
@@ -27,7 +27,7 @@ This is a tiny workload — perfect for a compiled binary.
 Bun can bundle a Node-compatible JS app into a single self-contained executable with one command:
 
 ```bash
-bun build ./agent/bin/focusgateway-agent.js --compile --outfile focusgateway-agent
+bun build ./agent/bin/regimen-agent.js --compile --outfile regimen-agent
 # → produces a ~50 MB standalone binary, zero dependencies
 ```
 
@@ -84,7 +84,7 @@ Instead of asking users to open a terminal, ship a proper installer:
 
 The installer just needs to:
 1. Copy the binary to a permanent location
-2. Run `focusgateway-agent install` (which already handles service registration)
+2. Run `regimen-agent install` (which already handles service registration)
 3. Show "Done — pair with your extension" and exit
 
 GitHub Releases can host the platform-specific installers, and the landing page links to the right one based on detected OS.
@@ -156,7 +156,7 @@ Once you have store accounts, automate publishing with:
 - name: Publish to Chrome Web Store
   uses: mnao305/chrome-extension-upload@v4
   with:
-    file-path: extension/dist/focusgateway.zip
+    file-path: extension/dist/regimen.zip
     extension-id: ${{ secrets.CWS_EXTENSION_ID }}
     client-id: ${{ secrets.CWS_CLIENT_ID }}
     client-secret: ${{ secrets.CWS_CLIENT_SECRET }}

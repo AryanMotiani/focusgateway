@@ -3,7 +3,7 @@
 // for everyone else): how coins work, and a starter gift that buys one small thing, to
 // teach the loop: study, earn, spend on your room.
 import { computed, ref } from 'vue'
-import { COINS } from '@focusgateway/core'
+import { COINS } from '@regimen/core'
 import { claimGift, catalog, balance } from '../../lib/shop.js'
 import CoinIcon from './CoinIcon.vue'
 import Icon from '../Icon.vue'

@@ -48,10 +48,10 @@ jobs:
           mkdir -p release
           cp packaging/out/* release/
           cp agent/dist/* release/
-          cp "extension/dist/focusgateway-chromium-$VERSION.zip" release/focusgateway-chromium.zip
-          cp "extension/dist/focusgateway-firefox-$VERSION.zip" release/focusgateway-firefox.zip
-          cp extension/dist/focusgateway-*-"$VERSION".zip release/
-          git archive --format=zip --prefix=focusgateway/ -o "release/focusgateway-source-$GITHUB_REF_NAME.zip" HEAD
+          cp "extension/dist/regimen-chromium-$VERSION.zip" release/regimen-chromium.zip
+          cp "extension/dist/regimen-firefox-$VERSION.zip" release/regimen-firefox.zip
+          cp extension/dist/regimen-*-"$VERSION".zip release/
+          git archive --format=zip --prefix=regimen/ -o "release/regimen-source-$GITHUB_REF_NAME.zip" HEAD
           ls -l release
       - uses: actions/upload-artifact@v7
         with: { name: release-files, path: release/, retention-days: 7 }
@@ -68,25 +68,25 @@ jobs:
         with: { name: darwin-binaries, path: agent/dist }
       - name: Universal .pkg (unsigned)
         run: sh packaging/macos/build-pkg.sh "${GITHUB_REF_NAME#v}"
-      # FocusGateway.pkg is a product (distribution) archive: pkgutil --payload-files
+      # Regimen.pkg is a product (distribution) archive: pkgutil --payload-files
       # only reads component packages. --expand-full unpacks the product, its
       # component and the component's payload, so the files can be checked directly.
       - name: Check the package
         run: |
           set -eu
           out="$RUNNER_TEMP/expanded"
-          pkgutil --expand-full packaging/out/FocusGateway.pkg "$out"
+          pkgutil --expand-full packaging/out/Regimen.pkg "$out"
           find "$out" -maxdepth 2
-          bin=$(find "$out" -type f -path '*/Payload/Library/Application Support/FocusGateway/app/focusgateway-agent' | head -n 1)
+          bin=$(find "$out" -type f -path '*/Payload/Library/Application Support/Regimen/app/regimen-agent' | head -n 1)
           [ -n "$bin" ] || { echo "agent binary missing from the payload"; exit 1; }
           [ -x "$bin" ] || { echo "agent binary is not executable"; exit 1; }
           lipo -info "$bin" | grep -q arm64 && lipo -info "$bin" | grep -q x86_64
           script=$(find "$out" -type f -path '*/Scripts/postinstall' | head -n 1)
           [ -n "$script" ] && [ -x "$script" ] || { echo "postinstall script missing"; exit 1; }
           grep -q -- '--no-pause' "$script"
-          grep -q 'app.focusgateway.agent' "$out/Distribution"
+          grep -q 'app.regimen.agent' "$out/Distribution"
       - uses: actions/upload-artifact@v7
-        with: { name: macos-pkg, path: packaging/out/FocusGateway.pkg, retention-days: 7 }
+        with: { name: macos-pkg, path: packaging/out/Regimen.pkg, retention-days: 7 }
 
   publish:
     name: Publish GitHub Release
@@ -107,17 +107,17 @@ jobs:
           generate_release_notes: true
           files: release/*
           body: |
-            **Install:** open the [Install page](https://aryanmotiani.github.io/focusgateway/#/install). It picks the right files for you.
+            **Install:** open the [Install page](https://aryanmotiani.github.io/regimen/#/install). It picks the right files for you.
 
-            Lock agent: `FocusGateway-Setup.exe` (Windows), `FocusGateway.pkg` (macOS), `.deb` / `.rpm` or `curl -fsSL https://github.com/${{ github.repository }}/releases/latest/download/install.sh | sh` (Linux).
+            Lock agent: `Regimen-Setup.exe` (Windows), `Regimen.pkg` (macOS), `.deb` / `.rpm` or `curl -fsSL https://github.com/${{ github.repository }}/releases/latest/download/install.sh | sh` (Linux).
             The installers are not code-signed yet: see [installing the lock agent](https://github.com/${{ github.repository }}/blob/master/docs/INSTALL-AGENT.md) for the one extra click.
       - uses: actions/upload-artifact@v7
         with:
           name: extension-zips
           path: |
-            release/focusgateway-chromium-*.zip
-            release/focusgateway-firefox-*.zip
-            release/focusgateway-source-*.zip
+            release/regimen-chromium-*.zip
+            release/regimen-firefox-*.zip
+            release/regimen-source-*.zip
 
   # Optional store publishing. Each job only runs when its secrets exist, so forks
   # and new repos are not affected. See docs/MAINTAINER_SETUP.md, "Browser stores".
@@ -133,7 +133,7 @@ jobs:
         if: env.CWS_EXTENSION_ID != ''
         with: { name: extension-zips }
       - if: env.CWS_EXTENSION_ID != ''
-        run: npx -y chrome-webstore-upload-cli@3 upload --source focusgateway-chromium-*.zip --auto-publish
+        run: npx -y chrome-webstore-upload-cli@3 upload --source regimen-chromium-*.zip --auto-publish
         env:
           EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
           CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
@@ -163,7 +163,7 @@ jobs:
         run: |
           npx web-ext sign --source-dir extension/dist/firefox --channel listed \
             --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" \
-            --upload-source-code store/focusgateway-source-"$GITHUB_REF_NAME".zip \
+            --upload-source-code store/regimen-source-"$GITHUB_REF_NAME".zip \
             --approval-timeout 0
         env:
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
@@ -189,7 +189,7 @@ jobs:
           set -eu
           api="https://api.addons.microsoftedge.microsoft.com/v1/products/$EDGE_PRODUCT_ID/submissions"
           auth=(-H "Authorization: ApiKey $EDGE_API_KEY" -H "X-ClientID: $EDGE_CLIENT_ID")
-          zip=$(ls focusgateway-chromium-*.zip)
+          zip=$(ls regimen-chromium-*.zip)
 
           wait_for() { # url
             for _ in $(seq 1 60); do

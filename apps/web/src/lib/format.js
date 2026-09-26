@@ -1,4 +1,4 @@
-import { formatMinutes, startOfDay, addDays } from '@focusgateway/core'
+import { formatMinutes, startOfDay, addDays } from '@regimen/core'
 
 export const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 

@@ -1,4 +1,4 @@
-// Package paths knows where the agent keeps its program and data, and reads and
+﻿// Package paths knows where the agent keeps its program and data, and reads and
 // writes the small JSON files in the data folder.
 package paths
 
@@ -12,14 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"focusgateway/agent/internal/safefile"
+	"regimen/agent/internal/safefile"
 )
 
 // Port is the loopback port the extension talks to.
 const Port = 47621
 
 // ServiceName is the Task Scheduler task name on Windows.
-const ServiceName = "FocusGatewayAgent"
+const ServiceName = "RegimenAgent"
 
 func env(name, fallback string) string {
 	if v := os.Getenv(name); v != "" {
@@ -30,16 +30,16 @@ func env(name, fallback string) string {
 
 // ProgramDir is where the agent binary lives after install. Only admins can write there.
 func ProgramDir() string {
-	if v := os.Getenv("FOCUSGATEWAY_PROGRAM_DIR"); v != "" {
+	if v := os.Getenv("REGIMEN_PROGRAM_DIR"); v != "" {
 		return v
 	}
 	switch runtime.GOOS {
 	case "windows":
-		return filepath.Join(ProgramFiles(), "FocusGateway")
+		return filepath.Join(ProgramFiles(), "Regimen")
 	case "darwin":
-		return "/Library/Application Support/FocusGateway/app"
+		return "/Library/Application Support/Regimen/app"
 	default:
-		return "/opt/focusgateway"
+		return "/opt/regimen"
 	}
 }
 
@@ -53,9 +53,9 @@ func ProgramFiles() string {
 // BinaryName is the executable's file name on this OS.
 func BinaryName() string {
 	if runtime.GOOS == "windows" {
-		return "focusgateway-agent.exe"
+		return "regimen-agent.exe"
 	}
-	return "focusgateway-agent"
+	return "regimen-agent"
 }
 
 // ProgramBinary is the installed executable.
@@ -69,27 +69,27 @@ func FallbackBinary() string { return filepath.Join(DataDir(), BinaryName()) }
 // DataDir holds root-owned data: config (pairing), last snapshot, hosts backup, log.
 // It survives uninstall unless --purge is used.
 func DataDir() string {
-	if v := os.Getenv("FOCUSGATEWAY_DATA"); v != "" {
+	if v := os.Getenv("REGIMEN_DATA"); v != "" {
 		return v
 	}
 	switch runtime.GOOS {
 	case "windows":
-		return filepath.Join(env("ProgramData", `C:\ProgramData`), "FocusGateway", "data")
+		return filepath.Join(env("ProgramData", `C:\ProgramData`), "Regimen", "data")
 	case "darwin":
-		return "/Library/Application Support/FocusGateway/data"
+		return "/Library/Application Support/Regimen/data"
 	default:
-		return "/var/lib/focusgateway"
+		return "/var/lib/regimen"
 	}
 }
 
-// OwnParent is the FocusGateway folder that holds DataDir on macOS and Windows
+// OwnParent is the Regimen folder that holds DataDir on macOS and Windows
 // ("" on Linux, where DataDir sits directly in /var/lib, and when
-// FOCUSGATEWAY_DATA overrides the location).
+// REGIMEN_DATA overrides the location).
 func OwnParent() string {
-	if os.Getenv("FOCUSGATEWAY_DATA") != "" {
+	if os.Getenv("REGIMEN_DATA") != "" {
 		return ""
 	}
-	if p := filepath.Dir(DataDir()); filepath.Base(p) == "FocusGateway" {
+	if p := filepath.Dir(DataDir()); filepath.Base(p) == "Regimen" {
 		return p
 	}
 	return ""

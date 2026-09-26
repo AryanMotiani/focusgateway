@@ -4,7 +4,7 @@ import { askYesNo } from './lib/dialogs.js'
 
 // Hash history: works on every static host and inside the extension, no rewrites needed.
 const routes = [
-  { path: '/home', component: () => import('./views/Landing.vue'), meta: { bare: true, public: true, title: 'FocusGateway' } },
+  { path: '/home', component: () => import('./views/Landing.vue'), meta: { bare: true, public: true, title: 'Regimen' } },
   { path: '/welcome', component: () => import('./views/Onboarding.vue'), meta: { bare: true, public: true, title: 'Set up' } },
   { path: '/install', component: () => import('./views/Install.vue'), meta: { public: true, title: 'Install' } },
   // The study room is home. /room stays public so people can try it before setting anything up.
@@ -59,5 +59,5 @@ router.beforeEach((to) => {
 
 router.afterEach((to) => {
   document.title =
-    to.meta.title && to.meta.title !== 'FocusGateway' ? `${to.meta.title} · FocusGateway` : 'FocusGateway: study without the scroll'
+    to.meta.title && to.meta.title !== 'Regimen' ? `${to.meta.title} · Regimen` : 'Regimen: study without the scroll'
 })

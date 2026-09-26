@@ -14,7 +14,7 @@ const appVersion = process.env.FG_APP_VERSION || version
 export default defineConfig({
   base: './',
   plugins: [vue(), tailwindcss()],
-  define: { __FG_VERSION__: JSON.stringify(appVersion) },
+  define: { __R_VERSION__: JSON.stringify(appVersion) },
   build: { target: 'es2022', chunkSizeWarningLimit: 900 },
   server: { port: 5173 },
 })

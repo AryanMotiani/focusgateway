@@ -2,7 +2,7 @@
 // The time, or the focus countdown while a round runs. Kept in its own component so the
 // once-a-second tick re-renders only this, never the room.
 import { computed } from 'vue'
-import { focusPhase } from '@focusgateway/core'
+import { focusPhase } from '@regimen/core'
 import { store } from '../../lib/store.js'
 import { countdown } from '../../lib/format.js'
 

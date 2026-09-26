@@ -1,6 +1,6 @@
-// Where the extension opens the FocusGateway app.
+// Where the extension opens the Regimen app.
 //
-// The official hosted app (package.json "homepage", baked in by build.mjs as __FG_APP_URL__) is
+// The official hosted app (package.json "homepage", baked in by build.mjs as __R_APP_URL__) is
 // always the newest version, so the popup, the install welcome and the blocked page open it by
 // default. The copy bundled in app/ is the offline fallback: used when the browser is offline,
 // the hosted app does not answer quickly, the extension can not reach websites (Firefox without
@@ -8,8 +8,8 @@
 // "Use the offline copy" in the popup.
 const ext = globalThis.browser ?? globalThis.chrome
 
-export const HOSTED_APP = new URL(__FG_APP_URL__)
-export const OFFLINE_KEY = 'fg_offline_app'
+export const HOSTED_APP = new URL(__R_APP_URL__)
+export const OFFLINE_KEY = 'r_offline_app'
 // people run the web app locally with `npm run dev` / `vite preview`
 export const DEV_HOSTS = ['localhost', '127.0.0.1']
 

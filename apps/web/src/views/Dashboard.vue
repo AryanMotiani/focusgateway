@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { nextWindowStart, startOfDay, addDays, computeStats, isHabitDue, isHabitDone, habitStreak } from '@focusgateway/core'
+import { nextWindowStart, startOfDay, addDays, computeStats, isHabitDue, isHabitDone, habitStreak } from '@regimen/core'
 import { store, blocks, call, attempt } from '../lib/store.js'
 import { greeting, time, date, countdown } from '../lib/format.js'
 import Icon from '../components/Icon.vue'

@@ -3,7 +3,7 @@
 // scene outside, or a record for a music style. It fills its parent, which must be positioned
 // (relative) and sized.
 import { computed } from 'vue'
-import { tracksForStyle } from '@focusgateway/core'
+import { tracksForStyle } from '@regimen/core'
 import { itemMeta } from '../../lib/room.js'
 import OptionPreview from './OptionPreview.vue'
 import SceneSky from '../SceneSky.vue'

@@ -1,6 +1,6 @@
-# FocusGateway developer guide
+# Regimen developer guide
 
-How FocusGateway is built, how blocking is computed, and how to add the things people ask for most. For using the app, see the [user guide](USER-GUIDE.md).
+How Regimen is built, how blocking is computed, and how to add the things people ask for most. For using the app, see the [user guide](USER-GUIDE.md).
 
 ## Architecture
 
@@ -30,13 +30,13 @@ tests/e2e       Playwright tests that load the built extension (and the agent) i
 |---|---|---|
 | `extension` | The app is opened from the extension (`chrome-extension://.../app/index.html`) | `runtime.sendMessage({ type: 'fg', cmd, payload })` |
 | `bridge` | The official hosted app (GitHub Pages) or a localhost copy, with the extension installed | `window.postMessage` to the content script `extension/src/bridge.js`, which forwards to the background. Payloads are sent as JSON copies (Vue reactive arrays can not be structured-cloned) |
-| `local` | No extension | The Backend runs in the page, data in `localStorage['focusgateway:v1']`. Nothing is blocked |
+| `local` | No extension | The Backend runs in the page, data in `localStorage['regimen:v1']`. Nothing is blocked |
 
-The bridge content script is injected only on the official app's path (`homepage` in the root `package.json`, for example `https://aryanmotiani.github.io/focusgateway/*`) and on `http://localhost/*` / `http://127.0.0.1/*`. `bridge.js` and the background both check the full URL (origin and path, see `extension/src/app-url.js`). The official app is trusted without a prompt. A localhost origin needs **Allow** in the toolbar popup (`fg_approved_origins`): its first `hello` puts it on a pending list and shows `?` on the badge. Other sites never get the bridge. Security notes: [SECURITY.md](../SECURITY.md).
+The bridge content script is injected only on the official app's path (`homepage` in the root `package.json`, for example `https://aryanmotiani.github.io/regimen/*`) and on `http://localhost/*` / `http://127.0.0.1/*`. `bridge.js` and the background both check the full URL (origin and path, see `extension/src/app-url.js`). The official app is trusted without a prompt. A localhost origin needs **Allow** in the toolbar popup (`r_approved_origins`): its first `hello` puts it on a pending list and shows `?` on the badge. Other sites never get the bridge. Security notes: [SECURITY.md](../SECURITY.md).
 
 ### Which copy of the app the extension opens
 
-The popup, the install welcome and the blocked page open the hosted app when it answers a quick `HEAD` request (`appUrl()` in `extension/src/app-url.js`), so extension users always get the current app, even from an older extension. The copy bundled in `app/` is the fallback: offline, no answer within 1.5 s, no website access (Firefox) or **Use the offline copy** ticked in the popup. `build.mjs` bakes the hosted URL in (`FG_APP_URL` overrides `homepage`).
+The popup, the install welcome and the blocked page open the hosted app when it answers a quick `HEAD` request (`appUrl()` in `extension/src/app-url.js`), so extension users always get the current app, even from an older extension. The copy bundled in `app/` is the fallback: offline, no answer within 1.5 s, no website access (Firefox) or **Use the offline copy** ticked in the popup. `build.mjs` bakes the hosted URL in (`R_APP_URL` overrides `homepage`).
 
 ### What was seen: `state.ui`
 
@@ -104,7 +104,7 @@ Sites become domains with `domainsForSites()`. `declarativeNetRequest` `requestD
 ### Tours and help
 
 - A tour is a list of steps in `TOURS` (`src/lib/tour.js`). Each step has a CSS `target` (usually a `data-tour="..."` attribute on the element), a `title` and one or two sentences of `text`. Steps whose target is missing or hidden are skipped. `desktop: true` hides a step on phones.
-- `TourHost.vue` shows a page's tour once, the first time the page opens after setup, and never while a dialog is open. Seen tours are kept in `localStorage['focusgateway:tours-seen']` (`"*"` marks all as seen, handy in tests).
+- `TourHost.vue` shows a page's tour once, the first time the page opens after setup, and never while a dialog is open. Seen tours are kept in `localStorage['regimen:tours-seen']` (`"*"` marks all as seen, handy in tests).
 - The help drawer text lives in `src/components/help/helpContent.js`, keyed by page id (`pageFor(path)`). Add a `<HelpButton page="..." />` to a new page's header.
 - Copy style: friendly and short, no em dashes, few semicolons.
 
@@ -149,12 +149,12 @@ npm run build -w extension && npm run agent:build
 npm run test:e2e         # Playwright with the real extension (and the agent)
 ```
 
-End-to-end tests (`tests/e2e`) load `extension/dist/chromium` into a persistent Chromium context and map fake distracting sites (`youtube.com`, `reddit.com`, `example.com`, ...) to a local server with `--host-resolver-rules`. `blocking.spec.js` drives the app on `localhost:4173` through the bridge: approve in the popup, start a focus session or create a rule in the UI, then check the sites redirect to `blocked.html`. `parity.spec.js` uses `extension/dist/e2e-chromium` (`test.use({ extensionPath: E2E_BUILD })`), where `localhost:4173` plays the official hosted app: the install welcome and the popup open it, it is trusted without Allow, and what was seen carries between it and the bundled copy. `FG_SHOTS=<folder>` saves screenshots of those screens.
+End-to-end tests (`tests/e2e`) load `extension/dist/chromium` into a persistent Chromium context and map fake distracting sites (`youtube.com`, `reddit.com`, `example.com`, ...) to a local server with `--host-resolver-rules`. `blocking.spec.js` drives the app on `localhost:4173` through the bridge: approve in the popup, start a focus session or create a rule in the UI, then check the sites redirect to `blocked.html`. `parity.spec.js` uses `extension/dist/e2e-chromium` (`test.use({ extensionPath: E2E_BUILD })`), where `localhost:4173` plays the official hosted app: the install welcome and the popup open it, it is trusted without Allow, and what was seen carries between it and the bundled copy. `R_SHOTS=<folder>` saves screenshots of those screens.
 
 ## Releasing
 
 1. Bump `version` in the root `package.json` (the extension manifest uses it).
-2. Push a tag `vX.Y.Z`. `.github/workflows/release.yml` runs the checks, builds the extension zips, the agent for six platforms and the installers, and publishes a GitHub Release with stable file names (`focusgateway-chromium.zip`, `focusgateway-firefox.zip`, ...), which the Install page links to.
+2. Push a tag `vX.Y.Z`. `.github/workflows/release.yml` runs the checks, builds the extension zips, the agent for six platforms and the installers, and publishes a GitHub Release with stable file names (`regimen-chromium.zip`, `regimen-firefox.zip`, ...), which the Install page links to.
 3. Merging to `master` deploys the website (`pages.yml`). Release the extension soon after website changes that need new extension commands, and check that the Install page downloads work.
 
 See [MAINTAINER_SETUP.md](MAINTAINER_SETUP.md) for store publishing and secrets.

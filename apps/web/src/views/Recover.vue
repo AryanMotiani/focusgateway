@@ -17,8 +17,8 @@ async function recover() {
     const r = await call('security.recover', { code: code.value, newPin: pin.value })
     fresh.value = r.recoveryCode
     download(
-      'focusgateway-recovery-code.txt',
-      `FocusGateway recovery code\n\n${r.recoveryCode}\n\nIt works once. Keep it somewhere safe, away from this computer.\n`,
+      'regimen-recovery-code.txt',
+      `Regimen recovery code\n\n${r.recoveryCode}\n\nIt works once. Keep it somewhere safe, away from this computer.\n`,
     )
     toast('New PIN set', 'success')
   } catch (e) {
@@ -56,7 +56,7 @@ async function recover() {
         <h1 class="mt-4 text-xl font-semibold">New PIN set</h1>
         <p class="mt-1 text-sm text-muted">Here is your new recovery code. We downloaded it as a file too. The old one no longer works.</p>
         <p class="mt-4 rounded-xl bg-sunk p-3 text-center font-mono text-lg tracking-widest">{{ fresh }}</p>
-        <RouterLink to="/" class="btn btn-primary mt-5 w-full">Back to FocusGateway</RouterLink>
+        <RouterLink to="/" class="btn btn-primary mt-5 w-full">Back to Regimen</RouterLink>
       </template>
       <RouterLink v-if="!fresh" to="/settings" class="mt-3 block text-center text-sm text-muted">Cancel</RouterLink>
     </div>

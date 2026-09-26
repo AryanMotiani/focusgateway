@@ -1,4 +1,4 @@
-package cli
+﻿package cli
 
 import (
 	"regexp"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"focusgateway/agent/internal/paths"
+	"regimen/agent/internal/paths"
 )
 
 func TestPairingCodeFormat(t *testing.T) {
@@ -25,7 +25,7 @@ func TestPairingCodeFormat(t *testing.T) {
 }
 
 func TestPairingLinkKeepsTheCodeInTheHash(t *testing.T) {
-	t.Setenv("FOCUSGATEWAY_APP_URL", "http://localhost:5173")
+	t.Setenv("REGIMEN_APP_URL", "http://localhost:5173")
 	l := PairingLink("ABCD-EFGH-JKLM-NPQR-STUV")
 	if l != "http://localhost:5173/#/install?pair=ABCD-EFGH-JKLM-NPQR-STUV" {
 		t.Fatalf("got %s", l)

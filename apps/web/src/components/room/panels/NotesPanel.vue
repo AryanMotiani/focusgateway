@@ -4,11 +4,11 @@ import { ref, watch } from 'vue'
 
 const note = ref('')
 try {
-  note.value = localStorage.getItem('focusgateway:room-note') || ''
+  note.value = localStorage.getItem('regimen:room-note') || ''
 } catch {}
 watch(note, (v) => {
   try {
-    localStorage.setItem('focusgateway:room-note', v)
+    localStorage.setItem('regimen:room-note', v)
   } catch {}
 })
 </script>

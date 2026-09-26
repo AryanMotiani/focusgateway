@@ -1,7 +1,7 @@
 // The shop in the app: coins, what is owned, buying, and what is new since the last visit.
 // The rules (prices, levels, earning) all live in packages/core/src/economy.js.
 import { computed } from 'vue'
-import { coinsOf, ownsFn, SHOP_ITEMS, focusLive, affordableItems } from '@focusgateway/core'
+import { coinsOf, ownsFn, SHOP_ITEMS, focusLive, affordableItems } from '@regimen/core'
 import { store, call, toast } from './store.js'
 import { progress, isGame } from './rewards.js'
 import { sfx } from './sfx.js'

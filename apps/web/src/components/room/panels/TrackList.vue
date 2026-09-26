@@ -2,7 +2,7 @@
 // Every track of every music style. Tracks of a style you do not own yet show with a lock
 // and its price in the shop (or the level it unlocks at). Click a track to play it.
 import { computed } from 'vue'
-import { UNLOCKS, tracksForStyle } from '@focusgateway/core'
+import { UNLOCKS, tracksForStyle } from '@regimen/core'
 import RoomIcon from '../RoomIcon.vue'
 import EqBars from './EqBars.vue'
 import { ownsItem } from '../../../lib/shop.js'

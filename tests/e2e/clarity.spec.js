@@ -7,8 +7,8 @@ const APP = 'http://localhost:4173/'
 test.use({ viewport: { width: 1440, height: 900 } })
 const seen = (page) =>
   page.addInitScript(() => {
-    localStorage.setItem('focusgateway:no-extension-seen', '1')
-    localStorage.setItem('focusgateway:tours-seen', '["*"]') // the room intro is tested in room.spec.js
+    localStorage.setItem('regimen:no-extension-seen', '1')
+    localStorage.setItem('regimen:tours-seen', '["*"]') // the room intro is tested in room.spec.js
   })
 
 test('the first visit without the extension explains blocking once', async ({ page }) => {

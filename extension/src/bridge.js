@@ -1,4 +1,4 @@
-// Lets the hosted FocusGateway web app talk to this extension.
+// Lets the hosted Regimen web app talk to this extension.
 // The manifest only injects this on the official app (package.json "homepage", path included)
 // and on localhost for development. aryanmotiani.github.io hosts every repo of that GitHub user,
 // so the path is checked again here before anything is relayed. The background checks the
@@ -19,6 +19,6 @@ if (allowed()) {
   })
 
   // Announce ourselves so the app can switch from "standalone" to "connected".
-  document.documentElement.dataset.focusgatewayExtension = ext.runtime.getManifest().version
+  document.documentElement.dataset.regimenExtension = ext.runtime.getManifest().version
   window.postMessage({ __fg: 'present', version: ext.runtime.getManifest().version }, window.location.origin)
 }

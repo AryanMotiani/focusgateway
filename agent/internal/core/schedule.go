@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-// Local-clock helpers. FocusGateway reads the system clock and stores no time
+// Local-clock helpers. Regimen reads the system clock and stores no time
 // zone (SPEC.md "Timezone Handling"). All instants are epoch milliseconds.
 
 func local(ms int64) time.Time { return time.UnixMilli(ms).In(time.Local) }

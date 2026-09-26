@@ -3,7 +3,7 @@
 // Replaces the YOUR-USERNAME placeholders in docs, config and package.json.
 import fs from 'node:fs'
 
-const [user, repo = 'focusgateway'] = process.argv.slice(2)
+const [user, repo = 'regimen'] = process.argv.slice(2)
 if (!user || !/^[A-Za-z0-9-]+$/.test(user)) {
   console.error('Usage: npm run set-repo -- <github-username> [repo-name]')
   process.exit(1)
@@ -20,7 +20,7 @@ const files = [
 for (const f of files) {
   if (!fs.existsSync(f)) continue
   const before = fs.readFileSync(f, 'utf8')
-  const after = before.replaceAll('YOUR-USERNAME', user).replaceAll('/focusgateway', `/${repo}`)
+  const after = before.replaceAll('YOUR-USERNAME', user).replaceAll('/regimen', `/${repo}`)
   if (after !== before) {
     fs.writeFileSync(f, after)
     console.log('updated', f)

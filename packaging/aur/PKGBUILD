@@ -1,28 +1,28 @@
-# Maintainer: FocusGateway maintainers <https://github.com/AryanMotiani/focusgateway>
-# AUR template (package focusgateway-agent-bin). Update pkgver and the checksums
+# Maintainer: Regimen maintainers <https://github.com/AryanMotiani/regimen>
+# AUR template (package regimen-agent-bin). Update pkgver and the checksums
 # (from the release's SHA256SUMS.txt), then run `makepkg --printsrcinfo > .SRCINFO`.
 # See packaging/README.md.
-pkgname=focusgateway-agent-bin
+pkgname=regimen-agent-bin
 pkgver=1.0.0
 pkgrel=1
-pkgdesc="FocusGateway lock agent: enforces FocusGateway site blocks in every browser and app"
+pkgdesc="Regimen lock agent: enforces Regimen site blocks in every browser and app"
 arch=('x86_64' 'aarch64')
-url="https://github.com/AryanMotiani/focusgateway"
+url="https://github.com/AryanMotiani/regimen"
 license=('MIT')
 depends=('systemd')
-provides=('focusgateway-agent')
-conflicts=('focusgateway-agent')
-install=focusgateway-agent.install
-source=("LICENSE::https://raw.githubusercontent.com/AryanMotiani/focusgateway/v${pkgver}/LICENSE")
-source_x86_64=("focusgateway-agent-${pkgver}-x86_64::https://github.com/AryanMotiani/focusgateway/releases/download/v${pkgver}/focusgateway-agent-linux-amd64")
-source_aarch64=("focusgateway-agent-${pkgver}-aarch64::https://github.com/AryanMotiani/focusgateway/releases/download/v${pkgver}/focusgateway-agent-linux-arm64")
+provides=('regimen-agent')
+conflicts=('regimen-agent')
+install=regimen-agent.install
+source=("LICENSE::https://raw.githubusercontent.com/AryanMotiani/regimen/v${pkgver}/LICENSE")
+source_x86_64=("regimen-agent-${pkgver}-x86_64::https://github.com/AryanMotiani/regimen/releases/download/v${pkgver}/regimen-agent-linux-amd64")
+source_aarch64=("regimen-agent-${pkgver}-aarch64::https://github.com/AryanMotiani/regimen/releases/download/v${pkgver}/regimen-agent-linux-arm64")
 sha256sums=('SKIP')
 sha256sums_x86_64=('0000000000000000000000000000000000000000000000000000000000000000')
 sha256sums_aarch64=('0000000000000000000000000000000000000000000000000000000000000000')
 
 package() {
-  install -Dm755 "focusgateway-agent-${pkgver}-${CARCH}" "${pkgdir}/opt/focusgateway/focusgateway-agent"
+  install -Dm755 "regimen-agent-${pkgver}-${CARCH}" "${pkgdir}/opt/regimen/regimen-agent"
   install -dm755 "${pkgdir}/usr/bin"
-  ln -s /opt/focusgateway/focusgateway-agent "${pkgdir}/usr/bin/focusgateway-agent"
+  ln -s /opt/regimen/regimen-agent "${pkgdir}/usr/bin/regimen-agent"
   install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }

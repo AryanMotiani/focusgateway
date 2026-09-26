@@ -1,7 +1,7 @@
 // Game feel: XP pops where you clicked, sounds, and level-up / new badge / session reward
 // moments, plus the gentle "new things you can afford" nudge for the shop.
 import { computed, reactive, watch } from 'vue'
-import { progressOf, newlyUnlocked, computeMilestones, dateKey } from '@focusgateway/core'
+import { progressOf, newlyUnlocked, computeMilestones, dateKey } from '@regimen/core'
 import { store } from './store.js'
 import { sfx } from './sfx.js'
 import { freshAffordable, initKnown, newlyAffordable, balance } from './shop.js'
@@ -54,8 +54,8 @@ export function playHabit() {
   if (soundsOn()) sfx.habit()
 }
 
-const NUDGED = 'focusgateway:shop-nudged'
-const NUDGE_DAY = 'focusgateway:shop-nudge-day'
+const NUDGED = 'regimen:shop-nudged'
+const NUDGE_DAY = 'regimen:shop-nudge-day'
 /**
  * Tells the player when something new in the shop became affordable, and once a day at the
  * start if anything affordable is waiting. Not on the shop itself, and not over a bigger card.
@@ -87,8 +87,8 @@ export function startRewardWatch() {
     (id) => {
       if (!id) return
       const entry = store.state.focus.history.at(-1)
-      const seen = recall('focusgateway:seen-session')
-      remember('focusgateway:seen-session', id)
+      const seen = recall('regimen:seen-session')
+      remember('regimen:seen-session', id)
       if (!seen || seen === id || !entry.reward || store.now - (entry.endedAt || 0) > 6 * 3600_000) return
       const afford = newlyAffordable(balance.value - entry.reward.coins)
       remember(NUDGED, [...new Set([...(recall(NUDGED) || []), ...freshAffordable.value.map((i) => i.id)])].slice(-300))
@@ -110,12 +110,12 @@ export function startRewardWatch() {
     () => progress.value?.level,
     (level) => {
       if (!level) return
-      const seen = recall('focusgateway:seen-level')
+      const seen = recall('regimen:seen-level')
       if (seen && level > seen) {
         celebration.levelUp = { from: seen, to: level, title: progress.value.title, unlocks: newlyUnlocked(seen, level) }
         if (soundsOn()) sfx.levelUp()
       }
-      if (!seen || level > seen) remember('focusgateway:seen-level', level)
+      if (!seen || level > seen) remember('regimen:seen-level', level)
     },
     { immediate: true },
   )
@@ -123,14 +123,14 @@ export function startRewardWatch() {
     () => milestones.value.filter((m) => m.achieved).map((m) => m.id),
     (ids) => {
       if (!store.state) return
-      const seen = recall('focusgateway:seen-badges')
-      if (!seen) return remember('focusgateway:seen-badges', ids)
+      const seen = recall('regimen:seen-badges')
+      if (!seen) return remember('regimen:seen-badges', ids)
       const fresh = ids.filter((id) => !seen.includes(id))
       if (fresh.length && !celebration.levelUp) {
         celebration.badge = milestones.value.find((m) => m.id === fresh.at(-1))
         if (soundsOn()) sfx.badge()
       }
-      remember('focusgateway:seen-badges', [...new Set([...seen, ...ids])])
+      remember('regimen:seen-badges', [...new Set([...seen, ...ids])])
     },
     { immediate: true },
   )

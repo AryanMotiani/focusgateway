@@ -9,8 +9,8 @@ import (
 	"time"
 	_ "time/tzdata" // the golden cases use America/New_York on every OS
 
-	"focusgateway/agent/internal/core"
-	"focusgateway/agent/internal/lock"
+	"regimen/agent/internal/core"
+	"regimen/agent/internal/lock"
 )
 
 type golden struct {

@@ -23,11 +23,11 @@ import (
 	"syscall"
 	"time"
 
-	"focusgateway/agent/internal/buildinfo"
-	"focusgateway/agent/internal/core"
-	"focusgateway/agent/internal/hosts"
-	"focusgateway/agent/internal/lock"
-	"focusgateway/agent/internal/paths"
+	"regimen/agent/internal/buildinfo"
+	"regimen/agent/internal/core"
+	"regimen/agent/internal/hosts"
+	"regimen/agent/internal/lock"
+	"regimen/agent/internal/paths"
 )
 
 const (
@@ -258,9 +258,9 @@ func (a *Agent) pairState() (paths.Config, *reply) {
 	if a.validPairCode(cfg) || a.validLinkCode(cfg) {
 		return cfg, nil
 	}
-	msg := "Already paired. Run `focusgateway-agent pair` as admin for a new code."
+	msg := "Already paired. Run `regimen-agent pair` as admin for a new code."
 	if paths.Val(cfg.SecretHash) == "" {
-		msg = "The pairing code expired. Run `focusgateway-agent pair` as admin for a new one."
+		msg = "The pairing code expired. Run `regimen-agent pair` as admin for a new one."
 	}
 	return cfg, &reply{409, errBody{msg}}
 }
@@ -269,7 +269,7 @@ func (a *Agent) pairState() (paths.Config, *reply) {
 // pairing link) becomes useless, and the extension gets a secret the user never sees.
 func (a *Agent) pair(w http.ResponseWriter, r *http.Request, origin string) reply {
 	if origin == "" {
-		return reply{403, errBody{"Pair from the FocusGateway extension."}}
+		return reply{403, errBody{"Pair from the Regimen extension."}}
 	}
 	// Refuse before reading anything when there is no live code.
 	if _, refused := a.pairState(); refused != nil {
@@ -417,7 +417,7 @@ func (a *Agent) crashGuard() {
 func Run() error {
 	cfg, ok := paths.ReadConfig()
 	if !ok || (paths.Val(cfg.PairCode) == "" && paths.Val(cfg.SecretHash) == "" && paths.Val(cfg.LinkCode) == "") {
-		paths.Log("No config.json with a pairing token. Run `focusgateway-agent install` first.")
+		paths.Log("No config.json with a pairing token. Run `regimen-agent install` first.")
 		return errors.New("not installed")
 	}
 	a := New()
@@ -437,7 +437,7 @@ func Run() error {
 		paths.Log("server error:", err.Error())
 		return err
 	}
-	paths.Log(fmt.Sprintf("FocusGateway agent %s listening on 127.0.0.1:%d", buildinfo.Version, paths.Port))
+	paths.Log(fmt.Sprintf("Regimen agent %s listening on 127.0.0.1:%d", buildinfo.Version, paths.Port))
 	srv := &http.Server{Handler: a, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 16 << 10}
 
 	a.Tick()

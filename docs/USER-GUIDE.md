@@ -1,6 +1,6 @@
-# FocusGateway user guide
+# Regimen user guide
 
-FocusGateway blocks distracting websites until your work is done. It has tasks, habits, a weekly schedule and a cozy lofi study room, and it is free and open source. Your data stays on your computer.
+Regimen blocks distracting websites until your work is done. It has tasks, habits, a weekly schedule and a cozy lofi study room, and it is free and open source. Your data stays on your computer.
 
 Every page has a **?** button in its top right corner. It explains that page and can take you through a short tour of it.
 
@@ -25,11 +25,11 @@ Every page has a **?** button in its top right corner. It explains that page and
 
 ## Getting started
 
-1. Open the [Install page](https://aryanmotiani.github.io/focusgateway/#/install) on a computer. It detects your browser.
+1. Open the [Install page](https://aryanmotiani.github.io/regimen/#/install) on a computer. It detects your browser.
 2. Install the **browser extension**. Until the store listings are live you add it by hand:
    - Chrome, Edge, Brave, Opera: download the zip, unzip it into a folder you keep, open `chrome://extensions` (or `edge://`, `brave://`, `opera://`), turn on **Developer mode**, click **Load unpacked** and pick the folder.
    - Firefox: download the zip, unzip it, open `about:debugging`, This Firefox, **Load Temporary Add-on**, and pick `manifest.json`. Allow access to all websites when asked. A temporary add-on is removed when Firefox restarts.
-3. The extension opens FocusGateway by itself. If you were already using the website, it reloads that tab and carries on from there, no extra step. Pin FocusGateway (the **puzzle piece** in the toolbar) so its icon stays visible.
+3. The extension opens Regimen by itself. If you were already using the website, it reloads that tab and carries on from there, no extra step. Pin Regimen (the **puzzle piece** in the toolbar) so its icon stays visible.
 4. Follow the setup: pick a style, create a PIN, save your recovery code, and try the Failsafe once. It takes about three minutes.
 5. Go to **Settings** and press **Test blocking**. When it says "Blocking works in this browser", you are ready.
 
@@ -39,7 +39,7 @@ The first time you open the app, a short intro shows what is always on screen, a
 
 ## How blocking works
 
-- The **extension** does the blocking. It turns the sites you picked into network rules, so a blocked site opens FocusGateway's own page instead, showing what unlocks it. Tabs that are already open on a blocked site are switched over too.
+- The **extension** does the blocking. It turns the sites you picked into network rules, so a blocked site opens Regimen's own page instead, showing what unlocks it. Tabs that are already open on a blocked site are switched over too.
 - Picking a site includes its subdomains. YouTube covers `www.youtube.com`, `m.youtube.com` and `youtu.be`. Reddit covers `old.reddit.com` and `redd.it`.
 - Without the extension, the app still runs in your browser (tasks, habits, the timer and the room), but **nothing is blocked**. A red **Blocking is off** sign shows up in the status strip and the focus card. Click it to see why and how to fix it.
 - The **lock agent** is a small program for Windows, macOS and Linux. It writes your blocked sites into the system hosts file, so every browser and app is covered, and it switches off the usual escape routes: Secure DNS, private windows and new browser profiles.
@@ -174,8 +174,8 @@ Press **Decorate** (or D) in the room.
 
 - The website tab was open before you installed the extension: reload it.
 - No extension in this browser: install it from the Install page.
-- Firefox without access to websites: click the FocusGateway icon (red **!**) and press **Grant access**.
-- A private or incognito window: allow FocusGateway there in the browser's extension settings.
+- Firefox without access to websites: click the Regimen icon (red **!**) and press **Grant access**.
+- A private or incognito window: allow Regimen there in the browser's extension settings.
 - The rule is outside its hours, or its tasks are done: the Blocking page says so under each rule.
 
 **I forgot my PIN.** Settings, Forgot PIN, and use your recovery code.
@@ -188,9 +188,9 @@ Press **Decorate** (or D) in the room.
 
 **Does it work in Safari?** The extension does not. The lock agent blocks in Safari and every other app.
 
-**Can I just switch the extension off?** Yes, on your own computer you can. With the lock agent the blocks stay in place at system level. FocusGateway makes giving in slow, deliberate and visible.
+**Can I just switch the extension off?** Yes, on your own computer you can. With the lock agent the blocks stay in place at system level. Regimen makes giving in slow, deliberate and visible.
 
-**Why does the extension open the website?** The website always has the newest version of the app. The extension talks only to the official FocusGateway website, no other site. No internet? It opens the copy inside the extension instead, and you can pick that copy for good with **Use the offline copy** in the toolbar popup. What you have seen (the room intro, tips) is remembered in both.
+**Why does the extension open the website?** The website always has the newest version of the app. The extension talks only to the official Regimen website, no other site. No internet? It opens the copy inside the extension instead, and you can pick that copy for good with **Use the offline copy** in the toolbar popup. What you have seen (the room intro, tips) is remembered in both.
 
 **Why does a copy on my own computer need Allow?** Only the official website is trusted by itself. A copy you run on `localhost` asks once in the toolbar popup.
 

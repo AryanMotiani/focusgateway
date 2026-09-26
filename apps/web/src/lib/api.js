@@ -3,7 +3,7 @@
 //  bridge     a hosted copy of the app, extension installed, origin approved by the user
 //  local      no extension: the Backend runs in this page, data in localStorage
 //             (tasks, habits and the study room work; blocking needs the extension)
-import { createBackend, toErrorPayload } from '@focusgateway/core'
+import { createBackend, toErrorPayload } from '@regimen/core'
 
 const ext = globalThis.browser ?? globalThis.chrome
 
@@ -24,7 +24,7 @@ export function detectBrowser(ua = navigator.userAgent) {
 }
 
 export function extensionPresent() {
-  return !!document.documentElement.dataset.focusgatewayExtension
+  return !!document.documentElement.dataset.regimenExtension
 }
 
 function extensionAdapter() {
@@ -68,7 +68,7 @@ function bridgeAdapter() {
   return { mode: 'bridge', call, meta: async () => ({ ok: false }) }
 }
 
-const LOCAL_KEY = 'focusgateway:v1'
+const LOCAL_KEY = 'regimen:v1'
 function localAdapter() {
   const storage = {
     load: async () => {

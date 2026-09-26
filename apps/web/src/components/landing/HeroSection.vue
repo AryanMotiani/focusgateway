@@ -124,12 +124,12 @@ useFrame(() => {
         <div class="frame">
           <div class="chrome" aria-hidden="true">
             <i></i><i></i><i></i>
-            <span class="url"><Icon name="lock" :size="11" /> focusgateway / study room</span>
+            <span class="url"><Icon name="lock" :size="11" /> regimen / study room</span>
           </div>
           <RouterLink to="/room" class="shot" aria-label="Open the study room">
             <Shot
               name="room-night"
-              alt="The FocusGateway study room at night: a student at a desk, rain on the window, a lamp and a clock"
+              alt="The Regimen study room at night: a student at a desk, rain on the window, a lamp and a clock"
               eager
               sizes="(max-width: 1200px) 100vw, 1100px"
             />

@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
-import { TRACKS, trackById, tracksForStyle, firstTrack, trackStyle, voiceTrack, trackIsMinor, TRACK_KEYS } from '@focusgateway/core'
+import { TRACKS, trackById, tracksForStyle, firstTrack, trackStyle, voiceTrack, trackIsMinor, TRACK_KEYS } from '@regimen/core'
 // Generative lofi + ambience, synthesized live with the Web Audio API.
 // No audio files, no streaming, no copyright issues, and it keeps playing even
 // when YouTube or Spotify are blocked.
@@ -446,7 +446,7 @@ export function createLofi() {
     try {
       ms.metadata = new window.MediaMetadata({
         title: track.name,
-        artist: 'FocusGateway Radio',
+        artist: 'Regimen Radio',
         album: trackStyle(track)?.name || 'Lofi',
       })
       ms.playbackState = playing ? 'playing' : 'paused'

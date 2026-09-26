@@ -3,7 +3,7 @@
 // reward (minutes, finishing bonus, first session, streak), the XP bar filling, a new badge
 // if one came with it, and what you can afford now. Driven by rewards.celebration.session.
 import { computed, onMounted, ref } from 'vue'
-import { levelInfo } from '@focusgateway/core'
+import { levelInfo } from '@regimen/core'
 import { celebration, progress } from '../../lib/rewards.js'
 import { coinBurst } from '../../lib/shop.js'
 import CoinIcon from './CoinIcon.vue'

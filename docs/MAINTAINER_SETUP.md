@@ -4,7 +4,7 @@ Everything in the repo is ready. These steps need your GitHub account, so they h
 
 ## 1. Merge this branch
 
-Your repo is `AryanMotiani/focusgateway` with `master` as the default branch. The fix and the open source setup are on the local branch `fix/setup-adoption-and-oss` (placeholders already filled in with `AryanMotiani`). Push it and open a pull request, which also shows the new CI in action:
+Your repo is `AryanMotiani/regimen` with `master` as the default branch. The fix and the open source setup are on the local branch `fix/setup-adoption-and-oss` (placeholders already filled in with `AryanMotiani`). Push it and open a pull request, which also shows the new CI in action:
 
 ```bash
 git push -u origin fix/setup-adoption-and-oss
@@ -20,7 +20,7 @@ Settings, **Actions**, General: allow all actions, and under "Workflow permissio
 
 ## 3. Turn on the website (GitHub Pages)
 
-Settings, **Pages**, Source: **GitHub Actions**. After the next green CI run on `master`, the "Deploy website" workflow publishes it at `https://aryanmotiani.github.io/focusgateway/`. You can also start it by hand from Actions, Deploy website, Run workflow.
+Settings, **Pages**, Source: **GitHub Actions**. After the next green CI run on `master`, the "Deploy website" workflow publishes it at `https://aryanmotiani.github.io/regimen/`. You can also start it by hand from Actions, Deploy website, Run workflow.
 
 ## 4. Protect `master`
 
@@ -51,7 +51,7 @@ The Release workflow (`.github/workflows/release.yml`) then:
 
 1. checks the tag matches `package.json`, runs `npm run check`, the Firefox lint and the Go tests,
 2. builds the lock agent for Windows, macOS and Linux (x64 and ARM64) with the version and the Pages URL (`homepage` in `package.json`) embedded,
-3. builds `FocusGateway-Setup.exe` (NSIS) and the `.deb` and `.rpm` packages (nfpm) on Ubuntu, and the universal `FocusGateway.pkg` on a macOS runner,
+3. builds `Regimen-Setup.exe` (NSIS) and the `.deb` and `.rpm` packages (nfpm) on Ubuntu, and the universal `Regimen.pkg` on a macOS runner,
 4. publishes a GitHub Release with every file under a **stable name** plus `SHA256SUMS.txt`. The Install page links to `releases/latest/download/<name>`, so it always serves the newest,
 5. publishes to the browser stores whose secrets exist (next section).
 
@@ -67,7 +67,7 @@ Package managers (winget, a Homebrew tap, AUR) are templates in [packaging/](../
 | Edge Add-ons | free | publish now | [store/CHECKLIST-EDGE.md](store/CHECKLIST-EDGE.md) |
 | Chrome Web Store | one-time 5 USD | later | [store/CHECKLIST-CHROME.md](store/CHECKLIST-CHROME.md) |
 
-Listing text, permission justifications and data disclosures: [store/LISTING.md](store/LISTING.md). Screenshots: `docs/store/screenshots/` (regenerate with `npm run store:screenshots` after UI changes). Privacy policy: `apps/web/public/privacy.html`, live at https://aryanmotiani.github.io/focusgateway/privacy.html once Pages is on.
+Listing text, permission justifications and data disclosures: [store/LISTING.md](store/LISTING.md). Screenshots: `docs/store/screenshots/` (regenerate with `npm run store:screenshots` after UI changes). Privacy policy: `apps/web/public/privacy.html`, live at https://aryanmotiani.github.io/regimen/privacy.html once Pages is on.
 
 The first upload to each store is by hand, so the listing exists. After approval:
 
@@ -90,6 +90,6 @@ Settings, Secrets and variables, **Actions**, New repository secret. Each store 
 
 The Firefox job signs with `web-ext sign --channel listed` and attaches the source archive (the extension bundles minified code, so AMO asks for it). The Edge job uses the Edge Add-ons API v1.1: it uploads the Chromium zip to the draft, waits for processing and submits it for review.
 
-Once the Chrome listing exists, the lock agent can force-install the extension so it can't be removed: `focusgateway-agent install --chrome-extension-id <id>` (and `--firefox-xpi <url>` for Firefox).
+Once the Chrome listing exists, the lock agent can force-install the extension so it can't be removed: `regimen-agent install --chrome-extension-id <id>` (and `--firefox-xpi <url>` for Firefox).
 
 Store reviewers will ask why the extension needs access to all sites: it is needed to block any site the user chooses and to redirect open tabs when a block starts. The full answers are in [store/LISTING.md](store/LISTING.md).

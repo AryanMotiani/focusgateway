@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { weekRings, taskStreak } from '@focusgateway/core'
+import { weekRings, taskStreak } from '@regimen/core'
 import { store } from '../../lib/store.js'
 import { progress, milestones } from '../../lib/rewards.js'
 import Ring from '../viz/Ring.vue'

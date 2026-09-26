@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Report a security problem or a way to bypass blocks
-    url: https://github.com/AryanMotiani/focusgateway/security/advisories/new
+    url: https://github.com/AryanMotiani/regimen/security/advisories/new
     about: Please report these privately.
   - name: Questions and ideas
-    url: https://github.com/AryanMotiani/focusgateway/discussions
-    about: Ask for help or share how you use FocusGateway.
+    url: https://github.com/AryanMotiani/regimen/discussions
+    about: Ask for help or share how you use Regimen.

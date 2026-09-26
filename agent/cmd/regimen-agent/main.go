@@ -1,6 +1,6 @@
-// Command focusgateway-agent is the FocusGateway lock agent: one small binary that
+// Command regimen-agent is the Regimen lock agent: one small binary that
 // enforces your blocks system-wide through the hosts file and browser policies.
-// Run it with no arguments to install, or see `focusgateway-agent help`.
+// Run it with no arguments to install, or see `regimen-agent help`.
 package main
 
 import (
@@ -9,7 +9,7 @@ import (
 	// does even where the system zone database is missing or incomplete.
 	_ "time/tzdata"
 
-	"focusgateway/agent/internal/cli"
+	"regimen/agent/internal/cli"
 )
 
 func main() {

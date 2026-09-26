@@ -6,9 +6,9 @@ Free. Review usually takes up to 7 business days. It takes the same Chromium zip
 
 - [ ] Register at Partner Center (https://partner.microsoft.com/dashboard/microsoftedge/overview) with a Microsoft account. Individual developer accounts are free.
 - [ ] Build: `npm ci && npm run build`.
-- [ ] Create new extension, upload `extension/dist/focusgateway-chromium-<version>.zip`.
+- [ ] Create new extension, upload `extension/dist/regimen-chromium-<version>.zip`.
 - [ ] Availability: Public, all markets.
-- [ ] Properties: category **Productivity**, privacy policy URL https://aryanmotiani.github.io/focusgateway/privacy.html, website and support URLs. "Does this extension access personal information?" **No** (see the data disclosures in [LISTING.md](LISTING.md)).
+- [ ] Properties: category **Productivity**, privacy policy URL https://aryanmotiani.github.io/regimen/privacy.html, website and support URLs. "Does this extension access personal information?" **No** (see the data disclosures in [LISTING.md](LISTING.md)).
 - [ ] Store listing (English): description from [LISTING.md](LISTING.md) (at least 250 characters), logo 300x300 (scale `apps/web/public/icon-512.png`), small promo tile 440x280 (`docs/store/screenshots/promo-tile-440x280.png`), screenshots 1280x800 from `docs/store/screenshots/`.
 - [ ] Notes for certification: paste "Reviewer notes" from [LISTING.md](LISTING.md).
 - [ ] Publish. After approval copy the listing URL (like `https://microsoftedge.microsoft.com/addons/detail/<id>`) into `EDGE_STORE_URL` in `apps/web/src/config.js`. The Install page then shows **Get it for Edge** to Edge users.

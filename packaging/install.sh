@@ -1,21 +1,21 @@
-#!/bin/sh
-# FocusGateway lock agent installer for Linux and macOS.
+﻿#!/bin/sh
+# Regimen lock agent installer for Linux and macOS.
 #
-#   curl -fsSL https://github.com/AryanMotiani/focusgateway/releases/latest/download/install.sh | sh
+#   curl -fsSL https://github.com/AryanMotiani/regimen/releases/latest/download/install.sh | sh
 #
 # Picks the right package for this computer from the latest GitHub release
 # (.deb, .rpm, the macOS .pkg, or the plain binary elsewhere), installs it with
-# sudo, and the agent then opens your browser to connect to FocusGateway.
+# sudo, and the agent then opens your browser to connect to Regimen.
 # Read it first if you like: it is short, and that is a good habit with any
 # script you pipe into a shell.
 set -eu
 
-REPO="${FOCUSGATEWAY_REPO:-AryanMotiani/focusgateway}"
+REPO="${REGIMEN_REPO:-AryanMotiani/regimen}"
 BASE="https://github.com/$REPO/releases/latest/download"
 
 say() { printf '%s\n' "$*"; }
 fail() {
-  say "FocusGateway: $*" >&2
+  say "Regimen: $*" >&2
   exit 1
 }
 
@@ -44,30 +44,30 @@ esac
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT INT TERM
 
-say "FocusGateway lock agent: installing from github.com/$REPO"
+say "Regimen lock agent: installing from github.com/$REPO"
 case "$(uname -s)" in
   Darwin)
-    fetch "$BASE/FocusGateway.pkg" "$TMP/FocusGateway.pkg"
+    fetch "$BASE/Regimen.pkg" "$TMP/Regimen.pkg"
     say "Installing the package (asks for your password)..."
-    $SUDO installer -pkg "$TMP/FocusGateway.pkg" -target /
+    $SUDO installer -pkg "$TMP/Regimen.pkg" -target /
     ;;
   Linux)
     if command -v dpkg >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
-      fetch "$BASE/focusgateway-agent_${ARCH}.deb" "$TMP/focusgateway-agent.deb"
+      fetch "$BASE/regimen-agent_${ARCH}.deb" "$TMP/regimen-agent.deb"
       say "Installing the .deb package (asks for your password)..."
-      $SUDO dpkg -i "$TMP/focusgateway-agent.deb"
+      $SUDO dpkg -i "$TMP/regimen-agent.deb"
     elif command -v rpm >/dev/null 2>&1 && { command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1 || command -v zypper >/dev/null 2>&1; }; then
-      fetch "$BASE/focusgateway-agent.${RPMARCH}.rpm" "$TMP/focusgateway-agent.rpm"
+      fetch "$BASE/regimen-agent.${RPMARCH}.rpm" "$TMP/regimen-agent.rpm"
       say "Installing the .rpm package (asks for your password)..."
-      $SUDO rpm -Uvh --replacepkgs "$TMP/focusgateway-agent.rpm"
+      $SUDO rpm -Uvh --replacepkgs "$TMP/regimen-agent.rpm"
     else
-      fetch "$BASE/focusgateway-agent-linux-${ARCH}" "$TMP/focusgateway-agent"
-      chmod +x "$TMP/focusgateway-agent"
+      fetch "$BASE/regimen-agent-linux-${ARCH}" "$TMP/regimen-agent"
+      chmod +x "$TMP/regimen-agent"
       say "Installing (asks for your password)..."
-      $SUDO "$TMP/focusgateway-agent" install
+      $SUDO "$TMP/regimen-agent" install
     fi
     ;;
-  *) fail "this script is for Linux and macOS. On Windows, download FocusGateway-Setup.exe from github.com/$REPO/releases" ;;
+  *) fail "this script is for Linux and macOS. On Windows, download Regimen-Setup.exe from github.com/$REPO/releases" ;;
 esac
 say ""
-say "Done. Check it any time with: focusgateway-agent status"
+say "Done. Check it any time with: regimen-agent status"

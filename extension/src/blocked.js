@@ -1,4 +1,4 @@
-import { computeBlocks, hostMatches, TEST_DOMAIN } from '@focusgateway/core'
+import { computeBlocks, hostMatches, TEST_DOMAIN } from '@regimen/core'
 import { appUrl } from './app-url.js'
 
 const ext = globalThis.browser ?? globalThis.chrome
@@ -31,7 +31,7 @@ async function reportTest() {
   const res = await ext.runtime.sendMessage({ type: 'fg', cmd: 'blocking.hit', payload: { domain } }).catch(() => null)
   if (!res?.ok || !res.data?.test) return
   testPassed = true
-  document.title = 'Blocking works · FocusGateway'
+  document.title = 'Blocking works · Regimen'
   document.getElementById('title').textContent = 'Blocking works.'
   document.getElementById('reasons').replaceChildren(
     el('p', {

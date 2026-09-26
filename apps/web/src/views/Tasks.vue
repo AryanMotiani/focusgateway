@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { startOfDay, addDays } from '@focusgateway/core'
+import { startOfDay, addDays } from '@regimen/core'
 import { store, call, attempt } from '../lib/store.js'
 import Icon from '../components/Icon.vue'
 import HelpButton from '../components/help/HelpButton.vue'

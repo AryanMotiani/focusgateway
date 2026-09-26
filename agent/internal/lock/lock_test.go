@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"focusgateway/agent/internal/core"
+	"regimen/agent/internal/core"
 )
 
 // Ported from the Node.js agent's test/agent.test.js ("lock merge").

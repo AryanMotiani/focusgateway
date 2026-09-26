@@ -11,8 +11,8 @@ import { createBackend } from '../../packages/core/src/index.js'
 const HOSTED = 'http://localhost:4173/'
 const PIN = '246810'
 const REASON = 'I want to break my own rule because this is only a practice run'
-// FG_SHOTS=<folder> saves screenshots of the new screens
-const SHOTS = process.env.FG_SHOTS
+// R_SHOTS=<folder> saves screenshots of the new screens
+const SHOTS = process.env.R_SHOTS
 const shot = async (page, name) => {
   if (!SHOTS) return
   fs.mkdirSync(SHOTS, { recursive: true })
@@ -68,7 +68,7 @@ test('install opens the hosted app, trusted without Allow, and the popup opens i
   // the popup's links open the hosted app too
   const popup = await context.newPage()
   await popup.goto(`chrome-extension://${extensionId}/popup.html`)
-  await expect(popup.getByText('Finish setting up FocusGateway')).toBeVisible()
+  await expect(popup.getByText('Finish setting up Regimen')).toBeVisible()
   let opened = context.waitForEvent('page')
   await popup.getByRole('link', { name: 'Study room' }).click()
   let room = await opened
@@ -97,9 +97,9 @@ test('what was seen on the website carries into the extension and back, no stale
   await site.addInitScript((s) => {
     if (sessionStorage.getItem('fg-seeded')) return
     sessionStorage.setItem('fg-seeded', '1')
-    localStorage.setItem('focusgateway:v1', s)
-    localStorage.setItem('focusgateway:tours-seen', '["room"]')
-    localStorage.setItem('focusgateway:room-tips-seen', '["focus"]')
+    localStorage.setItem('regimen:v1', s)
+    localStorage.setItem('regimen:tours-seen', '["room"]')
+    localStorage.setItem('regimen:room-tips-seen', '["focus"]')
   }, JSON.stringify(saved))
   // 2. the extension is installed: the website hands its setup over, no Allow needed
   await site.goto(HOSTED + '#/today')
@@ -144,8 +144,8 @@ test('what was seen on the website carries into the extension and back, no stale
 
   // 4. and back: the website forgets its own copy, the saved state still knows
   await site.evaluate(() => {
-    localStorage.removeItem('focusgateway:tours-seen')
-    localStorage.removeItem('focusgateway:room-tips-seen')
+    localStorage.removeItem('regimen:tours-seen')
+    localStorage.removeItem('regimen:room-tips-seen')
   })
   await site.goto(HOSTED + '#/room')
   await site.reload()
@@ -163,8 +163,8 @@ test('the room start card leads to the right editor', async ({ context, extensio
   const saved = await websiteSetup()
   const site = await context.newPage()
   await site.addInitScript((s) => {
-    if (!localStorage.getItem('focusgateway:v1')) localStorage.setItem('focusgateway:v1', s)
-    localStorage.setItem('focusgateway:tours-seen', '["room"]')
+    if (!localStorage.getItem('regimen:v1')) localStorage.setItem('regimen:v1', s)
+    localStorage.setItem('regimen:tours-seen', '["room"]')
   }, JSON.stringify(saved))
   await site.goto(HOSTED + '#/room')
   const start = site.locator('[data-blocking-ways="card"]')

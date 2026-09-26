@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"sort"
 
-	"focusgateway/agent/internal/core"
+	"regimen/agent/internal/core"
 )
 
 // canon is JSON.stringify for comparing values the way lock.js does.

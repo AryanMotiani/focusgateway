@@ -1,7 +1,7 @@
 <script setup>
 // Level, title, XP bar, where the XP came from, and the next rewards on the road.
 import { computed } from 'vue'
-import { nextUnlocks, unlockKind } from '@focusgateway/core'
+import { nextUnlocks, unlockKind } from '@regimen/core'
 import { progress, isGame } from '../../lib/rewards.js'
 import Icon from '../Icon.vue'
 const p = computed(() => progress.value)

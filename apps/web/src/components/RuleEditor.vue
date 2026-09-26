@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
-import { parseHHMM, formatMinutes } from '@focusgateway/core'
+import { parseHHMM, formatMinutes } from '@regimen/core'
 import { store, call, toast, blockingIssue } from '../lib/store.js'
 import { withPin } from '../lib/actions.js'
 import { endOfToday } from '../lib/format.js'

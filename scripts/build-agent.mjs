@@ -5,8 +5,8 @@
 //   npm run agent:build -- --target linux/amd64  just one (repeatable)
 //
 // Environment:
-//   FG_VERSION  version to embed (default: package.json version)
-//   FG_APP_URL  hosted web app for one-click pairing (default: package.json homepage)
+//   R_VERSION  version to embed (default: package.json version)
+//   R_APP_URL  hosted web app for one-click pairing (default: package.json homepage)
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -18,19 +18,19 @@ const agentDir = path.join(root, 'agent')
 const outDir = path.join(agentDir, 'dist')
 
 export const TARGETS = ['windows/amd64', 'windows/arm64', 'darwin/amd64', 'darwin/arm64', 'linux/amd64', 'linux/arm64']
-export const binaryName = (os, arch) => `focusgateway-agent-${os}-${arch}${os === 'windows' ? '.exe' : ''}`
+export const binaryName = (os, arch) => `regimen-agent-${os}-${arch}${os === 'windows' ? '.exe' : ''}`
 
 const args = process.argv.slice(2)
 const wanted = args.flatMap((a, i) => (a === '--target' ? [args[i + 1]] : []))
 const targets = wanted.length ? wanted : TARGETS
 for (const t of targets) if (!TARGETS.includes(t)) throw new Error(`Unknown target ${t}. Use one of ${TARGETS.join(', ')}`)
 
-const version = process.env.FG_VERSION || pkg.version
-const appUrl = (process.env.FG_APP_URL || pkg.homepage || '').toLowerCase()
-if (!/^https?:\/\/.+\/$/.test(appUrl)) throw new Error(`FG_APP_URL must be a URL ending with "/", got "${appUrl}"`)
+const version = process.env.R_VERSION || pkg.version
+const appUrl = (process.env.R_APP_URL || pkg.homepage || '').toLowerCase()
+if (!/^https?:\/\/.+\/$/.test(appUrl)) throw new Error(`R_APP_URL must be a URL ending with "/", got "${appUrl}"`)
 
 const go = process.env.GO || 'go'
-const bi = 'focusgateway/agent/internal/buildinfo'
+const bi = 'regimen/agent/internal/buildinfo'
 const ldflags = `-s -w -X ${bi}.Version=${version} -X ${bi}.AppURL=${appUrl}`
 
 fs.mkdirSync(outDir, { recursive: true })
@@ -38,7 +38,7 @@ console.log(`lock agent ${version}, pairing opens ${appUrl}`)
 for (const t of targets) {
   const [goos, goarch] = t.split('/')
   const out = path.join(outDir, binaryName(goos, goarch))
-  execFileSync(go, ['build', '-trimpath', '-ldflags', ldflags, '-o', out, './cmd/focusgateway-agent'], {
+  execFileSync(go, ['build', '-trimpath', '-ldflags', ldflags, '-o', out, './cmd/regimen-agent'], {
     cwd: agentDir,
     stdio: 'inherit',
     env: { ...process.env, CGO_ENABLED: '0', GOOS: goos, GOARCH: goarch },

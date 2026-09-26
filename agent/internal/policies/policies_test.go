@@ -1,4 +1,4 @@
-package policies
+﻿package policies
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"focusgateway/agent/internal/paths"
+	"regimen/agent/internal/paths"
 )
 
 func TestChromiumPolicy(t *testing.T) {
@@ -36,7 +36,7 @@ func TestFirefoxPolicyAndMerge(t *testing.T) {
 	if p["Homepage"] == nil || p["DisablePrivateBrowsing"] != true || p["BlockAboutAddons"] != true || doc["other"] == nil {
 		t.Fatalf("merge lost or missed entries: %s", merged)
 	}
-	if !strings.Contains(string(merged), `"focusgateway@focusgateway.app"`) || !strings.Contains(string(merged), `"force_installed"`) {
+	if !strings.Contains(string(merged), `"regimen@aryanmotiani.github.io"`) || !strings.Contains(string(merged), `"force_installed"`) {
 		t.Fatalf("force install missing: %s", merged)
 	}
 	if !strings.Contains(string(MergeFirefox([]byte("not json"), ff)), "DNSOverHTTPS") {
@@ -59,7 +59,7 @@ func TestFirefoxMacPlist(t *testing.T) {
 		"<key>EnterprisePoliciesEnabled</key>\n  <true/>",
 		"<key>DNSOverHTTPS</key>\n  <dict>\n    <key>Enabled</key>\n    <false/>",
 		"<key>DisablePrivateBrowsing</key>\n  <true/>",
-		"<key>focusgateway@focusgateway.app</key>",
+		"<key>regimen@aryanmotiani.github.io</key>",
 		"<string>https://example.com/x.xpi?a=1&amp;b=2</string>",
 	} {
 		if !strings.Contains(out, want) {
@@ -72,7 +72,7 @@ func TestBackupAndWriteRefusesLinksAndKeepsPrivateBackups(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("symlinks need extra rights on Windows")
 	}
-	t.Setenv("FOCUSGATEWAY_DATA", t.TempDir())
+	t.Setenv("REGIMEN_DATA", t.TempDir())
 	dir := filepath.Join(t.TempDir(), "managed")
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)

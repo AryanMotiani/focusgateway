@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { gatedStatus, windowAt, isLocked, findSite, formatMinutes, tasksForRule } from '@focusgateway/core'
+import { gatedStatus, windowAt, isLocked, findSite, formatMinutes, tasksForRule } from '@regimen/core'
 import { store, blocks, blockingIssue } from '../lib/store.js'
 import BlockingStatus from '../components/help/BlockingStatus.vue'
 import { ruleWhy } from '../components/help/ruleWhy.js'

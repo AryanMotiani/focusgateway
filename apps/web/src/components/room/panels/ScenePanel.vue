@@ -1,7 +1,7 @@
 <script setup>
 // Scene and music: the view out the window and the music style. More of both are sold in
 // the shop: a price (or a level) shows on what you do not own yet, and opens the shop.
-import { UNLOCKS } from '@focusgateway/core'
+import { UNLOCKS } from '@regimen/core'
 import { ownsItem } from '../../../lib/shop.js'
 import RoomIcon from '../RoomIcon.vue'
 
@@ -65,6 +65,6 @@ const pill = 'flex items-center gap-1.5 rounded-(--fg-room-btn-radius) px-3 py-1
         <RoomIcon name="home" :size="13" /> Walls, floor and light
       </button>
     </div>
-    <p v-else class="text-xs text-muted">Set up FocusGateway to decorate the room and change your avatar.</p>
+    <p v-else class="text-xs text-muted">Set up Regimen to decorate the room and change your avatar.</p>
   </div>
 </template>

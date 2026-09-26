@@ -6,7 +6,7 @@ import (
 	"sort"
 	"sync"
 
-	"focusgateway/agent/internal/assets"
+	"regimen/agent/internal/assets"
 )
 
 var (

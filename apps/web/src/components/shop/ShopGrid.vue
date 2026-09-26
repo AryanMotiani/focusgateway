@@ -4,7 +4,7 @@
 // "New" marks what became affordable or unlocked since the last look; it is remembered as
 // seen when the shelves close.
 import { computed, onBeforeUnmount, ref } from 'vue'
-import { SHOP_CATEGORIES } from '@focusgateway/core'
+import { SHOP_CATEGORIES } from '@regimen/core'
 import { catalog, markSeen } from '../../lib/shop.js'
 import ShopItemCard from './ShopItemCard.vue'
 import BuyDialog from './BuyDialog.vue'

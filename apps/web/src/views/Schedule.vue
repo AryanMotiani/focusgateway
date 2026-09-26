@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { startOfDay, addDays, isoWeekday, formatMinutes, taskColor } from '@focusgateway/core'
+import { startOfDay, addDays, isoWeekday, formatMinutes, taskColor } from '@regimen/core'
 import { store } from '../lib/store.js'
 import { updateTask } from '../lib/actions.js'
 import { time, DAY_NAMES } from '../lib/format.js'

@@ -8,9 +8,9 @@ import { createBackend } from '../../packages/core/src/index.js'
 const APP = 'http://localhost:4173/'
 test.use({ viewport: { width: 1440, height: 900 } })
 // the one-time "Site blocking needs the free extension" dialog is tested in clarity.spec.js
-test.beforeEach(({ page }) => page.addInitScript(() => localStorage.setItem('focusgateway:no-extension-seen', '1')))
+test.beforeEach(({ page }) => page.addInitScript(() => localStorage.setItem('regimen:no-extension-seen', '1')))
 /** Skip the intro, but keep the first-open tips. */
-const introSeen = (page) => page.addInitScript(() => localStorage.setItem('focusgateway:tours-seen', '["room"]'))
+const introSeen = (page) => page.addInitScript(() => localStorage.setItem('regimen:tours-seen', '["room"]'))
 
 const rect = (page, id) =>
   page.locator(`[data-window="${id}"]`).evaluate((e) => {
@@ -108,7 +108,7 @@ test('a window explains itself the first time it opens, only once', async ({ pag
 })
 
 test('room windows move, resize, minimize, maximize and remember their layout', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('focusgateway:tours-seen', '["*"]'))
+  await page.addInitScript(() => localStorage.setItem('regimen:tours-seen', '["*"]'))
   await page.goto(APP + '#/room')
   const focus = page.locator('[data-window="focus"]')
   await page.locator('[data-dock="focus"]').click()
@@ -176,7 +176,7 @@ test('room windows move, resize, minimize, maximize and remember their layout', 
 })
 
 test('on phones the room windows stack and open full screen', async ({ page }) => {
-  await page.addInitScript(() => localStorage.setItem('focusgateway:tours-seen', '["*"]'))
+  await page.addInitScript(() => localStorage.setItem('regimen:tours-seen', '["*"]'))
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(APP + '#/room')
   const player = page.locator('[data-window="player"]')
@@ -207,7 +207,7 @@ async function setUpUser() {
 test('pages do not start a tour by themselves, one welcome step points at help', async ({ page }) => {
   const state = await setUpUser()
   await page.addInitScript((s) => {
-    if (!localStorage.getItem('focusgateway:v1')) localStorage.setItem('focusgateway:v1', s)
+    if (!localStorage.getItem('regimen:v1')) localStorage.setItem('regimen:v1', s)
   }, state)
   await page.goto(APP + '#/today')
   const card = page.locator('[data-tour-card]')
