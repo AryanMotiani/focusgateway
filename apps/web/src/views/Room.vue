@@ -3,6 +3,9 @@
 // window: focus, music, planner (tasks, habits, blocks, progress), status, scratchpad and
 // scene. Drag a window by its title bar, resize it from any edge or corner, minimize it to
 // the dock or maximize it. The layout is saved per device size (lib/windows.js).
+// The room starts clean: every window waits in the dock, and Reset layout clears the room
+// again. The header always shows whether blocking works (BlockingPill). The first visit gets
+// a short intro (lib/tour.js), and each window a one-time tip the first time it is opened.
 // On phones the windows stack in a column under the room, and can collapse or go full screen.
 // Scenes, decor and music styles are bought with coins in the shop (packages/core/src/economy.js).
 // Keys: Space play, F full screen, C scene, D decorate, N scratchpad, Z hide panels,
@@ -32,9 +35,10 @@ import StatusStrip from '../components/StatusStrip.vue'
 import Icon from '../components/Icon.vue'
 import logo from '../assets/logo.svg'
 import HelpButton from '../components/help/HelpButton.vue'
-import RoomNotice from '../components/help/RoomNotice.vue'
+import BlockingPill from '../components/help/BlockingPill.vue'
 import QuickTheme from '../components/look/QuickTheme.vue'
-import { autoTour } from '../lib/tour.js'
+import RoomTip from '../components/room/RoomTip.vue'
+import { ROOM_TIPS, tipSeen, markTipSeen, tour } from '../lib/tour.js'
 
 const player = lofi()
 const saved = store.state?.settings?.lofi || {}
@@ -78,7 +82,6 @@ const narrow = computed(() => width.value < 768)
 const drawerTab = ref(recall('focusgateway:room-drawer-tab', 'tasks'))
 watch(drawerTab, (v) => remember('focusgateway:room-drawer-tab', v))
 const decorating = ref(false)
-watch(decorating, (v) => v && autoTour('decorate', { delay: 500 }))
 const decorTab = ref('items')
 const hidden = ref(recall('focusgateway:room-hidden', false))
 watch(hidden, (v) => remember('focusgateway:room-hidden', v))
@@ -96,21 +99,30 @@ const NAV = [
 ]
 
 // --- windows ---
+// short: the dock label on phones
 const ALL_WINDOWS = [
-  { id: 'status', title: 'Status', icon: 'pulse', min: [300, 84], max: [1200, 220], onboarded: true },
-  { id: 'focus', title: 'Focus', icon: 'clock', min: [250, 150], max: [1100, 1000] },
-  { id: 'player', title: 'Music', icon: 'headphones', min: [270, 176], max: [800, 1100] },
-  { id: 'drawer', title: 'Planner', icon: 'list', min: [280, 200], max: [1100, 1600], onboarded: true },
-  { id: 'notes', title: 'Scratchpad', icon: 'notes', min: [220, 140], max: [1000, 1000] },
-  { id: 'scene', title: 'Scene and music', icon: 'sparkles', min: [300, 220], max: [680, 1000] },
-  { id: 'welcome', title: 'Welcome', icon: 'home', min: [260, 150], max: [560, 420], onboarded: false },
+  { id: 'status', title: 'Status', short: 'Status', icon: 'pulse', min: [300, 84], max: [1200, 220], onboarded: true },
+  { id: 'focus', title: 'Focus', short: 'Focus', icon: 'clock', min: [250, 150], max: [1100, 1000] },
+  { id: 'player', title: 'Music', short: 'Music', icon: 'headphones', min: [270, 176], max: [800, 1100] },
+  { id: 'drawer', title: 'Planner', short: 'Planner', icon: 'list', min: [280, 200], max: [1100, 1600], onboarded: true },
+  { id: 'notes', title: 'Scratchpad', short: 'Notes', icon: 'notes', min: [220, 140], max: [1000, 1000] },
+  { id: 'scene', title: 'Scene and music', short: 'Scene', icon: 'sparkles', min: [300, 220], max: [680, 1000] },
+  { id: 'welcome', title: 'Welcome', short: 'Welcome', icon: 'home', min: [260, 150], max: [560, 420], onboarded: false },
 ]
 const WINDOWS = ALL_WINDOWS.filter((w) => w.onboarded === undefined || w.onboarded === onboarded.value)
 const M = 16 // room margin
 const GAP = 8
-/** The default layout: focus and music on the left, planner on the right, status up top. */
+/**
+ * The default layout is the clean room: every window minimized to the dock, so the room
+ * shows in full. The rects are where each window opens: focus and music on the left,
+ * planner on the right, status up top.
+ */
 function layout(vw, vh) {
-  if (vw < 768) return { notes: { min: true }, scene: { min: true } }
+  const all = openLayout(vw, vh)
+  return Object.fromEntries(WINDOWS.map((w) => [w.id, { ...(all[w.id] || { x: 20, y: 80, w: 320, h: 240 }), min: true }]))
+}
+function openLayout(vw, vh) {
+  if (vw < 768) return {}
   const wide = vw >= 1180
   const big = vw >= 1600 && vh >= 960
   const lw = big ? 400 : 360 // the left column
@@ -140,8 +152,8 @@ function layout(vw, vh) {
     player,
     drawer,
     welcome: { x: M, y: focus.y - GAP - 196, w: lw, h: 196 },
-    notes: { x: vw - M - 320, y: Math.max(top, drawer.y - GAP - 230), w: 320, h: 230, min: true },
-    scene: { x: vw - M - 460, y: top, w: 460, h: 480, min: true },
+    notes: { x: vw - M - 320, y: Math.max(top, drawer.y - GAP - 230), w: 320, h: 230 },
+    scene: { x: vw - M - 460, y: top, w: 460, h: 480 },
   }
 }
 const ctl = createWindows({
@@ -155,9 +167,40 @@ const ctl = createWindows({
 // on phones a maximized window covers the whole screen, header and dock included
 const phoneFull = computed(() => narrow.value && WINDOWS.some((w) => ctl.wm.wins[w.id]?.max && !ctl.wm.wins[w.id]?.min))
 const winOpen = (id) => ctl.wm.wins[id] && !ctl.wm.wins[id].min
+const noneOpen = computed(() => WINDOWS.every((w) => !winOpen(w.id)))
+/** Reset layout: the clean room again, every window back in the dock. */
 function resetLayout() {
   ctl.reset()
 }
+
+// --- one-time tips: the first time a window is opened (and decorate mode), a short tip
+// explains it. Only one shows at a time. Seen tips are kept in lib/tour.js.
+const tipFor = ref(null)
+function offerTip(id) {
+  if (!ROOM_TIPS[id] || tipSeen(id)) return
+  if (tipFor.value && tipFor.value !== id) markTipSeen(tipFor.value)
+  tipFor.value = id
+}
+function tipDone() {
+  if (tipFor.value) markTipSeen(tipFor.value)
+  tipFor.value = null
+}
+const tipOf = (id) => (tipFor.value === id ? ROOM_TIPS[id] : null)
+watch(
+  () => WINDOWS.map((w) => !!ctl.wm.wins[w.id]?.min),
+  (now, before) =>
+    WINDOWS.forEach((w, i) => {
+      if (before?.[i] && !now[i]) {
+        offerTip(w.id)
+        // phones: the window opens in the column under the room, so bring it into view
+        if (narrow.value)
+          nextTick(() => document.querySelector(`[data-window="${w.id}"]`)?.scrollIntoView({ block: 'start', behavior: 'smooth' }))
+      }
+      // minimized (or reset) with its tip up: it was seen
+      else if (now[i] && tipFor.value === w.id) tipDone()
+    }),
+)
+watch(decorating, (v) => (v ? offerTip('decorate') : tipFor.value === 'decorate' && tipDone()))
 
 // --- sound ---
 async function toggle() {
@@ -231,7 +274,9 @@ const scroller = ref(null)
 const heroH = computed(() => {
   if (!narrow.value) return 0
   const vh = window.innerHeight
-  return Math.round(hidden.value ? vh - 96 : decorating.value ? Math.min(vh * 0.44, 380) : Math.min(vh * 0.42, 380))
+  // nothing open (the clean room): the room fills the screen above the dock
+  if (hidden.value || (noneOpen.value && !decorating.value)) return vh - (hidden.value ? 96 : 84)
+  return Math.round(decorating.value ? Math.min(vh * 0.44, 380) : Math.min(vh * 0.42, 380))
 })
 function centerRoom() {
   const s = scroller.value
@@ -353,8 +398,16 @@ const chipOn = 'room-glass room-pill room-on'
             <Icon :name="n.icon" :size="16" />
           </RouterLink>
         </nav>
-        <!-- trial room: why nothing is blocked here (set up rooms show it in the status strip) -->
-        <RoomNotice v-if="!narrow && !onboarded" class="max-w-xl" />
+        <!-- always: does blocking work in this browser? -->
+        <BlockingPill class="max-sm:flex-1 sm:max-w-80" />
+        <RouterLink
+          v-if="!onboarded"
+          to="/welcome"
+          class="room-on room-pill px-3 py-2 text-xs font-bold"
+          title="Set up FocusGateway for tasks, habits, blocking and coins"
+          data-room-setup
+          >Set up free</RouterLink
+        >
         <div class="ml-auto flex items-center gap-1.5">
           <button
             v-if="onboarded"
@@ -396,7 +449,14 @@ const chipOn = 'room-glass room-pill room-on'
           </button>
           <QuickTheme glass />
           <HelpButton glass page="room" :class="pill" />
-          <button class="p-2" :class="pill" aria-label="Hide panels (Z)" title="Hide panels (Z)" @click="hidden = true">
+          <button
+            class="p-2"
+            :class="pill"
+            data-tour="room-eye"
+            aria-label="Hide panels (Z)"
+            title="Clear everything and just enjoy the room (Z)"
+            @click="hidden = true"
+          >
             <Icon name="eyeOff" :size="16" />
           </button>
           <button class="p-2 max-sm:hidden" :class="pill" aria-label="Full screen (F)" title="Full screen (F)" @click="fullscreen">
@@ -414,8 +474,16 @@ const chipOn = 'room-glass room-pill room-on'
         narrow ? ['relative flex flex-col gap-3 p-3 pb-24', phoneFull ? 'z-50' : 'z-10'] : 'pointer-events-none absolute inset-0 z-10'
       "
     >
-      <RoomNotice v-if="narrow" />
-      <RoomWindow v-if="onboarded" id="status" title="Status" icon="pulse" :ctl="ctl" :stacked="narrow">
+      <RoomWindow
+        v-if="onboarded"
+        id="status"
+        title="Status"
+        icon="pulse"
+        :ctl="ctl"
+        :stacked="narrow"
+        :tip="tipOf('status')"
+        @tip-done="tipDone"
+      >
         <StatusStrip bare />
       </RoomWindow>
       <RoomWindow v-if="!onboarded" id="welcome" title="Welcome" icon="home" :ctl="ctl" :stacked="narrow">
@@ -425,23 +493,33 @@ const chipOn = 'room-glass room-pill room-on'
         </p>
         <RouterLink to="/welcome" class="btn btn-primary btn-sm mt-3">Set up, it is free</RouterLink>
       </RoomWindow>
-      <RoomWindow id="focus" title="Focus" icon="clock" :ctl="ctl" :stacked="narrow">
+      <RoomWindow id="focus" title="Focus" icon="clock" :ctl="ctl" :stacked="narrow" :tip="tipOf('focus')" @tip-done="tipDone">
         <template #default="s"><FocusPanel :w="s.w" :h="s.h" :max="s.max" /></template>
       </RoomWindow>
-      <RoomWindow id="player" title="Music" icon="headphones" :ctl="ctl" :stacked="narrow">
+      <RoomWindow id="player" title="Music" icon="headphones" :ctl="ctl" :stacked="narrow" :tip="tipOf('player')" @tip-done="tipDone">
         <template #default="s">
           <PlayerPanel :w="s.w" :h="s.h" :max="s.max" :ui="ui" :level="level" @toggle="toggle" @choose="choose" />
         </template>
       </RoomWindow>
-      <RoomWindow v-if="onboarded" id="drawer" title="Planner" icon="list" :ctl="ctl" :stacked="narrow" :pad="false">
+      <RoomWindow
+        v-if="onboarded"
+        id="drawer"
+        title="Planner"
+        icon="list"
+        :ctl="ctl"
+        :stacked="narrow"
+        :pad="false"
+        :tip="tipOf('drawer')"
+        @tip-done="tipDone"
+      >
         <template #default="s">
           <RoomDrawer v-model:tab="drawerTab" windowed :w="s.w" @key="plannerKey" />
         </template>
       </RoomWindow>
-      <RoomWindow id="notes" title="Scratchpad" icon="notes" :ctl="ctl" :stacked="narrow">
+      <RoomWindow id="notes" title="Scratchpad" icon="notes" :ctl="ctl" :stacked="narrow" :tip="tipOf('notes')" @tip-done="tipDone">
         <NotesPanel />
       </RoomWindow>
-      <RoomWindow id="scene" title="Scene and music" icon="sparkles" :ctl="ctl" :stacked="narrow">
+      <RoomWindow id="scene" title="Scene and music" icon="sparkles" :ctl="ctl" :stacked="narrow" :tip="tipOf('scene')" @tip-done="tipDone">
         <ScenePanel
           :ui="ui"
           :level="level"
@@ -469,7 +547,21 @@ const chipOn = 'room-glass room-pill room-on'
       @reset="resetLayout"
     />
 
-    <!-- decorate: the tray and the avatar editor -->
+    <!-- decorate: the tray and the avatar editor, and its one-time tip -->
+    <div
+      v-if="decorating && tipOf('decorate')"
+      class="z-30"
+      :class="
+        narrow
+          ? 'relative'
+          : [
+              'absolute left-5 w-80',
+              decorTab === 'avatar' || decorTab === 'room' || decorTab === 'shop' ? 'bottom-[334px]' : 'bottom-[280px]',
+            ]
+      "
+    >
+      <RoomTip name="Decorate" :text="tipOf('decorate')" side="inline" @done="tipDone" />
+    </div>
     <DecoratePanel
       v-if="decorating"
       v-model:tab="decorTab"
@@ -485,9 +577,9 @@ const chipOn = 'room-glass room-pill room-on'
       @style="setStyle"
     />
 
-    <!-- the starter gift, once: how coins work, and enough for one small thing -->
+    <!-- the starter gift, once: how coins work, and enough for one small thing (after the intro) -->
     <WelcomeGift
-      v-if="onboarded && giftPending && panels"
+      v-if="onboarded && giftPending && panels && !tour.id"
       class="z-30"
       :class="narrow ? 'fixed bottom-20 left-1/2 -translate-x-1/2' : 'absolute bottom-20 left-1/2 -translate-x-1/2'"
       @shop="((giftPending = false), decorate('shop'))"
@@ -499,7 +591,8 @@ const chipOn = 'room-glass room-pill room-on'
       v-if="hidden"
       class="room-glass room-pill fixed bottom-4 left-1/2 z-20 flex max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-2 py-1.5 pr-1.5 pl-4 text-sm font-bold"
     >
-      <RoomClock compact />
+      <RoomClock compact class="whitespace-nowrap" />
+      <BlockingPill dot />
       <span v-if="track" class="max-w-44 truncate text-xs font-semibold text-muted max-sm:hidden" :title="`Now playing: ${track.name}`">{{
         track.name
       }}</span>

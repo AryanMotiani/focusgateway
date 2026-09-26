@@ -4,7 +4,7 @@
 // Back, Next, Skip). On phones the card docks to the bottom. Esc skips, arrow keys move.
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { tour, nextStep, prevStep, endTour, stepTarget, autoTour, pageFor } from '../../lib/tour.js'
+import { tour, nextStep, prevStep, endTour, stepTarget, autoIntro, pageFor } from '../../lib/tour.js'
 import { store } from '../../lib/store.js'
 
 const route = useRoute()
@@ -24,12 +24,15 @@ const GAP = 16
 // ---- where things go
 // sticky bars at the top (the phone header and status strip) would cover the target
 const inset = ref(0)
+// on phones the card docks to the bottom, or to the top when the target is pinned to the
+// bottom of the screen (the study room dock), so it never covers what it points at
+const dockTop = computed(() => phone.value && !!rect.value?.pinned && rect.value.top > vh.value / 2)
 const spot = computed(() => {
   const r = rect.value
   if (!r) return null
-  const top = r.pinned ? 4 : Math.max(4, inset.value + 2)
+  const top = dockTop.value ? cardH.value + 24 : r.pinned ? 4 : Math.max(4, inset.value + 2)
   // a very tall target (a long task list) is lit from its top, so the rest can dim
-  const bottom = phone.value ? vh.value - cardH.value - 24 : vh.value - 4
+  const bottom = phone.value && !dockTop.value ? vh.value - cardH.value - 24 : vh.value - 4
   const l = Math.max(4, r.left - PAD)
   const t = Math.max(top, r.top - PAD)
   const w = Math.min(vw.value - 4, r.right + PAD) - l
@@ -173,13 +176,13 @@ function onResize() {
   if (el) inset.value = pinned(el) ? 0 : topInset()
 }
 
-// ---- first visit of a page: show its tour once
+// ---- first visit: the room intro, or the one welcome step pointing at help. Page tours no
+// longer start by themselves, the help drawer starts them.
 watch(
   () => [route.path, store.ready, store.state?.onboarding?.completed, store.pendingApproval],
   ([path, ready, onboarded, pending]) => {
-    if (!ready || !onboarded || pending) return
-    const id = pageFor(path)
-    if (id && id !== 'install') autoTour(id, { delay: id === 'room' ? 1200 : 700 })
+    if (!ready || pending) return
+    autoIntro(pageFor(path), { onboarded: !!onboarded })
   },
   { immediate: true },
 )
@@ -216,7 +219,7 @@ onBeforeUnmount(() => {
         :aria-labelledby="'tour-title'"
         :aria-describedby="'tour-text'"
         class="tour-card"
-        :class="place.docked ? 'tour-docked' : 'tour-' + place.side"
+        :class="place.docked ? ['tour-docked', dockTop && 'tour-docked-top'] : 'tour-' + place.side"
         :style="place.docked ? {} : { left: place.left + 'px', top: place.top + 'px', width: cardW + 'px' }"
       >
         <i
@@ -225,15 +228,15 @@ onBeforeUnmount(() => {
           aria-hidden="true"
           :style="place.arrow.left != null ? { left: place.arrow.left + 'px' } : { top: place.arrow.top + 'px' }"
         />
-        <p class="tour-count">{{ tour.index + 1 }} of {{ tour.steps.length }}</p>
+        <p v-if="tour.steps.length > 1" class="tour-count">{{ tour.index + 1 }} of {{ tour.steps.length }}</p>
         <h2 id="tour-title" class="tour-title">{{ step.title }}</h2>
         <p id="tour-text" class="tour-text">{{ step.text }}</p>
         <div class="tour-actions">
-          <button type="button" class="tour-skip" @click="endTour">Skip tour</button>
+          <button v-if="tour.steps.length > 1" type="button" class="tour-skip" @click="endTour">Skip tour</button>
           <span class="flex-1" />
           <button v-if="tour.index > 0" type="button" class="btn btn-sm" @click="prevStep">Back</button>
           <button ref="nextBtn" type="button" class="btn btn-sm btn-primary" @click="nextStep">
-            {{ tour.index === tour.steps.length - 1 ? 'Done' : 'Next' }}
+            {{ tour.steps.length === 1 ? 'Got it' : tour.index === tour.steps.length - 1 ? 'Done' : 'Next' }}
           </button>
         </div>
       </div>
@@ -302,6 +305,10 @@ onBeforeUnmount(() => {
   bottom: calc(12px + env(safe-area-inset-bottom));
   max-width: 440px;
   margin: 0 auto;
+}
+.tour-docked-top {
+  top: calc(12px + env(safe-area-inset-top));
+  bottom: auto;
 }
 .tour-arrow {
   position: absolute;

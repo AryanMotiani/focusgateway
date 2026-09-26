@@ -3,8 +3,10 @@
 // and maximize buttons, and resize handles on every edge and corner. The layout itself lives
 // in lib/windows.js. On phones (stacked) windows sit in a column: no dragging, but they
 // still collapse to the dock and open full screen.
+// tip: a one-time tip (RoomTip.vue) shown under or over the window, or in line on phones.
 import { computed } from 'vue'
 import RoomIcon from './RoomIcon.vue'
+import RoomTip from './RoomTip.vue'
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -13,7 +15,9 @@ const props = defineProps({
   ctl: { type: Object, required: true },
   stacked: Boolean,
   pad: { type: Boolean, default: true },
+  tip: String,
 })
+const emit = defineEmits(['tip-done'])
 const DIRS = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']
 const win = computed(() => props.ctl.wm.wins[props.id])
 const rect = computed(() => props.ctl.rectOf(props.id))
@@ -29,6 +33,17 @@ const size = computed(() => {
   const r = rect.value
   if (props.stacked) return { w: props.ctl.wm.vw - 24, h: win.value?.max ? props.ctl.wm.vh - 44 : 0, max: !!win.value?.max }
   return { w: r.w, h: r.h - 34, max: !!win.value?.max }
+})
+
+// the tip goes where there is room: under the window, over it, or inside at the top
+const TIP_H = 140
+const tipSide = computed(() => {
+  if (props.stacked) return 'inline'
+  const r = rect.value
+  if (!r || win.value?.max) return 'inside'
+  if (props.ctl.wm.vh - (r.y + r.h) >= TIP_H) return 'below'
+  if (r.y >= TIP_H) return 'above'
+  return 'inside'
 })
 
 function onBarDown(e) {
@@ -90,6 +105,7 @@ function onBarKey(e) {
         <RoomIcon :name="win.max ? 'restoreWin' : 'maximizeWin'" :size="13" />
       </button>
     </header>
+    <RoomTip v-if="tip && !win.min" :text="tip" :name="title" :side="tipSide" @done="emit('tip-done')" />
     <div class="rw-body" :class="pad && 'rw-pad'"><slot v-bind="size" /></div>
     <template v-if="!stacked && !win.max">
       <div

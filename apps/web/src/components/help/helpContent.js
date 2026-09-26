@@ -28,10 +28,21 @@ const blockingOff = {
 export const HELP = {
   room: {
     title: 'The study room',
-    intro: 'Your home base: a cozy room with a focus timer, lofi music and your planner, all in windows you can arrange.',
+    intro:
+      'Your home base: a cozy room that starts clean. Everything you need waits in the dock at the bottom, open what you want and leave the rest tucked away.',
     sections: [
       {
-        h: 'Windows',
+        h: 'Always there',
+        items: [
+          'The blocking pill at the top says if site blocking works in this browser: green "Blocking on" with what is active, or red "Blocking off" with what to do. Click it for the full checklist.',
+          'The ? button opens this help. Every page has one.',
+          'The palette button changes the theme any time.',
+          'The eye clears everything so you can just enjoy the room, with a small timer and play button left. Press it again, or Z, to bring things back.',
+          'The dock at the bottom holds every window.',
+        ],
+      },
+      {
+        h: 'Windows in the dock',
         items: [
           'Focus: the clock and the focus timer. Start a session and the sites you picked stay blocked until it ends, breaks included.',
           'Music: lofi radio made in your browser. Play, skip, pick a track, and mix in rain, cafe, fire or noise.',
@@ -39,17 +50,18 @@ export const HELP = {
           'Status: level, XP, streak, what is blocked and the timer.',
           'Scratchpad: quick notes that stay on this device.',
           'Scene and music: the view outside the window and the music style.',
+          'The first time you open a window it shows a short tip about what it does.',
         ],
       },
       {
         h: 'Arrange them',
         items: [
+          'Click a window in the dock to open it, click it again (or its minimize button) to tuck it away.',
           'Drag a window by its title bar. Windows snap to edges and to each other.',
-          'Resize from any edge or corner.',
-          'Minimize sends a window to the dock at the bottom. Click it there to bring it back.',
-          'Maximize fills the room. Esc puts it back.',
-          'The reset button in the dock restores the default layout. Your layout is saved per screen size.',
-          'On phones the windows stack in a column under the room. They can still go to the dock or open full screen.',
+          'Resize from any edge or corner. Maximize fills the room, Esc puts it back.',
+          'Reset layout (the last button in the dock) clears the room again: every window goes back to the dock.',
+          'Your layout is saved per screen size.',
+          'On phones the open windows stack under the room. They can still go back to the dock or open full screen.',
         ],
       },
       {
@@ -81,7 +93,7 @@ export const HELP = {
     tips: [
       'Trying the room before setup? It is a trial room: the timer and music work, and site blocking is off until you add the extension.',
       'The palette button in the header changes the theme any time.',
-      'Hide the panels (Z) to enjoy the room with just a small timer and the play button.',
+      'Not sure what something does? Open it. Each window explains itself the first time.',
       'Leaving the room during a session asks first. Your sites stay blocked either way.',
     ],
     keys: [
@@ -95,7 +107,8 @@ export const HELP = {
       ['Esc', 'Restore a maximized window, close decorate'],
     ],
     tour: 'room',
-    tours: [['decorate', 'Replay the decorate tour']],
+    tourLabel: 'Replay the room intro',
+    tours: [['decorate', 'Decorate tour']],
   },
   today: {
     title: 'Today',
