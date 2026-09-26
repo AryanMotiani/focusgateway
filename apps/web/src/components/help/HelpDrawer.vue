@@ -38,6 +38,12 @@ watch(
       before = document.activeElement
       await nextTick()
       panel.value?.querySelector('button')?.focus()
+      // "Learn more" links jump to their section
+      const target = help.section && panel.value?.querySelector(`[data-help-section="${help.section}"]`)
+      if (target) {
+        target.scrollIntoView({ block: 'start' })
+        target.classList.add('help-flash')
+      }
     } else before?.focus?.()
   },
 )
@@ -79,7 +85,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true))
               <button v-for="[id, label] in page.tours || []" :key="id" class="btn btn-sm" @click="replay(id)">{{ label }}</button>
             </div>
 
-            <section v-for="s in page.sections" :key="s.h">
+            <section v-for="s in page.sections" :key="s.h" :data-help-section="s.id || null" class="scroll-mt-4 rounded-xl">
               <h3 class="mb-2 font-semibold">{{ s.h }}</h3>
               <ul class="space-y-1.5 text-muted">
                 <li v-for="(it, i) in s.items" :key="i" class="flex gap-2">
@@ -142,7 +148,20 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true))
 .help-leave-to .help-panel {
   transform: translateX(24px);
 }
+.help-flash {
+  animation: help-flash 1.6s ease-out;
+}
+@keyframes help-flash {
+  0%,
+  40% {
+    box-shadow: 0 0 0 6px var(--fg-accent-soft);
+    background: var(--fg-accent-soft);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
+  .help-flash {
+    animation: none;
+  }
   .help-enter-active,
   .help-leave-active,
   .help-enter-active .help-panel,

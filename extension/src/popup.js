@@ -1,4 +1,5 @@
 import { computeBlocks } from '@focusgateway/core'
+import { appUrl, OFFLINE_KEY, prefersOffline } from './app-url.js'
 
 const ext = globalThis.browser ?? globalThis.chrome
 const fmt = (ms) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -46,7 +47,8 @@ async function render() {
   if (!res?.ok) return
   const state = res.state
   if (!state.onboarding.completed) {
-    document.getElementById('status').innerHTML = '<a href="app/index.html#/welcome" target="_blank">Finish setting up FocusGateway →</a>'
+    document.getElementById('status').innerHTML =
+      '<a href="app/index.html#/welcome" data-route="/welcome" target="_blank">Finish setting up FocusGateway →</a>'
     return
   }
   const { blocks } = computeBlocks(state, Date.now())
@@ -74,4 +76,16 @@ async function render() {
       : 'Lock agent connected. Blocks apply to every browser.'
     : 'Lock agent not installed. Blocks apply to this browser only.'
 }
+// App links open the hosted app when it answers, else the copy inside the extension
+document.addEventListener('click', async (e) => {
+  const a = e.target.closest?.('a[data-route]')
+  if (!a) return
+  e.preventDefault()
+  await ext.tabs.create({ url: await appUrl(a.dataset.route) })
+  window.close()
+})
+const offline = document.getElementById('offline')
+prefersOffline().then((v) => (offline.checked = v))
+offline.addEventListener('change', () => ext.storage.local.set({ [OFFLINE_KEY]: offline.checked }))
+
 render()

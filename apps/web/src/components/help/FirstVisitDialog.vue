@@ -2,22 +2,15 @@
 // Once per browser: the first time someone uses the app without the extension, a friendly
 // note that blocking needs it. Dismissing it only hides this dialog, the red chips and the
 // room notice stay until the extension is added.
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { store } from '../../lib/store.js'
+import { isSeen, markSeen } from '../../lib/seen.js'
 import { browser, installTarget, canInstall, PHONE_NOTE } from './install.js'
 import Modal from '../Modal.vue'
 import Icon from '../Icon.vue'
 
-const SEEN_KEY = 'focusgateway:no-extension-seen'
-function seen() {
-  try {
-    return localStorage.getItem(SEEN_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-const dismissed = ref(seen())
+const dismissed = computed(() => isSeen('flags', 'no-extension-seen'))
 const route = useRoute()
 const router = useRouter()
 // not on the landing page, the setup, PIN recovery or the Install page itself
@@ -35,10 +28,7 @@ const open = computed(
 const install = installTarget()
 
 function close() {
-  dismissed.value = true
-  try {
-    localStorage.setItem(SEEN_KEY, '1')
-  } catch {}
+  markSeen('flags', 'no-extension-seen')
 }
 function openInstall() {
   close()

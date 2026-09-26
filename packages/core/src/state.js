@@ -3,6 +3,7 @@ import { defaultRoom, sanitizeRoom } from './room.js'
 import { DEFAULT_LOFI, sanitizeLofi } from './lofi.js'
 import { defaultStats, backfillStats, sanitizeStats } from './progress.js'
 import { defaultShop, sanitizeShop, grandfatherShop, defaultCoinStats, sanitizeCoinStats, backfillCoinStats } from './economy.js'
+import { defaultUi, sanitizeUi } from './ui.js'
 
 export const SCHEMA_VERSION = 1
 
@@ -39,6 +40,7 @@ export function defaultState() {
     log: [],
     stats: { ...defaultStats(0), coins: defaultCoinStats() }, // running XP, coin and badge counters, see progress.js
     shop: defaultShop(), // purchases and the starter gift, see economy.js
+    ui: defaultUi(), // tours, tips and notices already seen, shared by the website and the extension, see ui.js
     runtime: { ruleStatus: {} },
     agent: { url: 'http://127.0.0.1:47621', token: null, pairCode: null, lastSyncAt: 0, lastError: null },
   }
@@ -87,6 +89,7 @@ export function migrate(saved, now = Date.now()) {
   const coins = saved.stats?.coins
   out.stats.coins = coins && typeof coins === 'object' ? sanitizeCoinStats(coins, now) : backfillCoinStats(out, now)
   out.shop = saved.shop && typeof saved.shop === 'object' ? sanitizeShop(saved.shop) : grandfatherShop(out, now)
+  out.ui = sanitizeUi(saved.ui)
   out.schemaVersion = SCHEMA_VERSION
   return out
 }

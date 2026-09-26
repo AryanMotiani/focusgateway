@@ -2,6 +2,7 @@
 // block set into declarativeNetRequest rules, redirects already-open tabs, sends
 // notifications, and mirrors a snapshot to the optional lock agent.
 import { createBackend, toErrorPayload, computeBlocks, hostMatches, BUNDLES } from '@focusgateway/core'
+import { appUrl, isOfficialApp, isDevApp } from './app-url.js'
 
 const ext = globalThis.browser ?? globalThis.chrome
 const STORE_KEY = 'fg_state'
@@ -26,6 +27,7 @@ const PASSIVE = new Set([
   'habits.delete',
   'tasks.logTime',
   'settings.update',
+  'ui.mark',
 ])
 
 // ---------------------------------------------------------------- blocking
@@ -201,8 +203,9 @@ async function approvedOrigins() {
   return (await ext.storage.local.get(ORIGINS_KEY))[ORIGINS_KEY] || []
 }
 
-// A hosted copy of the app asked to connect. We never pop up a window for it (any site
-// could do that); the request waits in the toolbar popup until the user allows it.
+// A local copy of the app (localhost, for development) asked to connect. We never pop up a
+// window for it; the request waits in the toolbar popup until the user allows it. The official
+// hosted app does not ask: it is trusted by its exact origin and path (see app-url.js).
 async function requestApproval(origin) {
   const list = new Set((await ext.storage.session.get('fg_pending_origins')).fg_pending_origins || [])
   if (list.has(origin)) return
@@ -255,8 +258,11 @@ ext.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
     }
     if (msg?.type === 'fg-bridge' && sender.id === ext.runtime.id && sender.url) {
+      // the bridge only runs on these (manifest matches + bridge.js), checked here once more
+      const official = isOfficialApp(sender.url)
+      if (!official && !isDevApp(sender.url)) return { ok: false, error: { code: 'FORBIDDEN', message: 'Not the FocusGateway app.' } }
       const origin = new URL(sender.url).origin
-      const approved = (await approvedOrigins()).includes(origin)
+      const approved = official || (await approvedOrigins()).includes(origin)
       if (msg.cmd === 'hello') {
         if (!approved) await requestApproval(origin)
         return { ok: true, data: { approved, version: ext.runtime.getManifest().version, hostAccess: await hasHostAccess() } }
@@ -298,14 +304,17 @@ ext.runtime.onInstalled.addListener(async (details) => {
     // done on the website carries over instead of starting the tutorial again.
     const tabs = await ext.tabs.query({ url: ['http://*/*', 'https://*/*'] }).catch(() => [])
     const appTab = tabs.find(
-      (t) => /(^| · )FocusGateway($|:)/.test(t.title || '') || /FocusGateway: study without the scroll/.test(t.title || ''),
+      (t) =>
+        (isOfficialApp(t.url) || isDevApp(t.url)) &&
+        (/(^| · )FocusGateway($|:)/.test(t.title || '') || /FocusGateway: study without the scroll/.test(t.title || '')),
     )
     if (appTab) {
       await ext.tabs.reload(appTab.id).catch(() => {})
       await ext.tabs.update(appTab.id, { active: true }).catch(() => {})
       if (appTab.windowId != null) ext.windows?.update(appTab.windowId, { focused: true }).catch(() => {})
     } else {
-      ext.tabs.create({ url: ext.runtime.getURL('app/index.html#/welcome') })
+      // the hosted app when online (always the newest version), the bundled copy when not
+      ext.tabs.create({ url: await appUrl('/welcome') })
     }
   }
 })

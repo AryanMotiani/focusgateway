@@ -135,7 +135,10 @@
       <h2>What leaves your computer</h2>
       <p>Nothing that FocusGateway collects. Specifically:</p>
       <ul>
-        <li>The extension makes no network requests except to the optional lock agent on your own computer (<code>127.0.0.1</code>).</li>
+        <li>
+          The extension makes no network requests except to the optional lock agent on your own computer (<code>127.0.0.1</code>), and a
+          quick check that the FocusGateway website is online before it opens it for you. That check sends nothing about you.
+        </li>
         <li>
           The study room's music and ambience are generated live in your browser. No audio is streamed and nothing is downloaded while you
           listen.
@@ -185,8 +188,8 @@
           <tr>
             <th>Helper script on web pages</th>
             <td>
-              A tiny script lets a FocusGateway website you approved in the extension talk to the extension. It only answers sites you
-              pressed Allow for, and it does not read the page.
+              A tiny script lets the FocusGateway website talk to the extension. It runs only on the FocusGateway website (and on a copy on
+              your own computer that you allowed), never on other sites, and it does not read the page.
             </td>
           </tr>
         </table>

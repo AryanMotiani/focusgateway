@@ -25,6 +25,7 @@ import {
 } from './tasks.js'
 import { dateKey, fromDateKey, startOfDay, addDays } from './time.js'
 import { COLOR_MODES, mergeAppearance } from './appearance.js'
+import { mergeUi, unionUi } from './ui.js'
 
 export class FGError extends Error {
   constructor(code, message, details) {
@@ -374,6 +375,8 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         onboarding,
       })
       next.createdAt = Number(incoming.createdAt) || now()
+      // what was already seen on either side stays seen (the room intro, tips, notices)
+      next.ui = unionUi(s.ui, incoming.ui)
       Object.keys(s).forEach((k) => delete s[k])
       Object.assign(s, next)
       log(s, 'setup_adopted')
@@ -831,6 +834,14 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       return s.settings
     },
 
+    // Tours, tips and notices the person has seen (ui.js). Only adds, never removes.
+    'ui.mark': (s, patch) => {
+      const r = mergeUi(s.ui, patch)
+      if (r.error) fail('VALIDATION', r.error)
+      s.ui = r.value
+      return s.ui
+    },
+
     // The shop (economy.js): buy with coins, once, for keeps
     'shop.buy': (s, { id }) => {
       const r = canBuy(s, id, progressOf(s).level)
@@ -899,6 +910,7 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
       if (!payload || typeof payload !== 'object' || !Array.isArray(payload.tasks))
         fail('VALIDATION', 'That file is not a FocusGateway export.')
       const next = sanitizeIncoming(payload, { security: s.security, agent: s.agent, onboarding: s.onboarding })
+      next.ui = unionUi(s.ui, payload.ui)
       Object.keys(s).forEach((k) => delete s[k])
       Object.assign(s, next)
       log(s, 'data_imported')

@@ -19,6 +19,7 @@ import StatusStrip from './components/StatusStrip.vue'
 import TodayRail from './components/TodayRail.vue'
 import Celebrate from './components/Celebrate.vue'
 import { startRewardWatch, isGame } from './lib/rewards.js'
+import { startSeenSync } from './lib/seen.js'
 import { lofiState } from './lib/lofi.js'
 import { freshAffordable } from './lib/shop.js'
 
@@ -38,6 +39,7 @@ watchEffect(() => {
   root.classList.toggle('dark', isDark.value)
 })
 startRewardWatch()
+startSeenSync()
 
 // The study room is home. Everything else is one click away and shares the status strip.
 const nav = [

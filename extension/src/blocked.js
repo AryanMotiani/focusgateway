@@ -1,4 +1,5 @@
 import { computeBlocks, hostMatches, TEST_DOMAIN } from '@focusgateway/core'
+import { appUrl } from './app-url.js'
 
 const ext = globalThis.browser ?? globalThis.chrome
 const QUOTES = [
@@ -87,9 +88,19 @@ async function render() {
     if (!b.locked && b.kind !== 'focus' && b.ruleId) {
       failsafe.hidden = false
       failsafe.href = `app/index.html#/today?failsafe=${encodeURIComponent(b.ruleId)}`
+      failsafe.dataset.route = `/today?failsafe=${encodeURIComponent(b.ruleId)}`
     }
   }
 }
+
+// "Open my tasks", "Go to the study room" and Failsafe open the hosted app when it answers,
+// else the copy inside the extension (the href)
+document.addEventListener('click', async (e) => {
+  const a = e.target.closest?.('a[data-route]')
+  if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return
+  e.preventDefault()
+  location.href = await appUrl(a.dataset.route)
+})
 
 reportTest().then(() => render())
 setInterval(render, 20_000)

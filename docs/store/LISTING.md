@@ -62,11 +62,11 @@ Every permission in `extension/build.mjs` (the manifest), with the reason to pas
 | `tabs` | When a block starts, finds tabs already open on a newly blocked site and sends them to the extension's "blocked" page. After installing, finds the FocusGateway tab the user came from to carry their setup over. Tab contents are never read. |
 | `notifications` | Tells the user when a block starts or ends. |
 | Host permission `<all_urls>` | The user can block any site of their choice, so the extension needs to act on any site: block its requests and redirect its open tabs. It is also needed to talk to the optional lock agent on the user's own computer (`http://127.0.0.1:47621`). No page content is read or collected. |
-| Content script on `http://*/*`, `https://*/*` (`bridge.js`) | A few lines that let a hosted copy of the FocusGateway web app talk to the extension. It only relays messages from sites the user explicitly approved in the extension popup, and it does not read the page. |
+| Content script on `https://aryanmotiani.github.io/focusgateway/*`, `http://localhost/*` and `http://127.0.0.1/*` (`bridge.js`) | A few lines that let the official FocusGateway web app talk to the extension. It runs on no other site. It checks the page's origin and path before relaying, the official app is trusted by that exact path, and a local development copy needs the user's approval in the extension popup. It does not read the page. |
 | `incognito: "spanning"` | Blocks also apply in private windows when the user allows the extension there. |
 | `web_accessible_resources` (`blocked.html` and its assets) | The page shown in place of a blocked site. |
 
-**Remote code:** none. All code ships in the package. No `eval`, no remote scripts (CSP `script-src 'self'`).
+**Remote code:** none. All code ships in the package. No `eval`, no remote scripts (CSP `script-src 'self'`). The popup and the blocked page open the FocusGateway website in a normal tab when it is reachable (a single `HEAD` request checks that first), and the copy of the app inside the package when it is not. The website never runs inside the extension.
 
 ## Data usage disclosures
 
@@ -79,4 +79,4 @@ For the Chrome Web Store "Privacy practices" tab and the Edge equivalent.
 
 ## Reviewer notes (Edge and Chrome "notes for certification")
 
-> FocusGateway is a free, open-source site blocker for students (https://github.com/AryanMotiani/focusgateway). To test: after installing, a FocusGateway tab opens with a short setup (choose any PIN and skip through the steps). Then open Blocking and add a Hard block for YouTube that covers the current time. Visiting youtube.com now shows the blocked page. The extension makes no network requests except to an optional local helper program on 127.0.0.1:47621, which reviewers do not need. No account or login exists.
+> FocusGateway is a free, open-source site blocker for students (https://github.com/AryanMotiani/focusgateway). To test: after installing, a FocusGateway tab opens with a short setup (choose any PIN and skip through the steps). Then open Blocking and add a Hard block for YouTube that covers the current time. Visiting youtube.com now shows the blocked page. The extension makes no network requests except a reachability check of its own website (https://aryanmotiani.github.io/focusgateway/, before opening it in a tab) and an optional local helper program on 127.0.0.1:47621, which reviewers do not need. No account or login exists.

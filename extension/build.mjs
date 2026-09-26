@@ -2,6 +2,10 @@
 // and Firefox into dist/<target>, plus store-ready zips.
 //   node build.mjs            build both targets (runs the web build first)
 //   node build.mjs --skip-web reuse apps/web/dist-ext
+// The extension opens the hosted app (package.json "homepage", or FG_APP_URL) by default and
+// trusts it for the bridge. dist/e2e-chromium is the same Chromium build with the local preview
+// (FG_E2E_APP_URL, default http://localhost:4173/) as the "hosted app", for the end-to-end tests
+// only. It is never zipped or released.
 import { build } from 'esbuild'
 import { cp, mkdir, rm, writeFile, readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
@@ -13,6 +17,24 @@ const here = path.dirname(fileURLToPath(import.meta.url))
 const root = path.resolve(here, '..')
 const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'))
 const skipWeb = process.argv.includes('--skip-web')
+
+/** The official hosted app: https://<user>.github.io/<repo>/ (lowercase, ends with /). */
+function appUrlFrom(value, name) {
+  let u
+  try {
+    u = new URL(String(value || '').toLowerCase())
+  } catch {
+    throw new Error(`${name} must be the hosted app's URL, like https://user.github.io/focusgateway/`)
+  }
+  if (!/^https?:$/.test(u.protocol) || u.search || u.hash) throw new Error(`${name} must be a plain http(s) URL`)
+  if (!u.pathname.endsWith('/')) u.pathname += '/'
+  return u
+}
+const APP_URL = appUrlFrom(process.env.FG_APP_URL || pkg.homepage, process.env.FG_APP_URL ? 'FG_APP_URL' : 'package.json homepage')
+const E2E_APP_URL = appUrlFrom(process.env.FG_E2E_APP_URL || 'http://localhost:4173/', 'FG_E2E_APP_URL')
+// the bridge content script: only the hosted app's own path, plus localhost for development
+// (match patterns can not hold a port, bridge.js and the background check the full URL)
+const bridgeMatches = (u) => [...new Set([`${u.protocol}//${u.hostname}${u.pathname}*`, 'http://localhost/*', 'http://127.0.0.1/*'])]
 
 const webOut = path.join(root, 'apps/web/dist-ext')
 if (!skipWeb || !existsSync(webOut)) {
@@ -39,13 +61,14 @@ const baseManifest = {
   permissions: ['declarativeNetRequest', 'storage', 'unlimitedStorage', 'alarms', 'tabs', 'notifications'],
   host_permissions: ['<all_urls>'],
   incognito: 'spanning',
-  content_scripts: [{ matches: ['http://*/*', 'https://*/*'], js: ['bridge.js'], run_at: 'document_start', all_frames: false }],
+  content_scripts: [{ matches: bridgeMatches(APP_URL), js: ['bridge.js'], run_at: 'document_start', all_frames: false }],
   web_accessible_resources: [{ resources: ['blocked.html', 'blocked.js', 'page.css', 'icons/*'], matches: ['<all_urls>'] }],
   content_security_policy: { extension_pages: "script-src 'self'; object-src 'self'" },
 }
 
+const chromium = { ...baseManifest, background: { service_worker: 'background.js' }, minimum_chrome_version: '120' }
 const targets = {
-  chromium: { ...baseManifest, background: { service_worker: 'background.js' }, minimum_chrome_version: '120' },
+  chromium,
   firefox: {
     ...baseManifest,
     background: { scripts: ['background.js'] },
@@ -58,7 +81,12 @@ const targets = {
       },
     },
   },
+  'e2e-chromium': {
+    ...chromium,
+    content_scripts: [{ ...baseManifest.content_scripts[0], matches: bridgeMatches(E2E_APP_URL) }],
+  },
 }
+const appUrlFor = (name) => (name === 'e2e-chromium' ? E2E_APP_URL : APP_URL)
 
 for (const [name, manifest] of Object.entries(targets)) {
   const out = path.join(here, 'dist', name)
@@ -72,11 +100,16 @@ for (const [name, manifest] of Object.entries(targets)) {
     target: ['chrome120', 'firefox128'],
     minify: true,
     legalComments: 'none',
+    define: { __FG_APP_URL__: JSON.stringify(appUrlFor(name).href) },
   })
   for (const f of ['blocked.html', 'popup.html', 'grant.html', 'page.css']) await cp(path.join(here, 'src', f), path.join(out, f))
   await cp(path.join(here, 'src/icons'), path.join(out, 'icons'), { recursive: true })
   await cp(webOut, path.join(out, 'app'), { recursive: true })
   await writeFile(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2))
+  if (name === 'e2e-chromium') {
+    console.log('> built', path.relative(root, out), '(tests only, hosted app', appUrlFor(name).href + ')')
+    continue
+  }
   try {
     await rm(path.join(here, 'dist', `focusgateway-${name}-${pkg.version}.zip`), { force: true })
     execSync(`cd "${out}" && zip -qr "../focusgateway-${name}-${pkg.version}.zip" .`)
