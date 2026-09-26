@@ -1,12 +1,15 @@
 <script setup>
-// The palette button: change the style and theme from any page, the room included. Opens a
-// compact popover with Game or Calm, the four themes of that mode as mini previews, and the
-// optional night theme. Changes apply at once. Settings keeps the full picker.
-// glass: drawn as a study room header button. label: show "Theme" next to the icon.
+// The palette button, with the one click sun and moon button beside it: change the look from
+// any page, the room included. The palette opens a compact popover with Light or Dark on top,
+// then Game or Calm and the four themes of that mode as mini previews in the current variant.
+// Changes apply at once. Settings keeps the full picker.
+// glass: drawn as study room header buttons. label: show "Theme" next to the icon.
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import { store } from '../../lib/store.js'
-import { lookMode, themesFor, lookFor, setTheme, setNight, setLookMode } from '../../lib/look.js'
+import { lookMode, themesFor, lookFor, setTheme, setLookMode, isDark } from '../../lib/look.js'
 import Icon from '../Icon.vue'
+import ColorModeButton from './ColorModeButton.vue'
+import ColorModeSwitch from './ColorModeSwitch.vue'
 
 const props = defineProps({ glass: Boolean, label: Boolean, up: Boolean })
 const open = ref(false)
@@ -17,7 +20,6 @@ const pos = ref({})
 const mode = computed(() => lookMode.value)
 const themes = computed(() => themesFor(mode.value))
 const current = computed(() => lookFor(mode.value))
-const nightOptions = computed(() => themes.value.filter((t) => t.id !== current.value.theme))
 const onboarded = computed(() => !!store.state?.onboarding?.completed)
 
 function place() {
@@ -63,33 +65,29 @@ function close() {
   window.removeEventListener('resize', place)
 }
 onBeforeUnmount(close)
-
-function toggleNight(on) {
-  if (!on) return setNight(null, mode.value)
-  // the first dark theme that is not the day theme, else any other one
-  const pick = nightOptions.value.find((t) => t.tone === 'dark') || nightOptions.value[0]
-  return setNight(pick.id, mode.value)
-}
 </script>
 
 <template>
-  <button
-    ref="btn"
-    type="button"
-    :class="
-      glass
-        ? 'room-glass room-pill flex items-center gap-1.5 p-2 text-xs font-bold'
-        : 'btn btn-ghost btn-sm gap-1.5 !px-2 text-muted hover:text-ink'
-    "
-    :aria-expanded="open"
-    aria-haspopup="dialog"
-    aria-label="Change theme"
-    title="Change theme"
-    data-theme-button
-    @click="toggle"
-  >
-    <Icon name="palette" :size="16" /><span v-if="label" class="text-sm">Theme</span>
-  </button>
+  <span :class="glass ? 'contents' : 'inline-flex items-center gap-0.5'">
+    <button
+      ref="btn"
+      type="button"
+      :class="
+        glass
+          ? 'room-glass room-pill flex items-center gap-1.5 p-2 text-xs font-bold'
+          : 'btn btn-ghost btn-sm gap-1.5 !px-2 text-muted hover:text-ink'
+      "
+      :aria-expanded="open"
+      aria-haspopup="dialog"
+      aria-label="Change theme"
+      title="Change theme"
+      data-theme-button
+      @click="toggle"
+    >
+      <Icon name="palette" :size="16" /><span v-if="label" class="text-sm">Theme</span>
+    </button>
+    <ColorModeButton :glass="glass" />
+  </span>
   <Teleport to="body">
     <div
       v-if="open"
@@ -100,7 +98,9 @@ function toggleNight(on) {
       class="card fixed z-[90] max-h-[calc(100dvh-24px)] overflow-y-auto p-4 text-ink shadow-2xl"
       :style="pos"
     >
-      <div class="flex items-center justify-between gap-3">
+      <ColorModeSwitch auto wide />
+
+      <div class="mt-3 flex items-center justify-between gap-3">
         <p class="font-semibold">Theme</p>
         <div class="flex rounded-xl border border-line p-0.5 text-sm" role="radiogroup" aria-label="Style">
           <button
@@ -138,15 +138,17 @@ function toggleNight(on) {
             class="theme-scope block overflow-hidden rounded-xl border border-black/10 p-2"
             :data-theme-id="t.id"
             :data-mode="mode"
-            :class="t.tone === 'dark' && 'dark'"
+            :class="isDark && 'dark'"
           >
-            <span class="flex items-center justify-between">
-              <span class="h-display text-2xl leading-none">Aa</span>
-              <Icon :name="t.tone === 'dark' ? 'moon' : 'sun'" :size="13" class="text-muted" />
-            </span>
+            <span class="h-display block text-2xl leading-none">Aa</span>
             <span class="mt-2 flex items-center gap-1">
               <i class="block h-2.5 flex-1 rounded-full bg-accent" />
-              <i v-for="c in t.swatch.slice(4, 7)" :key="c" class="block h-2.5 w-2.5 rounded-full" :style="{ background: c }" />
+              <i
+                v-for="c in t.swatch[isDark ? 'dark' : 'light'].slice(4, 7)"
+                :key="c"
+                class="block h-2.5 w-2.5 rounded-full"
+                :style="{ background: c }"
+              />
             </span>
           </span>
           <span
@@ -154,25 +156,6 @@ function toggleNight(on) {
             :class="current.theme === t.id ? 'text-on-accent' : 'text-muted group-hover:text-ink'"
             >{{ t.name }}</span
           >
-        </button>
-      </div>
-
-      <label class="mt-3 flex items-start gap-2 text-sm">
-        <input type="checkbox" class="mt-1" :checked="!!current.night" data-night-toggle @change="toggleNight($event.target.checked)" />
-        <span>Use a night theme when my device is dark</span>
-      </label>
-      <div v-if="current.night" class="mt-2 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Night theme">
-        <button
-          v-for="t in nightOptions"
-          :key="t.id"
-          type="button"
-          role="radio"
-          :aria-checked="current.night === t.id"
-          class="rounded-full border-2 px-2.5 py-1 text-xs font-semibold transition"
-          :class="current.night === t.id ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted hover:border-ink/30'"
-          @click="setNight(t.id, mode)"
-        >
-          <Icon :name="t.tone === 'dark' ? 'moon' : 'sun'" :size="11" class="mr-0.5 inline" /> {{ t.name }}
         </button>
       </div>
 

@@ -1,8 +1,9 @@
 <script setup>
-// A small screenshot of the app drawn in one theme: its own typefaces, colours, corners
-// and texture. The card scopes the theme itself (data-theme-id), so it never depends on
-// the theme that is active right now.
+// A small screenshot of the app drawn in one theme, in the light or dark variant on screen
+// now: its own typefaces, colours, corners and texture. The card scopes the theme and the
+// variant itself (data-theme-id, .dark), so it never depends on the theme that is active.
 import Icon from '../Icon.vue'
+import { isDark } from '../../lib/look.js'
 
 defineProps({
   theme: { type: Object, required: true },
@@ -28,7 +29,7 @@ const HEAT = [0, 2, 1, 3, 3, 2, 0, 3, 1, 3, 2, 3, 3, 1]
       class="theme-scope overflow-hidden rounded-xl border border-black/10"
       :data-theme-id="theme.id"
       :data-mode="mode"
-      :class="theme.tone === 'dark' && 'dark'"
+      :class="isDark && 'dark'"
     >
       <div class="space-y-2.5 p-3" :class="compact ? 'sm:p-2.5' : 'sm:p-4'">
         <div v-if="mode === 'game'" class="flex items-center gap-2 rounded-xl border-2 border-hud-line bg-hud px-2.5 py-1.5 text-hud-ink">
@@ -46,10 +47,7 @@ const HEAT = [0, 2, 1, 3, 3, 2, 0, 3, 1, 3, 2, 3, 3, 1]
           <span class="num text-xs text-accent">Level 7</span>
         </div>
 
-        <div class="flex items-end justify-between gap-2">
-          <p class="h-display truncate leading-none" :class="compact ? 'text-xl' : 'text-[1.7rem]'">{{ theme.name }}</p>
-          <Icon :name="theme.tone === 'dark' ? 'moon' : 'sun'" :size="16" class="mb-0.5 shrink-0 text-muted" />
-        </div>
+        <p class="h-display truncate leading-none" :class="compact ? 'text-xl' : 'text-[1.7rem]'">{{ theme.name }}</p>
 
         <div class="card relative flex items-center gap-2 overflow-hidden py-2 pr-2.5" :class="mode === 'game' ? 'pl-3.5' : 'pl-2.5'">
           <span v-if="mode === 'game'" class="rar-high absolute inset-y-0 left-0 w-1.5 bg-(--rar)" aria-hidden="true" />

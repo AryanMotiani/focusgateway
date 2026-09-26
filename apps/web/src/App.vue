@@ -33,7 +33,8 @@ watchEffect(() => {
   root.dataset.mode = lookMode.value
   // the whole theme (colours, typefaces, surfaces) is pure CSS from here, see style.css
   root.dataset.themeId = activeTheme.value.id
-  // dark themes also set .dark so dark: variants keep working
+  // .dark picks the theme's dark variant (settings.colorMode), so text and surfaces
+  // always come from the same variant
   root.classList.toggle('dark', isDark.value)
 })
 startRewardWatch()

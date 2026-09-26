@@ -1,4 +1,4 @@
-import { DEFAULT_APPEARANCE, LOOK_VERSION, migrateAppearance } from './appearance.js'
+import { DEFAULT_APPEARANCE, DEFAULT_COLOR_MODE, LOOK_VERSION, migrateAppearance } from './appearance.js'
 import { defaultRoom, sanitizeRoom } from './room.js'
 import { DEFAULT_LOFI, sanitizeLofi } from './lofi.js'
 import { defaultStats, backfillStats, sanitizeStats } from './progress.js'
@@ -21,7 +21,8 @@ export function defaultState() {
       uiMode: 'game', // 'game' | 'minimal'
       sounds: true,
       weeklyFocusGoalMin: 300,
-      appearance: structuredClone(DEFAULT_APPEARANCE), // theme + optional night theme, per mode
+      appearance: structuredClone(DEFAULT_APPEARANCE), // the theme, per mode
+      colorMode: DEFAULT_COLOR_MODE, // 'light' | 'dark' | 'auto', the variant of every theme
       lookVersion: LOOK_VERSION, // see migrateAppearance
       lofi: structuredClone(DEFAULT_LOFI), // study room scene, music and ambience, see lofi.js
       room: defaultRoom(), // avatar + placed decor, see room.js
@@ -62,8 +63,10 @@ export function migrate(saved, now = Date.now()) {
     out[k] = { ...base[k], ...(saved[k] || {}) }
   }
   out.settings.lofi = sanitizeLofi(saved.settings?.lofi)
-  // The old system/light/dark switch and palette picker became themes, see appearance.js
-  out.settings.appearance = migrateAppearance(saved.settings)
+  // The old palette picker became themes, the old switch and night theme the colour mode, see appearance.js
+  const look = migrateAppearance(saved.settings)
+  out.settings.appearance = look.appearance
+  out.settings.colorMode = look.colorMode
   out.settings.lookVersion = LOOK_VERSION
   delete out.settings.theme
   for (const [k, list] of Object.entries(SETTING_CHOICES)) if (!list.includes(out.settings[k])) out.settings[k] = base.settings[k]

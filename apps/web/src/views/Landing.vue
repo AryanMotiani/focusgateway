@@ -7,7 +7,7 @@ import '@fontsource-variable/fraunces/full-italic.css'
 import '@fontsource-variable/inter'
 import '@fontsource-variable/geist-mono'
 import '../components/landing/landing.css'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { store } from '../lib/store.js'
 import { REPO_URL } from '../config.js'
 import Icon from '../components/Icon.vue'
@@ -45,11 +45,11 @@ watch(theme, (v) => {
 })
 const toggleTheme = () => (theme.value = theme.value === 'dark' ? 'light' : 'dark')
 
-// the page background behind overscroll follows the landing theme, then goes back to the app's
-let before = ''
-onMounted(() => {
-  before = document.body.style.backgroundColor
-})
+// the page background behind overscroll follows the landing theme, then goes back to the app's.
+// Read what was there before the immediate watch below paints it, and on leaving hand the
+// background back to the stylesheet. Otherwise the landing cream stays on <body> under every
+// app page and a dark theme ends up with light text on a light page.
+const before = document.body.style.backgroundColor
 watch(
   theme,
   (v) => {

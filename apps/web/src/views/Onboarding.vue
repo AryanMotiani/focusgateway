@@ -10,6 +10,7 @@ import PinField from '../components/PinField.vue'
 import FailsafeFlow from '../components/FailsafeFlow.vue'
 import RuleEditor from '../components/RuleEditor.vue'
 import ThemePicker from '../components/look/ThemePicker.vue'
+import ColorModeSwitch from '../components/look/ColorModeSwitch.vue'
 import QuickTheme from '../components/look/QuickTheme.vue'
 import logo from '../assets/logo.svg'
 
@@ -173,7 +174,10 @@ const firstRule = computed(() => s.value.rules[0])
             </div>
           </div>
           <div>
-            <p class="label">And a theme</p>
+            <div class="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+              <p class="label !mb-0">And a theme</p>
+              <ColorModeSwitch />
+            </div>
             <ThemePicker :mode="uiMode" compact />
           </div>
           <button class="btn btn-primary w-full py-3" @click="start">Start setup</button>
