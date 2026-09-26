@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { createBackend } from '../src/backend.js'
 import { migrate, defaultState } from '../src/state.js'
 import {
@@ -361,7 +362,7 @@ describe('theme variants', () => {
         else if (e.name.endsWith('.vue')) files.push(p)
       }
     }
-    walk(new URL('.', WEB).pathname)
+    walk(fileURLToPath(new URL('.', WEB)))
     const used = new Set()
     for (const f of files) for (const m of readFileSync(f, 'utf8').matchAll(/\bbg-([a-z][\w-]*)/g)) if (TOKENS.has(m[1])) used.add(m[1])
     expect([...used].filter((u) => !CHECKED_BG.has(u))).toEqual([])
