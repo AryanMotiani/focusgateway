@@ -26,7 +26,15 @@ const moving = computed(() => props.ctl.wm.moving === props.id)
 const style = computed(() => {
   if (props.stacked) return win.value?.max ? {} : null
   const r = rect.value
-  return r ? { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px', zIndex: 10 + win.value.z } : null
+  return r
+    ? {
+        left: r.x + 'px',
+        top: r.y + 'px',
+        width: r.w + 'px',
+        height: r.h + 'px',
+        zIndex: props.tip && !win.value.min ? 900 : 10 + win.value.z,
+      }
+    : null
 })
 // what the content gets to lay itself out: the inner size of the window
 const size = computed(() => {
