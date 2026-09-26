@@ -1852,9 +1852,11 @@ body,
     --fg-btn-line: var(--fg-room-line);
     color: var(--fg-ink);
   }
+  /* solid, not see-through: windows, tips and popovers often sit on top of each other, and
+     text showing through from below made both unreadable */
   .room-glass {
     color: var(--fg-room-ink);
-    background-color: var(--fg-room-bg);
+    background-color: var(--fg-room-base);
     background-image: var(--fg-room-texture);
     background-size: var(--fg-room-texture-size);
     border: var(--fg-room-border-w) var(--fg-room-border-style) var(--fg-room-border);

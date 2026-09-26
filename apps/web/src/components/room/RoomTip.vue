@@ -31,8 +31,9 @@ onMounted(() => btn.value?.focus({ preventScroll: true }))
   align-items: start;
   padding: 12px 12px 10px;
   border-radius: 14px;
-  background: var(--fg-card);
-  color: var(--fg-ink);
+  /* always solid and on top, it often sits over another window */
+  background: var(--fg-room-base, var(--fg-paper));
+  color: var(--fg-room-ink, var(--fg-ink));
   border: 1.5px solid var(--fg-accent);
   box-shadow: 0 14px 34px rgb(0 0 0 / 0.28);
   font-size: 13px;
@@ -50,7 +51,7 @@ onMounted(() => btn.value?.focus({ preventScroll: true }))
 .tip-above,
 .tip-inside {
   position: absolute;
-  z-index: 5;
+  z-index: 50;
   left: 10px;
   width: min(320px, calc(100% - 20px));
   min-width: 240px;
@@ -72,7 +73,7 @@ onMounted(() => btn.value?.focus({ preventScroll: true }))
   left: 22px;
   width: 12px;
   height: 12px;
-  background: var(--fg-card);
+  background: var(--fg-room-base, var(--fg-paper));
   border: 1.5px solid var(--fg-accent);
   transform: rotate(45deg);
 }

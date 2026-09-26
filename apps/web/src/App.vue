@@ -127,9 +127,7 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
       </aside>
 
       <!-- mobile top bar -->
-      <header
-        class="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-paper/90 px-4 py-3 backdrop-blur lg:hidden"
-      >
+      <header class="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-paper px-4 py-3 lg:hidden">
         <RouterLink to="/" class="flex items-center gap-2"
           ><img :src="logo" alt="" class="h-7 w-7" /><span class="font-semibold">FocusGateway</span></RouterLink
         >
@@ -151,7 +149,7 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
       </div>
 
       <div class="min-w-0 flex-1">
-        <div class="sticky top-[57px] z-20 bg-paper/85 px-4 pt-3 pb-2 backdrop-blur sm:px-6 lg:top-0 lg:px-10 lg:pt-5">
+        <div class="sticky top-[57px] z-20 bg-paper px-4 pt-3 pb-2 sm:px-6 lg:top-0 lg:px-10 lg:pt-5">
           <div class="mx-auto max-w-5xl" data-tour="status"><StatusStrip /></div>
         </div>
         <main class="mx-auto w-full max-w-5xl px-4 pt-4 pb-28 sm:px-6 lg:px-10 lg:pt-6 lg:pb-12">
@@ -163,7 +161,7 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
 
       <!-- mobile bottom nav -->
       <nav
-        class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+        class="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-line bg-paper pb-[env(safe-area-inset-bottom)] lg:hidden"
         aria-label="Quick"
       >
         <RouterLink
