@@ -1,10 +1,11 @@
 <script setup>
 // Red "Blocking is off" marker for the status strip and the focus card. Only shows when
 // blocking can not work in this browser (see blockingIssue in lib/store.js).
-// big: a full-width warning box instead of a small chip.
+// big: a full-width warning box instead of a small chip. The chip opens the Blocking status
+// checklist, the box the dialog with the fix.
 import { computed } from 'vue'
 import { blockingIssue, store } from '../../lib/store.js'
-import { showBlockingOff } from './guard.js'
+import { showBlockingOff, showBlockingStatus } from './guard.js'
 import Icon from '../Icon.vue'
 
 defineProps({ big: Boolean })
@@ -39,8 +40,8 @@ const text = computed(
       type="button"
       data-blocking-off-chip
       class="flex items-center gap-1.5 rounded-full bg-bad px-2.5 py-1 text-xs font-bold text-on-bad"
-      :title="text"
-      @click="showBlockingOff(blockingIssue, 'info')"
+      :title="`${text} See the blocking status.`"
+      @click="showBlockingStatus"
     >
       <Icon name="alert" :size="13" /> Blocking is off
     </button>

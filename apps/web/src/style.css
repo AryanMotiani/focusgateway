@@ -30,14 +30,15 @@
 @import '@fontsource-variable/fraunces';
 
 /*
-  Two modes, eight themes, one set of components.
+  Two modes, eight themes, each in a light and a dark variant, one set of components.
     html[data-mode='game']     XP, levels, pressable controls
     html[data-mode='minimal']  the same features, quiet (shown as Calm)
-  html[data-theme-id] picks a complete theme: fixed tone, typefaces, palette, shape language
-  (radii, border widths, shadows), background texture and the study room glass.
-  `.dark` is set on <html> when the theme is dark.
+  html[data-theme-id] picks a complete theme: typefaces, shape language (radii, border
+  widths, shadows), palette, background texture and the study room glass.
+  `.dark` next to it picks the dark variant (settings.colorMode, see lib/look.js).
   A theme block also works on any element (the theme picker cards use that), because
-  the utilities read the --fg-* tokens directly (@theme inline).
+  the utilities read the --fg-* tokens directly (@theme inline). The variant is scoped
+  the same way: a card with data-theme-id and no .dark is light even on a dark page.
   Components only use these tokens, never raw colours.
 */
 
@@ -191,14 +192,18 @@
 
 /*
   ---------- Themes ----------
-  Every block sets every colour, so nothing leaks between themes. The --fg-hud-* colours
-  are what the game HUD (always dark) uses for the same roles, see the .bg-hud rule below.
+  Each theme is two blocks on the same element: [data-theme-id='x'] holds the light colours
+  and the shape, [data-theme-id='x'].dark sets every one of those colours again for dark.
+  Every block sets every colour, so nothing leaks between themes or variants. Text and
+  surfaces always come from the same block. The --fg-hud-* colours are what the HUD
+  (status strip, level card, always dark in Game) uses for the same roles, see .bg-hud below.
   --fg-room-base is the study room window colour without its transparency, the contrast
   test reads it together with --fg-room-ink, --fg-room-muted and the active tab colours.
   packages/core/test/appearance.test.js checks these hex values for WCAG contrast.
 */
 
-/* Sunny Quest: fresh cream and sky, coral, teal, sunflower, grass.
+/* Sunny Quest: coral, teal, sunflower, grass. Light is fresh cream and sky, dark is a deep
+   blue slate after sunset with cream text.
    Shape: very round and bubbly. Pill buttons, chunky pressable bottom edges, soft dot texture. */
 [data-theme-id='sunny'] {
   --fg-paper: #fff8ea;
@@ -224,18 +229,19 @@
   --fg-bad: #bb2842;
   --fg-bad-soft: #ffe4e8;
   --fg-on-bad: #ffffff;
-  --fg-xp: #b27800;
+  --fg-xp: #8a5c00;
   --fg-xpbar: #1a868c;
   --fg-hud: #1d3a6b;
   --fg-hud-ink: #f4f7ff;
   --fg-hud-muted: #b8c7e4;
-  --fg-hud-line: #34568f;
+  --fg-hud-line: #2e4c80;
   --fg-hud-accent: #ff9b80;
   --fg-hud-accent-deep: #d8664b;
   --fg-hud-on-accent: #2a1208;
   --fg-hud-warm: #ffc24a;
   --fg-hud-good: #8be096;
   --fg-hud-bad: #ff9aa9;
+  --fg-hud-on-bad: #240a10;
   --fg-hud-xp: #ffd34d;
   --fg-hud-xpbar: #ffd34d;
   --fg-heat-0: #f6e7c8;
@@ -245,6 +251,27 @@
   --fg-rar-low: #1a868c;
   --fg-rar-medium: #3b6fd6;
   --fg-rar-high: #c28400;
+  --fg-shadow: 0 10px 24px -18px rgba(143, 90, 10, 0.45);
+  --fg-xp-overlay: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%);
+  --fg-texture: radial-gradient(rgba(198, 63, 40, 0.075) 2px, transparent 2.5px);
+  --fg-coin-ink: #8a5800;
+  --fg-room-base: #fffaf0;
+  --fg-room-bg: rgb(255 250 240 / 0.94);
+  --fg-room-border: #f0d8a8;
+  --fg-room-edge-color: #dcbd83;
+  --fg-room-shadow: 0 22px 40px -22px rgb(40 20 0 / 0.7);
+  --fg-room-bar: rgb(253 238 206 / 0.9);
+  --fg-room-bar-line: #f0d8a8;
+  --fg-room-ink: #1f2a44;
+  --fg-room-muted: #535c70;
+  --fg-room-line: #efdcb6;
+  --fg-room-sunk: rgb(250 232 196 / 0.7);
+  --fg-room-field: #ffffff;
+  --fg-room-hover: rgb(187 58 35 / 0.09);
+  --fg-room-tab: #bb3a23;
+  --fg-room-on-tab: #ffffff;
+  --fg-room-dock: rgb(255 250 240 / 0.94);
+  --fg-room-page: var(--fg-paper);
 
   --fg-font-sans: 'Nunito Variable', system-ui, sans-serif;
   --fg-font-display: 'Fredoka Variable', system-ui, sans-serif;
@@ -263,7 +290,6 @@
   --fg-r-3xl: 32px;
   --fg-radius: 28px;
   --fg-radius-sm: 18px;
-  --fg-shadow: 0 10px 24px -18px rgba(143, 90, 10, 0.45);
   --fg-border-w: 2px;
   --fg-input-radius: 16px;
   --fg-card-edge: 4px;
@@ -275,41 +301,89 @@
   --fg-press-y: 4px;
   --fg-chip-weight: 700;
   --fg-xp-height: 14px;
-  --fg-xp-overlay: linear-gradient(rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 55%);
   --fg-xp-inset: 0.22;
-  --fg-texture: radial-gradient(rgba(198, 63, 40, 0.075) 2px, transparent 2.5px);
   --fg-texture-size: 26px 26px;
-
-  --fg-coin-ink: #8a5800;
-  --fg-room-base: #fffaf0;
-  --fg-room-bg: rgb(255 250 240 / 0.94);
-  --fg-room-border: #f0d8a8;
   --fg-room-border-w: 2px;
   --fg-room-edge: 4px;
-  --fg-room-edge-color: #dcbd83;
   --fg-room-radius: 26px;
-  --fg-room-shadow: 0 22px 40px -22px rgb(40 20 0 / 0.7);
   --fg-room-blur: 16px;
   --fg-room-sat: 150%;
-  --fg-room-bar: rgb(253 238 206 / 0.9);
-  --fg-room-bar-line: #f0d8a8;
   --fg-room-bar-w: 2px;
-  --fg-room-ink: #1f2a44;
-  --fg-room-muted: #535c70;
-  --fg-room-line: #efdcb6;
-  --fg-room-sunk: rgb(250 232 196 / 0.7);
-  --fg-room-field: #ffffff;
-  --fg-room-hover: rgb(187 58 35 / 0.09);
-  --fg-room-tab: #bb3a23;
-  --fg-room-on-tab: #ffffff;
-  --fg-room-dock: rgb(255 250 240 / 0.94);
-  --fg-room-page: var(--fg-paper);
   --fg-room-title-size: 15px;
   --fg-room-title-weight: 600;
   --fg-room-btn-radius: 999px;
 }
+[data-theme-id='sunny'].dark {
+  --fg-paper: #182030;
+  --fg-card: #212a3d;
+  --fg-sunk: #1c2436;
+  --fg-ink: #fff4e0;
+  --fg-muted: #c3c8d6;
+  --fg-line: #34405a;
+  --fg-edge: #0c111c;
+  --fg-accent: #ff8a6e;
+  --fg-accent-deep: #d0614a;
+  --fg-accent-soft: #3c2a35;
+  --fg-on-accent: #2a1208;
+  --fg-warm: #ffb547;
+  --fg-warm-deep: #cf8a20;
+  --fg-warm-soft: #372d22;
+  --fg-good: #84d68e;
+  --fg-good-deep: #52a55d;
+  --fg-good-soft: #1d3629;
+  --fg-on-good: #0c2410;
+  --fg-caution: #ffc861;
+  --fg-caution-soft: #372f20;
+  --fg-bad: #ff8d9e;
+  --fg-bad-soft: #402337;
+  --fg-on-bad: #2a0810;
+  --fg-xp: #ffd34d;
+  --fg-xpbar: #3cc4c9;
+  --fg-hud: #0f1626;
+  --fg-hud-ink: #f4f7ff;
+  --fg-hud-muted: #b8c7e4;
+  --fg-hud-line: #2a3a5c;
+  --fg-hud-accent: #ff9b80;
+  --fg-hud-accent-deep: #d8664b;
+  --fg-hud-on-accent: #2a1208;
+  --fg-hud-warm: #ffc24a;
+  --fg-hud-good: #8be096;
+  --fg-hud-bad: #ff9aa9;
+  --fg-hud-on-bad: #240a10;
+  --fg-hud-xp: #ffd34d;
+  --fg-hud-xpbar: #ffd34d;
+  --fg-heat-0: #273149;
+  --fg-heat-1: #1f5a61;
+  --fg-heat-2: #2b9da2;
+  --fg-heat-3: #72e2e5;
+  --fg-rar-low: #3cc4c9;
+  --fg-rar-medium: #86a8ff;
+  --fg-rar-high: #ffc24a;
+  --fg-shadow: 0 10px 24px -16px rgba(0, 0, 0, 0.7);
+  --fg-xp-overlay: linear-gradient(rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 55%);
+  --fg-texture: radial-gradient(rgba(255, 138, 110, 0.07) 2px, transparent 2.5px);
+  --fg-coin-ink: #ffc94d;
+  --fg-room-base: #212a3d;
+  --fg-room-bg: rgb(33 42 61 / 0.95);
+  --fg-room-border: #3a4764;
+  --fg-room-edge-color: #0c111c;
+  --fg-room-shadow: 0 22px 40px -22px rgb(0 0 0 / 0.8);
+  --fg-room-bar: rgb(40 50 74 / 0.9);
+  --fg-room-bar-line: #3a4764;
+  --fg-room-ink: #fff4e0;
+  --fg-room-muted: #c3c8d6;
+  --fg-room-line: #384460;
+  --fg-room-sunk: rgb(255 244 224 / 0.06);
+  --fg-room-field: #182030;
+  --fg-room-hover: rgb(255 138 110 / 0.12);
+  --fg-room-tab: #ff8a6e;
+  --fg-room-on-tab: #2a1208;
+  --fg-room-dock: rgb(33 42 61 / 0.95);
+  --fg-room-page: #111827;
+}
 
-/* Storybook: parchment and ink brown, berry, forest, ochre.
+/* Storybook: berry, forest, ochre. Light is parchment and ink brown, dark is the same book
+   by candlelight: walnut pages, cream ink, rose.
    Shape: wobbly hand drawn outlines, offset ink shadows, dashed rules. */
 [data-theme-id='storybook'] {
   --fg-paper: #f6ecd6;
@@ -340,13 +414,14 @@
   --fg-hud: #2e4a35;
   --fg-hud-ink: #faf1dc;
   --fg-hud-muted: #cfd9bd;
-  --fg-hud-line: #4a6b53;
+  --fg-hud-line: #3f5d48;
   --fg-hud-accent: #f5b1c2;
   --fg-hud-accent-deep: #c9788d;
   --fg-hud-on-accent: #3a1320;
   --fg-hud-warm: #f2c46a;
   --fg-hud-good: #b2dca3;
   --fg-hud-bad: #f8a99e;
+  --fg-hud-on-bad: #240a10;
   --fg-hud-xp: #f2c46a;
   --fg-hud-xpbar: #f2c46a;
   --fg-heat-0: #eadbb8;
@@ -356,6 +431,30 @@
   --fg-rar-low: #3a6a8a;
   --fg-rar-medium: #7a4b8c;
   --fg-rar-high: #a0690e;
+  --fg-shadow: 3px 4px 0 rgba(58, 42, 28, 0.16);
+  --fg-card-line: #b69d72;
+  --fg-card-edge-color: #b69d72;
+  --fg-btn-line: #8a6f4a;
+  --fg-btn-edge-color: #8a6f4a;
+  --fg-btn-shadow: 2px 3px 0 rgba(58, 42, 28, 0.35);
+  --fg-xp-overlay: repeating-linear-gradient(-45deg, rgba(255, 248, 236, 0.28) 0 3px, transparent 3px 8px);
+  --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .12 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fg-coin-ink: #7c520b;
+  --fg-room-base: #fcf6e6;
+  --fg-room-bg: rgb(252 246 230 / 0.96);
+  --fg-room-border: #6f5638;
+  --fg-room-shadow: 4px 5px 0 rgb(40 26 14 / 0.55), 0 20px 34px -20px rgb(0 0 0 / 0.6);
+  --fg-room-bar-line: #b69d72;
+  --fg-room-ink: #3a2a1c;
+  --fg-room-muted: #5e4936;
+  --fg-room-line: #d9c59c;
+  --fg-room-sunk: rgb(236 219 182 / 0.6);
+  --fg-room-field: #fffbf0;
+  --fg-room-hover: rgb(58 42 28 / 0.08);
+  --fg-room-tab: #962a49;
+  --fg-room-on-tab: #fff8ec;
+  --fg-room-dock: rgb(252 246 230 / 0.96);
+  --fg-room-page: var(--fg-paper);
 
   --fg-font-sans: 'Atkinson Hyperlegible Next Variable', system-ui, sans-serif;
   --fg-font-display: 'Patrick Hand', 'Comic Sans MS', system-ui, sans-serif;
@@ -378,62 +477,225 @@
   --fg-r-3xl: 26px 14px 22px 16px / 16px 22px 14px 26px;
   --fg-radius: 20px 8px 16px 10px / 10px 18px 8px 20px;
   --fg-radius-sm: 12px 6px 11px 7px / 7px 11px 6px 12px;
-  --fg-shadow: 3px 4px 0 rgba(58, 42, 28, 0.16);
   --fg-border-w: 2px;
-  --fg-card-line: #b69d72;
-  --fg-card-edge-color: #b69d72;
   --fg-btn-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
   --fg-btn-radius-sm: 255px 14px 225px 14px / 14px 225px 14px 255px;
   --fg-btn-border: 2px;
-  --fg-btn-line: #8a6f4a;
-  --fg-btn-edge-color: #8a6f4a;
   --fg-btn-weight: 400;
   --fg-btn-tracking: 0.02em;
-  --fg-btn-shadow: 2px 3px 0 rgba(58, 42, 28, 0.35);
   --fg-press-x: 2px;
   --fg-press-y: 2px;
   --fg-chip-radius: 12px 6px 11px 7px / 7px 11px 6px 12px;
   --fg-chip-weight: 700;
   --fg-xp-height: 12px;
   --fg-xp-radius: 8px 4px 8px 5px;
-  --fg-xp-overlay: repeating-linear-gradient(-45deg, rgba(255, 248, 236, 0.28) 0 3px, transparent 3px 8px);
-  --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .24 0 0 0 0 .12 0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   --fg-texture-size: 180px 180px;
-
-  --fg-coin-ink: #7c520b;
-  --fg-room-base: #fcf6e6;
-  --fg-room-bg: rgb(252 246 230 / 0.96);
-  --fg-room-border: #6f5638;
   --fg-room-border-w: 2px;
   --fg-room-radius: 22px 9px 18px 11px / 11px 20px 9px 22px;
-  --fg-room-shadow: 4px 5px 0 rgb(40 26 14 / 0.55), 0 20px 34px -20px rgb(0 0 0 / 0.6);
   --fg-room-blur: 4px;
   --fg-room-sat: 110%;
-  --fg-room-bar-line: #b69d72;
   --fg-room-bar-w: 2px;
   --fg-room-bar-style: dashed;
   --fg-room-texture: var(--fg-texture);
   --fg-room-texture-size: 180px 180px;
-  --fg-room-ink: #3a2a1c;
-  --fg-room-muted: #5e4936;
-  --fg-room-line: #d9c59c;
-  --fg-room-sunk: rgb(236 219 182 / 0.6);
-  --fg-room-field: #fffbf0;
-  --fg-room-hover: rgb(58 42 28 / 0.08);
-  --fg-room-tab: #962a49;
-  --fg-room-on-tab: #fff8ec;
-  --fg-room-dock: rgb(252 246 230 / 0.96);
-  --fg-room-page: var(--fg-paper);
   --fg-room-title-size: 19px;
   --fg-room-title-weight: 400;
   --fg-room-title-tracking: 0.02em;
   --fg-room-pill-radius: 255px 16px 225px 16px / 16px 225px 16px 255px;
   --fg-room-btn-radius: 10px 6px 9px 7px / 7px 9px 6px 10px;
 }
+[data-theme-id='storybook'].dark {
+  --fg-paper: #2a2118;
+  --fg-card: #33291e;
+  --fg-sunk: #2e251b;
+  --fg-ink: #f6ead2;
+  --fg-muted: #d0bea0;
+  --fg-line: #4c3d2b;
+  --fg-edge: #a08560;
+  --fg-accent: #f0a3b8;
+  --fg-accent-deep: #bf7187;
+  --fg-accent-soft: #45283a;
+  --fg-on-accent: #3a1320;
+  --fg-warm: #f2c46a;
+  --fg-warm-deep: #c79a3c;
+  --fg-warm-soft: #413322;
+  --fg-good: #a8d596;
+  --fg-good-deep: #79a867;
+  --fg-good-soft: #2a3a25;
+  --fg-on-good: #16240f;
+  --fg-caution: #f0c870;
+  --fg-caution-soft: #3f3420;
+  --fg-bad: #f8a99e;
+  --fg-bad-soft: #472824;
+  --fg-on-bad: #2e0d09;
+  --fg-xp: #f2c46a;
+  --fg-xpbar: #f0a3b8;
+  --fg-hud: #1d3124;
+  --fg-hud-ink: #faf1dc;
+  --fg-hud-muted: #cfd9bd;
+  --fg-hud-line: #3b5a44;
+  --fg-hud-accent: #f5b1c2;
+  --fg-hud-accent-deep: #c9788d;
+  --fg-hud-on-accent: #3a1320;
+  --fg-hud-warm: #f2c46a;
+  --fg-hud-good: #b2dca3;
+  --fg-hud-bad: #f8a99e;
+  --fg-hud-on-bad: #2e0d09;
+  --fg-hud-xp: #f2c46a;
+  --fg-hud-xpbar: #f2c46a;
+  --fg-heat-0: #3a2f22;
+  --fg-heat-1: #4d6440;
+  --fg-heat-2: #7fa46c;
+  --fg-heat-3: #b8dca6;
+  --fg-rar-low: #8fb8d6;
+  --fg-rar-medium: #c9a0dc;
+  --fg-rar-high: #f2c46a;
+  --fg-shadow: 3px 4px 0 rgba(0, 0, 0, 0.35);
+  --fg-card-line: #6e5a40;
+  --fg-card-edge-color: #6e5a40;
+  --fg-btn-line: #a08560;
+  --fg-btn-edge-color: #a08560;
+  --fg-btn-shadow: 2px 3px 0 rgba(0, 0, 0, 0.45);
+  --fg-xp-overlay: repeating-linear-gradient(-45deg, rgba(255, 248, 236, 0.22) 0 3px, transparent 3px 8px);
+  --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .95 0 0 0 0 .85 0 0 0 0 .65 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fg-coin-ink: #f2c46a;
+  --fg-room-base: #30271c;
+  --fg-room-bg: rgb(48 39 28 / 0.96);
+  --fg-room-border: #a08560;
+  --fg-room-shadow: 4px 5px 0 rgb(0 0 0 / 0.55), 0 20px 34px -20px rgb(0 0 0 / 0.7);
+  --fg-room-bar-line: #6e5a40;
+  --fg-room-ink: #f6ead2;
+  --fg-room-muted: #d0bea0;
+  --fg-room-line: #54442f;
+  --fg-room-sunk: rgb(246 234 210 / 0.07);
+  --fg-room-field: #2a2118;
+  --fg-room-hover: rgb(246 234 210 / 0.08);
+  --fg-room-tab: #f0a3b8;
+  --fg-room-on-tab: #3a1320;
+  --fg-room-dock: rgb(48 39 28 / 0.96);
+  --fg-room-page: #1e1811;
+}
 
-/* Arcade: dark retro console, toned brick, amber, leaf and cobalt.
+/* Arcade: retro console, brick, amber, leaf and cobalt. Light is the cabinet in daylight
+   (pale lavender, indigo ink), dark is the console at night.
    Shape: fully square, hard pixel drop shadows, 2px outlines, scanlines. */
 [data-theme-id='arcade'] {
+  --fg-paper: #efedf8;
+  --fg-card: #ffffff;
+  --fg-sunk: #e5e2f3;
+  --fg-ink: #17162b;
+  --fg-muted: #484669;
+  --fg-line: #c9c5e3;
+  --fg-edge: #17162b;
+  --fg-accent: #b53a24;
+  --fg-accent-deep: #7a2314;
+  --fg-accent-soft: #f7e1dc;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #8f5800;
+  --fg-warm-deep: #6a4100;
+  --fg-warm-soft: #f8ebd0;
+  --fg-good: #2d7519;
+  --fg-good-deep: #1f5812;
+  --fg-good-soft: #e0f0d6;
+  --fg-on-good: #ffffff;
+  --fg-caution: #7c5a00;
+  --fg-caution-soft: #f6ecca;
+  --fg-bad: #b0251d;
+  --fg-bad-soft: #fbe1df;
+  --fg-on-bad: #ffffff;
+  --fg-xp: #8a5600;
+  --fg-xpbar: #3f8f25;
+  --fg-hud: #17162b;
+  --fg-hud-ink: #eeecf8;
+  --fg-hud-muted: #b0aed2;
+  --fg-hud-line: #3a3862;
+  --fg-hud-accent: #ec6a52;
+  --fg-hud-accent-deep: #a83b29;
+  --fg-hud-on-accent: #1a0c08;
+  --fg-hud-warm: #efaf48;
+  --fg-hud-good: #78c95b;
+  --fg-hud-bad: #f07b72;
+  --fg-hud-on-bad: #240a10;
+  --fg-hud-xp: #efaf48;
+  --fg-hud-xpbar: #78c95b;
+  --fg-heat-0: #dcd8ee;
+  --fg-heat-1: #a9b8f0;
+  --fg-heat-2: #5877d9;
+  --fg-heat-3: #2a44a8;
+  --fg-rar-low: #3f8f25;
+  --fg-rar-medium: #3f5fd0;
+  --fg-rar-high: #a86a00;
+  --fg-shadow: 5px 5px 0 rgba(23, 22, 43, 0.85);
+  --fg-btn-shadow: 4px 4px 0 rgba(23, 22, 43, 0.9);
+  --fg-xp-overlay: repeating-linear-gradient(90deg, transparent 0 9px, rgba(255, 255, 255, 0.75) 9px 11px);
+  --fg-texture: repeating-linear-gradient(180deg, rgba(23, 22, 43, 0.035) 0 1px, transparent 1px 4px);
+  --fg-coin-ink: #875600;
+  --fg-room-base: #f7f6fd;
+  --fg-room-bg: rgb(247 246 253 / 0.97);
+  --fg-room-border: #17162b;
+  --fg-room-shadow: inset 2px 2px 0 #ffffff, inset -2px -2px 0 #d3cfe8, 5px 5px 0 rgb(23 22 43 / 0.8);
+  --fg-room-bar: #dcd8f0;
+  --fg-room-bar-line: #17162b;
+  --fg-room-ink: #17162b;
+  --fg-room-muted: #484669;
+  --fg-room-line: #c9c5e3;
+  --fg-room-sunk: #ebe8f6;
+  --fg-room-field: #ffffff;
+  --fg-room-hover: rgb(23 22 43 / 0.07);
+  --fg-room-tab: #b53a24;
+  --fg-room-on-tab: #ffffff;
+  --fg-room-dock: rgb(247 246 253 / 0.97);
+  --fg-room-page: #e2dff2;
+  --fg-room-clock-shadow: 4px 4px 0 #09081a;
+
+  --fg-font-sans: 'Chakra Petch', system-ui, sans-serif;
+  --fg-font-display: 'Pixelify Sans Variable', ui-monospace, monospace;
+  --fg-font-label: 'Press Start 2P', ui-monospace, monospace;
+  --fg-font-num: 'Pixelify Sans Variable', ui-monospace, monospace;
+  --fg-font-btn: 'Pixelify Sans Variable', ui-monospace, monospace;
+  --fg-display-weight: 600;
+  --fg-display-tracking: 0.01em;
+  --fg-body-weight: 500;
+  --fg-label-weight: 400;
+  --fg-label-size: 12px;
+  /* Press Start 2P caps fill the whole em: scale labels (and any text-[11px] on them) down */
+  --fg-label-adjust: 0.55;
+  --fg-label-tracking: 0.02em;
+  --fg-num-weight: 600;
+  --fg-r-md: 0px;
+  --fg-r-lg: 0px;
+  --fg-r-xl: 0px;
+  --fg-r-2xl: 0px;
+  --fg-r-3xl: 0px;
+  --fg-radius: 0px;
+  --fg-radius-sm: 0px;
+  --fg-border-w: 2px;
+  --fg-btn-radius: 0px;
+  --fg-btn-radius-sm: 0px;
+  --fg-btn-border: 2px;
+  --fg-btn-weight: 600;
+  --fg-btn-case: uppercase;
+  --fg-btn-tracking: 0.04em;
+  --fg-press-x: 4px;
+  --fg-press-y: 4px;
+  --fg-chip-radius: 0px;
+  --fg-chip-weight: 600;
+  --fg-xp-height: 14px;
+  --fg-xp-radius: 0px;
+  --fg-texture-size: auto;
+  --fg-room-border-w: 2px;
+  --fg-room-radius: 0px;
+  --fg-room-blur: 0px;
+  --fg-room-sat: 100%;
+  --fg-room-bar-w: 2px;
+  --fg-room-texture: var(--fg-texture);
+  --fg-room-title-size: 14px;
+  --fg-room-title-case: uppercase;
+  --fg-room-title-tracking: 0.06em;
+  --fg-room-pill-radius: 0px;
+  --fg-room-btn-radius: 0px;
+}
+[data-theme-id='arcade'].dark {
   --fg-paper: #17162b;
   --fg-card: #211f3b;
   --fg-sunk: #1b1a33;
@@ -469,6 +731,7 @@
   --fg-hud-warm: #efaf48;
   --fg-hud-good: #78c95b;
   --fg-hud-bad: #f07b72;
+  --fg-hud-on-bad: #1a0808;
   --fg-hud-xp: #efaf48;
   --fg-hud-xpbar: #78c95b;
   --fg-heat-0: #272548;
@@ -478,60 +741,17 @@
   --fg-rar-low: #78c95b;
   --fg-rar-medium: #8199f5;
   --fg-rar-high: #efaf48;
-
-  --fg-font-sans: 'Chakra Petch', system-ui, sans-serif;
-  --fg-font-display: 'Pixelify Sans Variable', ui-monospace, monospace;
-  --fg-font-label: 'Press Start 2P', ui-monospace, monospace;
-  --fg-font-num: 'Pixelify Sans Variable', ui-monospace, monospace;
-  --fg-font-btn: 'Pixelify Sans Variable', ui-monospace, monospace;
-  --fg-display-weight: 600;
-  --fg-display-tracking: 0.01em;
-  --fg-body-weight: 500;
-  --fg-label-weight: 400;
-  --fg-label-size: 12px;
-  /* Press Start 2P caps fill the whole em: scale labels (and any text-[11px] on them) down */
-  --fg-label-adjust: 0.55;
-  --fg-label-tracking: 0.02em;
-  --fg-num-weight: 600;
-  --fg-r-md: 0px;
-  --fg-r-lg: 0px;
-  --fg-r-xl: 0px;
-  --fg-r-2xl: 0px;
-  --fg-r-3xl: 0px;
-  --fg-radius: 0px;
-  --fg-radius-sm: 0px;
   --fg-shadow: 5px 5px 0 rgba(0, 0, 0, 0.5);
-  --fg-border-w: 2px;
-  --fg-btn-radius: 0px;
-  --fg-btn-radius-sm: 0px;
-  --fg-btn-border: 2px;
-  --fg-btn-weight: 600;
-  --fg-btn-case: uppercase;
-  --fg-btn-tracking: 0.04em;
   --fg-btn-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6);
-  --fg-press-x: 4px;
-  --fg-press-y: 4px;
-  --fg-chip-radius: 0px;
-  --fg-chip-weight: 600;
-  --fg-xp-height: 14px;
-  --fg-xp-radius: 0px;
   --fg-xp-overlay: repeating-linear-gradient(90deg, transparent 0 9px, rgba(9, 8, 26, 0.7) 9px 11px);
   --fg-texture: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 4px);
-  --fg-texture-size: auto;
-
   --fg-coin-ink: #ffc233;
   --fg-room-base: #211f3b;
   --fg-room-bg: rgb(33 31 59 / 0.97);
   --fg-room-border: #09081a;
-  --fg-room-border-w: 2px;
-  --fg-room-radius: 0px;
   --fg-room-shadow: inset 2px 2px 0 #3d3a6b, inset -2px -2px 0 #15142a, 5px 5px 0 rgb(0 0 0 / 0.6);
-  --fg-room-blur: 0px;
-  --fg-room-sat: 100%;
   --fg-room-bar: #2c2a52;
   --fg-room-bar-line: #09081a;
-  --fg-room-bar-w: 2px;
-  --fg-room-texture: var(--fg-texture);
   --fg-room-ink: #eeecf8;
   --fg-room-muted: #b0aed2;
   --fg-room-line: #3a3862;
@@ -542,17 +762,118 @@
   --fg-room-on-tab: #1a0c08;
   --fg-room-dock: rgb(33 31 59 / 0.97);
   --fg-room-page: #0e0d1f;
-  --fg-room-title-size: 14px;
-  --fg-room-title-case: uppercase;
-  --fg-room-title-tracking: 0.06em;
-  --fg-room-pill-radius: 0px;
-  --fg-room-btn-radius: 0px;
   --fg-room-clock-shadow: 4px 4px 0 #09081a;
 }
 
-/* Night Owl: deep navy night sky, moon yellow, lilac, soft teal, peach.
+/* Night Owl: moon yellow, lilac, soft teal, peach. Light is dawn (pale periwinkle, navy
+   ink, lilac), dark is the deep navy night sky.
    Shape: generously rounded, pill buttons, soft lilac and moonlight glows. */
 [data-theme-id='night-owl'] {
+  --fg-paper: #eef1fa;
+  --fg-card: #ffffff;
+  --fg-sunk: #e3e8f5;
+  --fg-ink: #141d38;
+  --fg-muted: #455273;
+  --fg-line: #d0d8ec;
+  --fg-edge: #d0d8ec;
+  --fg-accent: #5a42c6;
+  --fg-accent-deep: #412e9c;
+  --fg-accent-soft: #ebe6fd;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #a24d1c;
+  --fg-warm-deep: #7c3a14;
+  --fg-warm-soft: #fbe9de;
+  --fg-good: #12705f;
+  --fg-good-deep: #0c5448;
+  --fg-good-soft: #dcf2ee;
+  --fg-on-good: #ffffff;
+  --fg-caution: #7a5a00;
+  --fg-caution-soft: #f8efcc;
+  --fg-bad: #b0324a;
+  --fg-bad-soft: #fbe3e8;
+  --fg-on-bad: #ffffff;
+  --fg-xp: #7a5a00;
+  --fg-xpbar: #6d58d6;
+  --fg-hud: #16223e;
+  --fg-hud-ink: #e9edf8;
+  --fg-hud-muted: #a8b3d0;
+  --fg-hud-line: #2b3a60;
+  --fg-hud-accent: #f3cf63;
+  --fg-hud-accent-deep: #c9a53d;
+  --fg-hud-on-accent: #1a1a2e;
+  --fg-hud-warm: #f4a57a;
+  --fg-hud-good: #62d1be;
+  --fg-hud-bad: #f28b99;
+  --fg-hud-on-bad: #240a10;
+  --fg-hud-xp: #f3cf63;
+  --fg-hud-xpbar: #b8a2ff;
+  --fg-heat-0: #e2e6f3;
+  --fg-heat-1: #c6bdf5;
+  --fg-heat-2: #8b76e0;
+  --fg-heat-3: #4e36b0;
+  --fg-rar-low: #12705f;
+  --fg-rar-medium: #6a55d6;
+  --fg-rar-high: #9a6d00;
+  --fg-shadow: 0 0 0 1px rgba(90, 66, 198, 0.05), 0 16px 40px -20px rgba(90, 66, 198, 0.3);
+  --fg-btn-primary-shadow: 0 0 0 4px rgba(90, 66, 198, 0.12), 0 8px 26px -8px rgba(90, 66, 198, 0.45);
+  --fg-xp-overlay: linear-gradient(90deg, rgba(243, 207, 99, 0) 40%, rgba(243, 207, 99, 0.8));
+  --fg-texture:
+    radial-gradient(1.2px 1.2px at 12% 18%, rgba(90, 66, 198, 0.22), transparent),
+    radial-gradient(1px 1px at 68% 42%, rgba(20, 29, 56, 0.16), transparent),
+    radial-gradient(1.6px 1.6px at 38% 76%, rgba(201, 165, 61, 0.35), transparent),
+    radial-gradient(1px 1px at 88% 88%, rgba(90, 66, 198, 0.25), transparent);
+  --fg-coin-ink: #7a5800;
+  --fg-room-base: #f7f8fd;
+  --fg-room-bg: rgb(247 248 253 / 0.9);
+  --fg-room-border: rgb(90 66 198 / 0.22);
+  --fg-room-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8), 0 0 0 1px rgb(90 66 198 / 0.05), 0 24px 54px -22px rgb(60 40 160 / 0.45);
+  --fg-room-bar-line: rgb(90 66 198 / 0.14);
+  --fg-room-ink: #141d38;
+  --fg-room-muted: #455273;
+  --fg-room-line: rgb(90 66 198 / 0.16);
+  --fg-room-sunk: rgb(20 29 56 / 0.05);
+  --fg-room-field: rgb(255 255 255 / 0.85);
+  --fg-room-hover: rgb(20 29 56 / 0.06);
+  --fg-room-tab: #5a42c6;
+  --fg-room-on-tab: #ffffff;
+  --fg-room-dock: rgb(247 248 253 / 0.9);
+  --fg-room-page: #e3e8f5;
+  --fg-room-clock-shadow: 0 0 34px rgb(243 207 99 / 0.55);
+
+  --fg-font-sans: 'Figtree Variable', system-ui, sans-serif;
+  --fg-font-display: 'Comfortaa Variable', system-ui, sans-serif;
+  --fg-font-label: 'Comfortaa Variable', system-ui, sans-serif;
+  --fg-font-num: 'Comfortaa Variable', system-ui, sans-serif;
+  --fg-font-btn: 'Figtree Variable', system-ui, sans-serif;
+  --fg-display-weight: 700;
+  --fg-display-tracking: -0.02em;
+  --fg-body-weight: 400;
+  --fg-label-weight: 700;
+  --fg-label-size: 11px;
+  --fg-label-tracking: 0.12em;
+  --fg-num-weight: 700;
+  --fg-r-md: 10px;
+  --fg-r-lg: 12px;
+  --fg-r-xl: 16px;
+  --fg-r-2xl: 20px;
+  --fg-r-3xl: 28px;
+  --fg-radius: 22px;
+  --fg-radius-sm: 14px;
+  --fg-border-w: 1px;
+  --fg-btn-radius: 999px;
+  --fg-btn-radius-sm: 999px;
+  --fg-btn-weight: 700;
+  --fg-chip-weight: 600;
+  --fg-xp-height: 10px;
+  --fg-texture-size: 220px 220px;
+  --fg-room-radius: 22px;
+  --fg-room-blur: 22px;
+  --fg-room-sat: 150%;
+  --fg-room-title-size: 13px;
+  --fg-room-title-weight: 700;
+  --fg-room-btn-radius: 999px;
+}
+[data-theme-id='night-owl'].dark {
   --fg-paper: #0f1830;
   --fg-card: #16223e;
   --fg-sunk: #131d38;
@@ -588,6 +909,7 @@
   --fg-hud-warm: #f4a57a;
   --fg-hud-good: #62d1be;
   --fg-hud-bad: #f28b99;
+  --fg-hud-on-bad: #200b12;
   --fg-hud-xp: #f3cf63;
   --fg-hud-xpbar: #b8a2ff;
   --fg-heat-0: #1d2949;
@@ -597,50 +919,19 @@
   --fg-rar-low: #62d1be;
   --fg-rar-medium: #b8a2ff;
   --fg-rar-high: #f3cf63;
-
-  --fg-font-sans: 'Figtree Variable', system-ui, sans-serif;
-  --fg-font-display: 'Comfortaa Variable', system-ui, sans-serif;
-  --fg-font-label: 'Comfortaa Variable', system-ui, sans-serif;
-  --fg-font-num: 'Comfortaa Variable', system-ui, sans-serif;
-  --fg-font-btn: 'Figtree Variable', system-ui, sans-serif;
-  --fg-display-weight: 700;
-  --fg-display-tracking: -0.02em;
-  --fg-body-weight: 400;
-  --fg-label-weight: 700;
-  --fg-label-size: 11px;
-  --fg-label-tracking: 0.12em;
-  --fg-num-weight: 700;
-  --fg-r-md: 10px;
-  --fg-r-lg: 12px;
-  --fg-r-xl: 16px;
-  --fg-r-2xl: 20px;
-  --fg-r-3xl: 28px;
-  --fg-radius: 22px;
-  --fg-radius-sm: 14px;
   --fg-shadow: 0 0 0 1px rgba(184, 162, 255, 0.05), 0 16px 40px -20px rgba(184, 162, 255, 0.4);
-  --fg-border-w: 1px;
-  --fg-btn-radius: 999px;
-  --fg-btn-radius-sm: 999px;
-  --fg-btn-weight: 700;
   --fg-btn-primary-shadow: 0 0 0 4px rgba(243, 207, 99, 0.12), 0 8px 26px -8px rgba(243, 207, 99, 0.55);
-  --fg-chip-weight: 600;
-  --fg-xp-height: 10px;
   --fg-xp-overlay: linear-gradient(90deg, rgba(243, 207, 99, 0) 40%, rgba(243, 207, 99, 0.75));
   --fg-texture:
     radial-gradient(1.2px 1.2px at 12% 18%, rgba(233, 237, 248, 0.5), transparent),
     radial-gradient(1px 1px at 68% 42%, rgba(233, 237, 248, 0.35), transparent),
     radial-gradient(1.6px 1.6px at 38% 76%, rgba(243, 207, 99, 0.45), transparent),
     radial-gradient(1px 1px at 88% 88%, rgba(184, 162, 255, 0.5), transparent);
-  --fg-texture-size: 220px 220px;
-
   --fg-coin-ink: #ffc94d;
   --fg-room-base: #16223e;
   --fg-room-bg: rgb(20 31 58 / 0.84);
   --fg-room-border: rgb(184 162 255 / 0.24);
-  --fg-room-radius: 22px;
   --fg-room-shadow: inset 0 1px 0 rgb(233 237 248 / 0.07), 0 0 0 1px rgb(184 162 255 / 0.05), 0 24px 54px -22px rgb(120 100 230 / 0.6);
-  --fg-room-blur: 22px;
-  --fg-room-sat: 150%;
   --fg-room-bar-line: rgb(184 162 255 / 0.14);
   --fg-room-ink: #e9edf8;
   --fg-room-muted: #a8b3d0;
@@ -652,13 +943,11 @@
   --fg-room-on-tab: #1a1a2e;
   --fg-room-dock: rgb(20 31 58 / 0.84);
   --fg-room-page: #0a1126;
-  --fg-room-title-size: 13px;
-  --fg-room-title-weight: 700;
-  --fg-room-btn-radius: 999px;
   --fg-room-clock-shadow: 0 0 34px rgb(243 207 99 / 0.35);
 }
 
-/* Paper: fresh ivory notebook, ink blue, rust, sage. Editorial slab serif over a text serif.
+/* Paper: ink blue, rust, sage. Editorial slab serif over a text serif. Light is a fresh
+   ivory notebook, dark is the notebook under a desk lamp (blue black, ivory text).
    Shape: crisp 2px corners, no shadows, hairline rules. */
 [data-theme-id='paper'] {
   --fg-paper: #fbf8f1;
@@ -696,6 +985,7 @@
   --fg-hud-warm: #a0441d;
   --fg-hud-good: #3c6845;
   --fg-hud-bad: #a5303a;
+  --fg-hud-on-bad: #ffffff;
   --fg-hud-xp: #1f4e8c;
   --fg-hud-xpbar: #1f4e8c;
   --fg-heat-0: #eee7d6;
@@ -705,6 +995,24 @@
   --fg-rar-low: #4f7c58;
   --fg-rar-medium: #1f4e8c;
   --fg-rar-high: #a0441d;
+  --fg-shadow: none;
+  --fg-texture: repeating-linear-gradient(180deg, transparent 0 31px, rgba(31, 78, 140, 0.05) 31px 32px);
+  --fg-coin-ink: #80560c;
+  --fg-room-base: #fffdf8;
+  --fg-room-bg: rgb(255 253 248 / 0.97);
+  --fg-room-border: #cfc4ab;
+  --fg-room-shadow: none;
+  --fg-room-bar-line: #e4dccb;
+  --fg-room-ink: #1e2432;
+  --fg-room-muted: #565a69;
+  --fg-room-line: #e4dccb;
+  --fg-room-sunk: #f5f0e5;
+  --fg-room-field: #ffffff;
+  --fg-room-hover: rgb(31 78 140 / 0.07);
+  --fg-room-tab: #1f4e8c;
+  --fg-room-on-tab: #ffffff;
+  --fg-room-dock: rgb(255 253 248 / 0.97);
+  --fg-room-page: var(--fg-paper);
 
   --fg-font-sans: 'Source Serif 4 Variable', Georgia, serif;
   --fg-font-display: 'Young Serif', Georgia, serif;
@@ -724,7 +1032,6 @@
   --fg-r-3xl: 3px;
   --fg-radius: 2px;
   --fg-radius-sm: 2px;
-  --fg-shadow: none;
   --fg-border-w: 1px;
   --fg-btn-radius: 2px;
   --fg-btn-radius-sm: 2px;
@@ -732,36 +1039,84 @@
   --fg-chip-radius: 2px;
   --fg-xp-height: 4px;
   --fg-xp-radius: 0px;
-  --fg-texture: repeating-linear-gradient(180deg, transparent 0 31px, rgba(31, 78, 140, 0.05) 31px 32px);
   --fg-texture-size: auto;
-
-  --fg-coin-ink: #80560c;
-  --fg-room-base: #fffdf8;
-  --fg-room-bg: rgb(255 253 248 / 0.97);
-  --fg-room-border: #cfc4ab;
   --fg-room-radius: 2px;
-  --fg-room-shadow: none;
   --fg-room-blur: 6px;
   --fg-room-sat: 100%;
-  --fg-room-bar-line: #e4dccb;
-  --fg-room-ink: #1e2432;
-  --fg-room-muted: #565a69;
-  --fg-room-line: #e4dccb;
-  --fg-room-sunk: #f5f0e5;
-  --fg-room-field: #ffffff;
-  --fg-room-hover: rgb(31 78 140 / 0.07);
-  --fg-room-tab: #1f4e8c;
-  --fg-room-on-tab: #ffffff;
-  --fg-room-dock: rgb(255 253 248 / 0.97);
-  --fg-room-page: var(--fg-paper);
   --fg-room-title-size: 15px;
   --fg-room-title-weight: 400;
   --fg-room-title-tracking: 0;
   --fg-room-pill-radius: 2px;
   --fg-room-btn-radius: 2px;
 }
+[data-theme-id='paper'].dark {
+  --fg-paper: #161a22;
+  --fg-card: #1c212b;
+  --fg-sunk: #191d26;
+  --fg-ink: #ece6d8;
+  --fg-muted: #aeb2bf;
+  --fg-line: #2e3441;
+  --fg-edge: #2e3441;
+  --fg-accent: #8fb4ea;
+  --fg-accent-deep: #6a91c9;
+  --fg-accent-soft: #1f2b3d;
+  --fg-on-accent: #0f1826;
+  --fg-warm: #e59a74;
+  --fg-warm-deep: #bf7552;
+  --fg-warm-soft: #33231c;
+  --fg-good: #93c19c;
+  --fg-good-deep: #6c9a76;
+  --fg-good-soft: #1d2e22;
+  --fg-on-good: #0d1a11;
+  --fg-caution: #dcbc6a;
+  --fg-caution-soft: #302a17;
+  --fg-bad: #ee8f96;
+  --fg-bad-soft: #3a1f23;
+  --fg-on-bad: #1e0b0c;
+  --fg-xp: #8fb4ea;
+  --fg-xpbar: #8fb4ea;
+  --fg-hud: #1c212b;
+  --fg-hud-ink: #ece6d8;
+  --fg-hud-muted: #aeb2bf;
+  --fg-hud-line: #2e3441;
+  --fg-hud-accent: #8fb4ea;
+  --fg-hud-accent-deep: #6a91c9;
+  --fg-hud-on-accent: #0f1826;
+  --fg-hud-warm: #e59a74;
+  --fg-hud-good: #93c19c;
+  --fg-hud-bad: #ee8f96;
+  --fg-hud-on-bad: #1e0b0c;
+  --fg-hud-xp: #8fb4ea;
+  --fg-hud-xpbar: #8fb4ea;
+  --fg-heat-0: #232833;
+  --fg-heat-1: #2c3e5c;
+  --fg-heat-2: #4f6f9f;
+  --fg-heat-3: #8fb4ea;
+  --fg-rar-low: #93c19c;
+  --fg-rar-medium: #8fb4ea;
+  --fg-rar-high: #e59a74;
+  --fg-shadow: none;
+  --fg-texture: repeating-linear-gradient(180deg, transparent 0 31px, rgba(143, 180, 234, 0.05) 31px 32px);
+  --fg-coin-ink: #e6b94f;
+  --fg-room-base: #1b1f28;
+  --fg-room-bg: rgb(27 31 40 / 0.97);
+  --fg-room-border: #3a4150;
+  --fg-room-shadow: none;
+  --fg-room-bar-line: #2e3441;
+  --fg-room-ink: #ece6d8;
+  --fg-room-muted: #aeb2bf;
+  --fg-room-line: #2e3441;
+  --fg-room-sunk: #20252f;
+  --fg-room-field: #161a22;
+  --fg-room-hover: rgb(143 180 234 / 0.08);
+  --fg-room-tab: #8fb4ea;
+  --fg-room-on-tab: #0f1826;
+  --fg-room-dock: rgb(27 31 40 / 0.97);
+  --fg-room-page: #11141b;
+}
 
-/* Nordic: cool grey white, fjord blue, pine, clay. Airy geometric sans.
+/* Nordic: fjord blue, pine, clay. Airy geometric sans. Light is cool grey white, dark is
+   polar night slate.
    Shape: soft 16px corners, wide diffuse shadows, frosted glass. */
 [data-theme-id='nordic'] {
   --fg-paper: #f4f6f8;
@@ -799,6 +1154,7 @@
   --fg-hud-warm: #a3502d;
   --fg-hud-good: #2b6a4f;
   --fg-hud-bad: #af3838;
+  --fg-hud-on-bad: #ffffff;
   --fg-hud-xp: #2b6a4f;
   --fg-hud-xpbar: #2a6189;
   --fg-heat-0: #e4e9ee;
@@ -808,6 +1164,24 @@
   --fg-rar-low: #687a8b;
   --fg-rar-medium: #2a6189;
   --fg-rar-high: #a3502d;
+  --fg-shadow: 0 1px 2px rgba(22, 32, 43, 0.04), 0 18px 40px -22px rgba(22, 32, 43, 0.22);
+  --fg-btn-shadow: 0 1px 2px rgba(22, 32, 43, 0.06), 0 6px 14px -8px rgba(22, 32, 43, 0.2);
+  --fg-coin-ink: #7a560c;
+  --fg-room-base: #f7f9fb;
+  --fg-room-bg: rgb(247 249 251 / 0.86);
+  --fg-room-border: rgb(255 255 255 / 0.7);
+  --fg-room-shadow: 0 1px 2px rgb(10 20 30 / 0.12), 0 32px 64px -30px rgb(5 15 25 / 0.7);
+  --fg-room-bar-line: rgb(22 32 43 / 0.07);
+  --fg-room-ink: #16202b;
+  --fg-room-muted: #4a5663;
+  --fg-room-line: rgb(22 32 43 / 0.1);
+  --fg-room-sunk: rgb(22 32 43 / 0.05);
+  --fg-room-field: rgb(255 255 255 / 0.85);
+  --fg-room-hover: rgb(22 32 43 / 0.06);
+  --fg-room-tab: #16202b;
+  --fg-room-on-tab: #ffffff;
+  --fg-room-dock: rgb(247 249 251 / 0.86);
+  --fg-room-page: var(--fg-paper);
 
   --fg-font-sans: 'Inter Variable', system-ui, sans-serif;
   --fg-font-display: 'Manrope Variable', system-ui, sans-serif;
@@ -828,44 +1202,205 @@
   --fg-r-3xl: 22px;
   --fg-radius: 16px;
   --fg-radius-sm: 10px;
-  --fg-shadow: 0 1px 2px rgba(22, 32, 43, 0.04), 0 18px 40px -22px rgba(22, 32, 43, 0.22);
   --fg-border-w: 1px;
   --fg-btn-radius: 10px;
   --fg-btn-radius-sm: 8px;
   --fg-btn-weight: 700;
-  --fg-btn-shadow: 0 1px 2px rgba(22, 32, 43, 0.06), 0 6px 14px -8px rgba(22, 32, 43, 0.2);
   --fg-chip-radius: 8px;
   --fg-xp-height: 8px;
-
-  --fg-coin-ink: #7a560c;
-  --fg-room-base: #f7f9fb;
-  --fg-room-bg: rgb(247 249 251 / 0.86);
-  --fg-room-border: rgb(255 255 255 / 0.7);
   --fg-room-radius: 16px;
-  --fg-room-shadow: 0 1px 2px rgb(10 20 30 / 0.12), 0 32px 64px -30px rgb(5 15 25 / 0.7);
   --fg-room-blur: 28px;
   --fg-room-sat: 170%;
-  --fg-room-bar-line: rgb(22 32 43 / 0.07);
-  --fg-room-ink: #16202b;
-  --fg-room-muted: #4a5663;
-  --fg-room-line: rgb(22 32 43 / 0.1);
-  --fg-room-sunk: rgb(22 32 43 / 0.05);
-  --fg-room-field: rgb(255 255 255 / 0.85);
-  --fg-room-hover: rgb(22 32 43 / 0.06);
-  --fg-room-tab: #16202b;
-  --fg-room-on-tab: #ffffff;
-  --fg-room-dock: rgb(247 249 251 / 0.86);
-  --fg-room-page: var(--fg-paper);
   --fg-room-title-size: 13px;
   --fg-room-title-weight: 700;
   --fg-room-title-tracking: -0.01em;
   --fg-room-pill-radius: 12px;
   --fg-room-btn-radius: 8px;
 }
+[data-theme-id='nordic'].dark {
+  --fg-paper: #121820;
+  --fg-card: #19212b;
+  --fg-sunk: #151c25;
+  --fg-ink: #e8eef4;
+  --fg-muted: #a3b0bd;
+  --fg-line: #26313d;
+  --fg-edge: #26313d;
+  --fg-accent: #7fb6dc;
+  --fg-accent-deep: #5a93bb;
+  --fg-accent-soft: #1a2d3c;
+  --fg-on-accent: #0b1824;
+  --fg-warm: #e39a78;
+  --fg-warm-deep: #bb7555;
+  --fg-warm-soft: #33241e;
+  --fg-good: #7cc4a2;
+  --fg-good-deep: #56a080;
+  --fg-good-soft: #16302a;
+  --fg-on-good: #0a1c14;
+  --fg-caution: #e0bf6a;
+  --fg-caution-soft: #2f2a18;
+  --fg-bad: #ef8f8f;
+  --fg-bad-soft: #3a1f22;
+  --fg-on-bad: #200b0b;
+  --fg-xp: #7cc4a2;
+  --fg-xpbar: #7fb6dc;
+  --fg-hud: #19212b;
+  --fg-hud-ink: #e8eef4;
+  --fg-hud-muted: #a3b0bd;
+  --fg-hud-line: #26313d;
+  --fg-hud-accent: #7fb6dc;
+  --fg-hud-accent-deep: #5a93bb;
+  --fg-hud-on-accent: #0b1824;
+  --fg-hud-warm: #e39a78;
+  --fg-hud-good: #7cc4a2;
+  --fg-hud-bad: #ef8f8f;
+  --fg-hud-on-bad: #200b0b;
+  --fg-hud-xp: #7cc4a2;
+  --fg-hud-xpbar: #7fb6dc;
+  --fg-heat-0: #1e2833;
+  --fg-heat-1: #22473b;
+  --fg-heat-2: #3f8a6b;
+  --fg-heat-3: #7cc4a2;
+  --fg-rar-low: #95a7b8;
+  --fg-rar-medium: #7fb6dc;
+  --fg-rar-high: #e39a78;
+  --fg-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 18px 40px -22px rgba(0, 0, 0, 0.7);
+  --fg-btn-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 14px -8px rgba(0, 0, 0, 0.6);
+  --fg-coin-ink: #e6bd55;
+  --fg-room-base: #1a222c;
+  --fg-room-bg: rgb(26 34 44 / 0.86);
+  --fg-room-border: rgb(255 255 255 / 0.1);
+  --fg-room-shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 32px 64px -30px rgb(0 0 0 / 0.8);
+  --fg-room-bar-line: rgb(232 238 244 / 0.08);
+  --fg-room-ink: #e8eef4;
+  --fg-room-muted: #a3b0bd;
+  --fg-room-line: rgb(232 238 244 / 0.1);
+  --fg-room-sunk: rgb(232 238 244 / 0.05);
+  --fg-room-field: rgb(232 238 244 / 0.06);
+  --fg-room-hover: rgb(232 238 244 / 0.07);
+  --fg-room-tab: #e8eef4;
+  --fg-room-on-tab: #121820;
+  --fg-room-dock: rgb(26 34 44 / 0.86);
+  --fg-room-page: #0e1319;
+}
 
-/* Midnight Library: green black study, brass, burgundy, parchment text. Old style serifs.
+/* Midnight Library: brass, burgundy, library green. Old style serifs. Light is the library
+   by day (parchment, green black ink), dark is the green black study with parchment text.
    Shape: near square, thin double rules in brass, no drop shadows. */
 [data-theme-id='midnight'] {
+  --fg-paper: #f4efe2;
+  --fg-card: #fbf8ef;
+  --fg-sunk: #ece5d3;
+  --fg-ink: #1a2a1f;
+  --fg-muted: #4b594e;
+  --fg-line: #d6ccb4;
+  --fg-edge: #d6ccb4;
+  --fg-accent: #235c3a;
+  --fg-accent-deep: #17432a;
+  --fg-accent-soft: #e2ebdf;
+  --fg-on-accent: #fbf8ef;
+  --fg-warm: #8a2f43;
+  --fg-warm-deep: #6a2233;
+  --fg-warm-soft: #f4e1e3;
+  --fg-good: #2f6a3f;
+  --fg-good-deep: #214d2d;
+  --fg-good-soft: #e0ecdf;
+  --fg-on-good: #fbf8ef;
+  --fg-caution: #775812;
+  --fg-caution-soft: #f3ead0;
+  --fg-bad: #9e2f39;
+  --fg-bad-soft: #f6e0df;
+  --fg-on-bad: #fbf8ef;
+  --fg-xp: #775812;
+  --fg-xpbar: #8e6c26;
+  --fg-hud: #fbf8ef;
+  --fg-hud-ink: #1a2a1f;
+  --fg-hud-muted: #4b594e;
+  --fg-hud-line: #d6ccb4;
+  --fg-hud-accent: #235c3a;
+  --fg-hud-accent-deep: #17432a;
+  --fg-hud-on-accent: #fbf8ef;
+  --fg-hud-warm: #8a2f43;
+  --fg-hud-good: #2f6a3f;
+  --fg-hud-bad: #9e2f39;
+  --fg-hud-on-bad: #fbf8ef;
+  --fg-hud-xp: #775812;
+  --fg-hud-xpbar: #8e6c26;
+  --fg-heat-0: #e6dfcb;
+  --fg-heat-1: #cdbb86;
+  --fg-heat-2: #a8823a;
+  --fg-heat-3: #6e5317;
+  --fg-rar-low: #2f6a3f;
+  --fg-rar-medium: #8a2f43;
+  --fg-rar-high: #8e6c26;
+  --fg-shadow: none;
+  --fg-card-line: #b9a26a;
+  --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fg-coin-ink: #765410;
+  --fg-room-base: #fbf8ef;
+  --fg-room-bg: rgb(251 248 239 / 0.95);
+  --fg-room-border: rgb(142 108 38 / 0.6);
+  --fg-room-shadow: 0 24px 44px -22px rgb(40 30 10 / 0.55);
+  --fg-room-bar-line: rgb(142 108 38 / 0.38);
+  --fg-room-ink: #1a2a1f;
+  --fg-room-muted: #4b594e;
+  --fg-room-line: rgb(142 108 38 / 0.22);
+  --fg-room-sunk: rgb(26 42 31 / 0.04);
+  --fg-room-field: rgb(255 255 255 / 0.7);
+  --fg-room-hover: rgb(35 92 58 / 0.08);
+  --fg-room-tab: #235c3a;
+  --fg-room-on-tab: #fbf8ef;
+  --fg-room-dock: rgb(251 248 239 / 0.95);
+  --fg-room-page: #ece5d3;
+  --fg-room-clock-shadow: 0 2px 24px rgb(0 0 0 / 0.35);
+
+  --fg-font-sans: 'Spectral', Georgia, serif;
+  --fg-font-display: 'Cormorant Garamond Variable', Georgia, serif;
+  --fg-font-label: 'Spectral', Georgia, serif;
+  --fg-font-num: 'Cormorant Garamond Variable', Georgia, serif;
+  --fg-font-btn: 'Spectral', Georgia, serif;
+  --fg-display-weight: 600;
+  --fg-display-tracking: 0;
+  --fg-display-adjust: 0.47;
+  --fg-body-weight: 400;
+  --fg-label-weight: 500;
+  --fg-label-size: 11px;
+  --fg-label-tracking: 0.16em;
+  --fg-num-weight: 600;
+  --fg-r-md: 1px;
+  --fg-r-lg: 2px;
+  --fg-r-xl: 2px;
+  --fg-r-2xl: 2px;
+  --fg-r-3xl: 3px;
+  --fg-radius: 2px;
+  --fg-radius-sm: 1px;
+  --fg-border-w: 3px;
+  --fg-border-style: double;
+  --fg-input-border: 1px;
+  --fg-btn-radius: 1px;
+  --fg-btn-radius-sm: 1px;
+  --fg-btn-weight: 500;
+  --fg-btn-tracking: 0.04em;
+  --fg-chip-radius: 1px;
+  --fg-xp-height: 5px;
+  --fg-xp-radius: 0px;
+  --fg-texture-size: 200px 200px;
+  --fg-room-border-w: 3px;
+  --fg-room-border-style: double;
+  --fg-room-radius: 2px;
+  --fg-room-blur: 14px;
+  --fg-room-sat: 120%;
+  --fg-room-bar-w: 3px;
+  --fg-room-bar-style: double;
+  --fg-room-texture: var(--fg-texture);
+  --fg-room-texture-size: 200px 200px;
+  --fg-room-title-size: 18px;
+  --fg-room-title-weight: 600;
+  --fg-room-title-tracking: 0.04em;
+  --fg-room-title-variant: small-caps;
+  --fg-room-pill-radius: 2px;
+  --fg-room-btn-radius: 1px;
+}
+[data-theme-id='midnight'].dark {
   --fg-paper: #0f1712;
   --fg-card: #16211a;
   --fg-sunk: #121c16;
@@ -901,6 +1436,7 @@
   --fg-hud-warm: #e08d9b;
   --fg-hud-good: #8fc39c;
   --fg-hud-bad: #e8868a;
+  --fg-hud-on-bad: #1e0b0c;
   --fg-hud-xp: #d4aa52;
   --fg-hud-xpbar: #d4aa52;
   --fg-heat-0: #1d2a21;
@@ -910,57 +1446,15 @@
   --fg-rar-low: #8fc39c;
   --fg-rar-medium: #e08d9b;
   --fg-rar-high: #d4aa52;
-
-  --fg-font-sans: 'Spectral', Georgia, serif;
-  --fg-font-display: 'Cormorant Garamond Variable', Georgia, serif;
-  --fg-font-label: 'Spectral', Georgia, serif;
-  --fg-font-num: 'Cormorant Garamond Variable', Georgia, serif;
-  --fg-font-btn: 'Spectral', Georgia, serif;
-  --fg-display-weight: 600;
-  --fg-display-tracking: 0;
-  --fg-display-adjust: 0.47;
-  --fg-body-weight: 400;
-  --fg-label-weight: 500;
-  --fg-label-size: 11px;
-  --fg-label-tracking: 0.16em;
-  --fg-num-weight: 600;
-  --fg-r-md: 1px;
-  --fg-r-lg: 2px;
-  --fg-r-xl: 2px;
-  --fg-r-2xl: 2px;
-  --fg-r-3xl: 3px;
-  --fg-radius: 2px;
-  --fg-radius-sm: 1px;
   --fg-shadow: none;
-  --fg-border-w: 3px;
-  --fg-border-style: double;
   --fg-card-line: #3b4d3f;
-  --fg-input-border: 1px;
-  --fg-btn-radius: 1px;
-  --fg-btn-radius-sm: 1px;
-  --fg-btn-weight: 500;
-  --fg-btn-tracking: 0.04em;
-  --fg-chip-radius: 1px;
-  --fg-xp-height: 5px;
-  --fg-xp-radius: 0px;
   --fg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .8 0 0 0 0 .55 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --fg-texture-size: 200px 200px;
-
   --fg-coin-ink: #e6b94f;
   --fg-room-base: #141f18;
   --fg-room-bg: rgb(18 29 22 / 0.91);
   --fg-room-border: rgb(212 170 82 / 0.5);
-  --fg-room-border-w: 3px;
-  --fg-room-border-style: double;
-  --fg-room-radius: 2px;
   --fg-room-shadow: 0 24px 44px -22px rgb(0 0 0 / 0.85);
-  --fg-room-blur: 14px;
-  --fg-room-sat: 120%;
   --fg-room-bar-line: rgb(212 170 82 / 0.32);
-  --fg-room-bar-w: 3px;
-  --fg-room-bar-style: double;
-  --fg-room-texture: var(--fg-texture);
-  --fg-room-texture-size: 200px 200px;
   --fg-room-ink: #efe6d2;
   --fg-room-muted: #b7ad96;
   --fg-room-line: rgb(212 170 82 / 0.18);
@@ -971,18 +1465,115 @@
   --fg-room-on-tab: #17120a;
   --fg-room-dock: rgb(18 29 22 / 0.91);
   --fg-room-page: #0b120e;
-  --fg-room-title-size: 18px;
-  --fg-room-title-weight: 600;
-  --fg-room-title-tracking: 0.04em;
-  --fg-room-title-variant: small-caps;
-  --fg-room-pill-radius: 2px;
-  --fg-room-btn-radius: 1px;
   --fg-room-clock-shadow: 0 2px 24px rgb(0 0 0 / 0.55);
 }
 
-/* Studio: warm graphite, terracotta, cream, olive, mustard. Grotesque display, mono labels.
+/* Studio: terracotta, olive, mustard. Grotesque display, mono labels. Light is warm cream
+   with graphite ink, dark is warm graphite with cream text.
    Shape: 10px cards, pill buttons, flat and quiet with one soft shadow. */
 [data-theme-id='studio'] {
+  --fg-paper: #f5f0e8;
+  --fg-card: #fdfaf5;
+  --fg-sunk: #ede6db;
+  --fg-ink: #2a2622;
+  --fg-muted: #5b5248;
+  --fg-line: #ddd3c4;
+  --fg-edge: #ddd3c4;
+  --fg-accent: #a6472a;
+  --fg-accent-deep: #7f3519;
+  --fg-accent-soft: #f6e3da;
+  --fg-on-accent: #ffffff;
+  --fg-warm: #7f5f0c;
+  --fg-warm-deep: #604807;
+  --fg-warm-soft: #f4ead0;
+  --fg-good: #52661d;
+  --fg-good-deep: #3e4d16;
+  --fg-good-soft: #e8edd6;
+  --fg-on-good: #ffffff;
+  --fg-caution: #7f5f0c;
+  --fg-caution-soft: #f4ead0;
+  --fg-bad: #ad3328;
+  --fg-bad-soft: #f8e2df;
+  --fg-on-bad: #ffffff;
+  --fg-xp: #a6472a;
+  --fg-xpbar: #bf5f3b;
+  --fg-hud: #fdfaf5;
+  --fg-hud-ink: #2a2622;
+  --fg-hud-muted: #5b5248;
+  --fg-hud-line: #ddd3c4;
+  --fg-hud-accent: #a6472a;
+  --fg-hud-accent-deep: #7f3519;
+  --fg-hud-on-accent: #ffffff;
+  --fg-hud-warm: #7f5f0c;
+  --fg-hud-good: #52661d;
+  --fg-hud-bad: #ad3328;
+  --fg-hud-on-bad: #ffffff;
+  --fg-hud-xp: #a6472a;
+  --fg-hud-xpbar: #a6472a;
+  --fg-heat-0: #e8e0d3;
+  --fg-heat-1: #eec3ad;
+  --fg-heat-2: #d27f5a;
+  --fg-heat-3: #a6472a;
+  --fg-rar-low: #3f6f8a;
+  --fg-rar-medium: #52661d;
+  --fg-rar-high: #7f5f0c;
+  --fg-shadow: 0 10px 28px -18px rgba(60, 40, 20, 0.35);
+  --fg-texture: radial-gradient(rgba(42, 38, 34, 0.06) 1px, transparent 1.2px);
+  --fg-coin-ink: #7a590c;
+  --fg-room-base: #fbf7f0;
+  --fg-room-bg: rgb(251 247 240 / 0.93);
+  --fg-room-border: #d8ccb9;
+  --fg-room-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 20px 44px -18px rgb(40 25 10 / 0.45);
+  --fg-room-bar-line: #ddd3c4;
+  --fg-room-ink: #2a2622;
+  --fg-room-muted: #5b5248;
+  --fg-room-line: #ddd3c4;
+  --fg-room-sunk: rgb(42 38 34 / 0.05);
+  --fg-room-field: rgb(255 255 255 / 0.7);
+  --fg-room-hover: rgb(42 38 34 / 0.06);
+  --fg-room-tab: #2a2622;
+  --fg-room-on-tab: #f5f0e8;
+  --fg-room-dock: rgb(251 247 240 / 0.93);
+  --fg-room-page: #ede6db;
+
+  --fg-font-sans: 'IBM Plex Sans Variable', system-ui, sans-serif;
+  --fg-font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --fg-font-label: 'Geist Mono Variable', ui-monospace, monospace;
+  --fg-font-num: 'Geist Mono Variable', ui-monospace, monospace;
+  --fg-font-btn: 'IBM Plex Sans Variable', system-ui, sans-serif;
+  --fg-display-weight: 700;
+  --fg-display-tracking: -0.025em;
+  --fg-body-weight: 400;
+  --fg-label-weight: 500;
+  --fg-label-size: 11px;
+  --fg-label-tracking: 0.06em;
+  --fg-num-weight: 500;
+  --fg-r-md: 6px;
+  --fg-r-lg: 8px;
+  --fg-r-xl: 8px;
+  --fg-r-2xl: 10px;
+  --fg-r-3xl: 14px;
+  --fg-radius: 10px;
+  --fg-radius-sm: 6px;
+  --fg-border-w: 1px;
+  --fg-input-radius: 8px;
+  --fg-btn-radius: 999px;
+  --fg-btn-radius-sm: 999px;
+  --fg-btn-weight: 600;
+  --fg-chip-radius: 6px;
+  --fg-xp-height: 6px;
+  --fg-texture-size: 18px 18px;
+  --fg-room-radius: 10px;
+  --fg-room-blur: 16px;
+  --fg-room-sat: 120%;
+  --fg-room-title-font: 'Geist Mono Variable', ui-monospace, monospace;
+  --fg-room-title-size: 11px;
+  --fg-room-title-weight: 500;
+  --fg-room-title-case: uppercase;
+  --fg-room-title-tracking: 0.08em;
+  --fg-room-btn-radius: 999px;
+}
+[data-theme-id='studio'].dark {
   --fg-paper: #2a2622;
   --fg-card: #34302b;
   --fg-sunk: #2f2b27;
@@ -1018,6 +1609,7 @@
   --fg-hud-warm: #dcb65c;
   --fg-hud-good: #b3c472;
   --fg-hud-bad: #f08e84;
+  --fg-hud-on-bad: #230f0d;
   --fg-hud-xp: #e8916b;
   --fg-hud-xpbar: #e8916b;
   --fg-heat-0: #3b3631;
@@ -1027,45 +1619,13 @@
   --fg-rar-low: #93b7cc;
   --fg-rar-medium: #b3c472;
   --fg-rar-high: #dcb65c;
-
-  --fg-font-sans: 'IBM Plex Sans Variable', system-ui, sans-serif;
-  --fg-font-display: 'Bricolage Grotesque Variable', system-ui, sans-serif;
-  --fg-font-label: 'Geist Mono Variable', ui-monospace, monospace;
-  --fg-font-num: 'Geist Mono Variable', ui-monospace, monospace;
-  --fg-font-btn: 'IBM Plex Sans Variable', system-ui, sans-serif;
-  --fg-display-weight: 700;
-  --fg-display-tracking: -0.025em;
-  --fg-body-weight: 400;
-  --fg-label-weight: 500;
-  --fg-label-size: 11px;
-  --fg-label-tracking: 0.06em;
-  --fg-num-weight: 500;
-  --fg-r-md: 6px;
-  --fg-r-lg: 8px;
-  --fg-r-xl: 8px;
-  --fg-r-2xl: 10px;
-  --fg-r-3xl: 14px;
-  --fg-radius: 10px;
-  --fg-radius-sm: 6px;
   --fg-shadow: 0 10px 28px -18px rgba(0, 0, 0, 0.55);
-  --fg-border-w: 1px;
-  --fg-input-radius: 8px;
-  --fg-btn-radius: 999px;
-  --fg-btn-radius-sm: 999px;
-  --fg-btn-weight: 600;
-  --fg-chip-radius: 6px;
-  --fg-xp-height: 6px;
   --fg-texture: radial-gradient(rgba(243, 236, 223, 0.06) 1px, transparent 1.2px);
-  --fg-texture-size: 18px 18px;
-
   --fg-coin-ink: #e2b858;
   --fg-room-base: #312d29;
   --fg-room-bg: rgb(46 42 38 / 0.93);
   --fg-room-border: #4f473e;
-  --fg-room-radius: 10px;
   --fg-room-shadow: inset 0 1px 0 rgb(243 236 223 / 0.05), 0 20px 44px -18px rgb(0 0 0 / 0.7);
-  --fg-room-blur: 16px;
-  --fg-room-sat: 120%;
   --fg-room-bar-line: #4a433b;
   --fg-room-ink: #f3ecdf;
   --fg-room-muted: #c6bcac;
@@ -1077,12 +1637,6 @@
   --fg-room-on-tab: #2a2622;
   --fg-room-dock: rgb(46 42 38 / 0.93);
   --fg-room-page: #1f1c19;
-  --fg-room-title-font: 'Geist Mono Variable', ui-monospace, monospace;
-  --fg-room-title-size: 11px;
-  --fg-room-title-weight: 500;
-  --fg-room-title-case: uppercase;
-  --fg-room-title-tracking: 0.08em;
-  --fg-room-btn-radius: 999px;
 }
 /*
   The game HUD (status strip, level card, celebrations) is always dark, so inside it the
@@ -1099,6 +1653,7 @@
   --fg-warm: var(--fg-hud-warm);
   --fg-good: var(--fg-hud-good);
   --fg-bad: var(--fg-hud-bad);
+  --fg-on-bad: var(--fg-hud-on-bad);
   --fg-xp: var(--fg-hud-xp);
   --fg-xpbar: var(--fg-hud-xpbar);
   --fg-coin-ink: var(--fg-hud-xp);
@@ -1109,7 +1664,8 @@ body {
   background-color: var(--fg-paper);
   color: var(--fg-ink);
 }
-:root {
+:root,
+.theme-scope {
   color-scheme: light;
 }
 .dark {

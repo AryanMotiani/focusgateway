@@ -7,11 +7,11 @@ import { download } from '../lib/format.js'
 import { hasLocalData, clearLocalData, createLocalAdapter } from '../lib/api.js'
 import Icon from '../components/Icon.vue'
 import HelpButton from '../components/help/HelpButton.vue'
-import BlockingTest from '../components/help/BlockingTest.vue'
+import BlockingStatus from '../components/help/BlockingStatus.vue'
 import Modal from '../components/Modal.vue'
 import PinField from '../components/PinField.vue'
 import ThemePicker from '../components/look/ThemePicker.vue'
-import NightPicker from '../components/look/NightPicker.vue'
+import ColorModeSwitch from '../components/look/ColorModeSwitch.vue'
 import { lookMode } from '../lib/look.js'
 
 const s = computed(() => store.state)
@@ -175,19 +175,24 @@ async function revoke(o) {
         </div>
       </div>
       <div id="look" class="space-y-5 p-5">
-        <div>
-          <h2 class="font-semibold">Theme</h2>
-          <p class="text-sm text-muted">
-            Themes for {{ lookMode === 'game' ? 'Game' : 'Calm' }}. Each one has its own typefaces, colours and surfaces, and applies the
-            moment you pick it.
-          </p>
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div class="min-w-0 flex-1 basis-64">
+            <h2 class="font-semibold">Theme</h2>
+            <p class="text-sm text-muted">
+              Themes for {{ lookMode === 'game' ? 'Game' : 'Calm' }}. Each one has its own typefaces, colours and surfaces, in a light and a
+              dark version, and applies the moment you pick it.
+            </p>
+          </div>
+          <div data-settings-color-mode>
+            <p class="label">Light or dark</p>
+            <ColorModeSwitch auto />
+          </div>
         </div>
         <ThemePicker :mode="lookMode" />
-        <div>
-          <p class="label">Night theme</p>
-          <p class="mb-2.5 text-sm text-muted">Switch to another theme on its own while your device is in dark mode.</p>
-          <NightPicker :mode="lookMode" />
-        </div>
+        <p class="text-xs text-muted">
+          Light or dark applies to every theme. Auto follows your device. The sun and moon button next to the palette button flips it from
+          any page.
+        </p>
       </div>
       <div v-if="(s.settings.uiMode || 'game') === 'game'" class="flex flex-wrap items-center justify-between gap-3 p-5">
         <div>
@@ -243,11 +248,7 @@ async function revoke(o) {
       </div>
     </section>
 
-    <section class="card p-5" data-tour="settings-test">
-      <h2 class="font-semibold">Does blocking work here?</h2>
-      <p class="mt-1 mb-3 text-sm text-muted">Check this browser in one click. Handy after installing, or when a site was not blocked.</p>
-      <BlockingTest />
-    </section>
+    <div data-tour="settings-test"><BlockingStatus /></div>
 
     <section class="card divide-y divide-line" data-tour="settings-pin">
       <div class="flex flex-wrap items-center justify-between gap-3 p-5">

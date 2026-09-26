@@ -2,9 +2,11 @@
 //
 // A tour is a list of steps, each pointing at an element by CSS selector (mostly
 // [data-tour="..."] attributes in the views). components/help/TourHost.vue draws the dim
-// overlay, the spotlight, the arrow and the card. Each page's tour shows by itself once, the
-// first time the page is opened after setup, and never while a dialog is open. The "?" button
-// on every page opens the help drawer (components/help/HelpDrawer.vue), which can replay it.
+// overlay, the spotlight, the arrow and the card. Only two show by themselves, once each:
+// the room intro (what can not be minimized: the blocking pill, help, the eye and the dock),
+// and, when someone lands on another page first after setup, one welcome step pointing at the
+// "?" button. Every page tour is still there, started from the help drawer (HelpDrawer.vue).
+// The room's windows get their own one-time tips when first opened (roomTips below).
 import { reactive } from 'vue'
 
 const SEEN_KEY = 'focusgateway:tours-seen'
@@ -35,54 +37,29 @@ const helpStep = {
 }
 
 export const TOURS = {
+  // The room intro: only what can not be minimized. Everything else explains itself the first
+  // time it is opened (the first-open tips in views/Room.vue).
   room: [
     {
-      target: '[data-window="focus"]',
-      title: 'Focus timer',
-      text: 'Start a focus session here. Pick a length, choose the sites to block, press Start focus. Sites stay blocked for the whole session, breaks included.',
+      target: '[data-blocking-pill]',
+      title: 'Blocking on or off',
+      text: 'This pill always tells you if site blocking works in this browser. Click it to see why, or to fix it.',
     },
     {
-      target: '[data-window="player"]',
-      title: 'Music',
-      text: 'Lofi radio made right in your browser. Play, skip, and mix in rain or cafe sounds. Space plays and pauses.',
+      target: '[data-help-button]',
+      title: 'Help is on every page',
+      text: 'Every page has this ? button. Explore anything, and press ? whenever something is unclear. The palette next to it changes the look.',
     },
     {
-      target: '[data-window="drawer"]',
-      title: 'Planner',
-      text: 'Your tasks, habits, blocks and progress without leaving the room. Keys T, H, B and S switch tabs.',
-    },
-    {
-      target: '[data-window="status"]',
-      title: 'Status',
-      text: 'Your level and XP, your streak, what is blocked right now and the timer, always in view.',
-    },
-    {
-      target: '[data-window="focus"] .rw-title',
-      title: 'Windows move',
-      text: 'Drag any window by its title bar, resize it from an edge or corner, and use its buttons to minimize or maximize it.',
-      desktop: true,
+      target: '[data-tour="room-eye"]',
+      title: 'Clear everything',
+      text: 'Press the eye to clear everything and just enjoy the room. Press it again, or Z, to bring things back.',
     },
     {
       target: 'nav[aria-label="Room windows"]',
-      title: 'The dock',
-      text: 'Minimized windows wait here. Click one to bring it back. The reset button puts every window back in its place.',
+      title: 'Everything else lives here',
+      text: 'Open anything to explore it, each part explains itself the first time you open it. Reset tidies the room again. Have fun!',
     },
-    {
-      target: '[data-tour="room-decorate"], button[title^="Decorate"]',
-      title: 'Decorate',
-      text: 'Place furniture and badges in your room and dress up your avatar. New items unlock as you level up.',
-    },
-    {
-      target: '[data-tour="room-scene"], button[title^="Scene and music"]',
-      title: 'Scenes',
-      text: 'Change the view outside the window and the style of music. Leveling up unlocks more.',
-    },
-    {
-      target: 'nav[aria-label="Pages"]',
-      title: 'Every page',
-      text: 'Today, Tasks, Schedule, Blocking, Habits, Accountability and Settings are one click away.',
-    },
-    helpStep,
   ],
   today: [
     {
@@ -202,7 +179,11 @@ export const TOURS = {
     helpStep,
   ],
   settings: [
-    { target: '#look', title: 'Look', text: 'Game or Calm style, the theme, and a separate night theme for dark mode.' },
+    {
+      target: '#look',
+      title: 'Look',
+      text: 'Game or Calm style, the theme, and Light or Dark for every theme. The sun and moon button next to the palette flips it from any page.',
+    },
     {
       target: '[data-tour="settings-test"]',
       title: 'Test blocking',
@@ -219,6 +200,14 @@ export const TOURS = {
       text: 'An optional small program that applies your blocks to every browser and app on this computer.',
     },
     helpStep,
+  ],
+  // the first time someone enters the app after setup, on a page other than the room
+  welcome: [
+    {
+      target: '[data-help-button]',
+      title: 'Help is on every page',
+      text: 'Every page has this. Explore anything, and press ? whenever something is unclear.',
+    },
   ],
   decorate: [
     {
@@ -304,7 +293,7 @@ export function startTour(id, { force = false } = {}) {
 }
 
 /**
- * Shows a page's tour the first time, once the page has drawn and nothing else is open.
+ * Shows a tour by itself the first time, once the page has drawn and nothing else is open.
  * Waits (up to ~20 s) for a dialog to close instead of showing on top of it.
  */
 export async function autoTour(id, { delay = 700 } = {}) {
@@ -313,6 +302,16 @@ export async function autoTour(id, { delay = 700 } = {}) {
   for (let i = 0; i < 40 && modalOpen(); i++) await new Promise((r) => setTimeout(r, 500))
   if (modalOpen() || tour.id || tourSeen(id)) return
   startTour(id)
+}
+
+/**
+ * The only tours that start by themselves. In the room: the room intro (trial room too).
+ * Anywhere else, once set up: a single step pointing at the help button. The room intro
+ * covers the help button too, so after it the welcome step never shows.
+ */
+export function autoIntro(page, { onboarded = false } = {}) {
+  if (page === 'room') return autoTour('room', { delay: 1000 })
+  if (onboarded && page && page !== 'install' && !tourSeen('room')) return autoTour('welcome', { delay: 700 })
 }
 
 export function nextStep() {
@@ -332,6 +331,7 @@ export function prevStep() {
 /** Finish or skip: either way it will not show by itself again. */
 export function endTour() {
   if (tour.id) markTourSeen(tour.id)
+  if (tour.id === 'room') markTourSeen('welcome')
   Object.assign(tour, { id: null, steps: [], index: 0 })
 }
 
@@ -341,4 +341,40 @@ export function openHelp(page) {
 }
 export function closeHelp() {
   help.open = false
+}
+
+// ---------------------------------------------------------------- room tips
+// A small one-time tip the first time each study room window is opened from the dock, and the
+// first time decorate mode opens. "Got it" (or closing the window) and it never shows again.
+const TIPS_KEY = 'focusgateway:room-tips-seen'
+export const ROOM_TIPS = {
+  status: 'Your level, XP, streak and what is blocked right now, always in view. Finish tasks, habits and focus sessions to fill the bar.',
+  focus:
+    'Pick a length or a preset, choose the sites to block and press Start focus. Sites stay blocked for the whole session, and every finished session earns XP and coins.',
+  player:
+    'Press play for lofi radio made right in your browser, skip ahead or pick a track. The ambience sliders mix in rain, cafe or fire sounds.',
+  drawer: 'Your tasks, habits, active blocks and progress in tabs, without leaving the room. Keys T, H, B and S switch tabs.',
+  notes: 'Jot down whatever pops into your head so it does not pull you out of focus. Notes stay on this device.',
+  scene: 'Change the view outside the window and the style of music. More scenes and styles come from the shop and from leveling up.',
+  decorate:
+    'Drag an item into the room, or tap it to place it, and tap again to put it away. Avatar and Room change how you and the room look, Done saves.',
+}
+function readTips() {
+  try {
+    const v = JSON.parse(localStorage.getItem(TIPS_KEY) || '[]')
+    return new Set(Array.isArray(v) ? v : [])
+  } catch {
+    return new Set()
+  }
+}
+/** Seen, or every tour switched off (tests set tours-seen to ["*"]). */
+export function tipSeen(id) {
+  return readTips().has(id) || readSeen().has('*')
+}
+export function markTipSeen(id) {
+  const seen = readTips()
+  seen.add(id)
+  try {
+    localStorage.setItem(TIPS_KEY, JSON.stringify([...seen]))
+  } catch {}
 }

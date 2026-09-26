@@ -10,6 +10,11 @@ import DialogHost from './components/DialogHost.vue'
 import TourHost from './components/help/TourHost.vue'
 import HelpDrawer from './components/help/HelpDrawer.vue'
 import BlockingOffDialog from './components/help/BlockingOffDialog.vue'
+import BlockingStatusDialog from './components/help/BlockingStatusDialog.vue'
+import FirstVisitDialog from './components/help/FirstVisitDialog.vue'
+import ExtensionBanner from './components/help/ExtensionBanner.vue'
+import ApproveGuide from './components/help/ApproveGuide.vue'
+import QuickTheme from './components/look/QuickTheme.vue'
 import StatusStrip from './components/StatusStrip.vue'
 import TodayRail from './components/TodayRail.vue'
 import Celebrate from './components/Celebrate.vue'
@@ -28,7 +33,8 @@ watchEffect(() => {
   root.dataset.mode = lookMode.value
   // the whole theme (colours, typefaces, surfaces) is pure CSS from here, see style.css
   root.dataset.themeId = activeTheme.value.id
-  // dark themes also set .dark so dark: variants keep working
+  // .dark picks the theme's dark variant (settings.colorMode), so text and surfaces
+  // always come from the same variant
   root.classList.toggle('dark', isDark.value)
 })
 startRewardWatch()
@@ -53,19 +59,23 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
 </script>
 
 <template>
-  <div v-if="store.pendingApproval" class="grid min-h-screen place-items-center p-6">
-    <div class="card max-w-md p-6 text-center">
-      <img :src="logo" alt="" class="mx-auto h-12 w-12" />
-      <h1 class="mt-4 text-xl font-semibold">Approve this site in the extension</h1>
-      <p class="mt-2 text-sm text-muted">The FocusGateway extension is installed. Let this website use it, so it can block sites:</p>
-      <ol class="mt-3 list-decimal space-y-1 pl-5 text-left text-sm">
-        <li>Click the <b>puzzle piece</b> in your browser toolbar (top right), then <b>FocusGateway</b>.</li>
-        <li>Press <b>Allow</b> next to this site.</li>
-        <li>This page continues on its own.</li>
-      </ol>
-      <p class="mt-3 text-xs text-muted">Tip: pin FocusGateway to the toolbar, so its icon is always one click away.</p>
-      <button class="btn mt-5" @click="useLocalInstead">Continue without blocking</button>
-      <p class="mt-2 text-xs font-semibold text-bad">Without approving, nothing is blocked in this browser.</p>
+  <div v-if="store.pendingApproval" class="relative grid min-h-screen place-items-center p-4 sm:p-6" data-pending-approval>
+    <div class="absolute top-3 right-3"><QuickTheme /></div>
+    <div class="card w-full max-w-xl p-5 sm:p-6">
+      <div class="text-center">
+        <img :src="logo" alt="" class="mx-auto h-12 w-12" />
+        <h1 class="mt-3 text-xl font-semibold">Approve this site in the extension</h1>
+        <p class="mt-1.5 text-sm text-muted">
+          The FocusGateway extension is installed. Two quick steps let this site use it to block sites.
+        </p>
+      </div>
+      <div class="mt-4">
+        <ApproveGuide />
+      </div>
+      <div class="mt-4 border-t border-line pt-3 text-center">
+        <button class="btn btn-ghost btn-sm" @click="useLocalInstead">Continue without blocking</button>
+        <p class="mt-1 text-xs font-semibold text-bad">Without approving, nothing is blocked in this browser.</p>
+      </div>
     </div>
   </div>
 
@@ -105,6 +115,7 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
           </RouterLink>
         </nav>
         <div class="space-y-2">
+          <div class="flex items-center justify-between px-1"><QuickTheme label /></div>
           <RouterLink v-if="store.mode === 'local'" to="/install" class="block rounded-xl bg-warm-soft p-3 text-xs">
             <b class="text-warm">Blocking is off.</b> <span class="text-muted">Install the free extension to block sites.</span>
           </RouterLink>
@@ -122,7 +133,10 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
         <RouterLink to="/" class="flex items-center gap-2"
           ><img :src="logo" alt="" class="h-7 w-7" /><span class="font-semibold">FocusGateway</span></RouterLink
         >
-        <button class="btn btn-ghost btn-sm" aria-label="Menu" @click="menu = !menu"><Icon name="menu" /></button>
+        <div class="flex items-center gap-1">
+          <QuickTheme />
+          <button class="btn btn-ghost btn-sm" aria-label="Menu" @click="menu = !menu"><Icon name="menu" /></button>
+        </div>
       </header>
       <div v-if="menu" class="fixed inset-0 z-40 bg-paper p-4 lg:hidden" @click="menu = false">
         <div class="mb-4 flex justify-end">
@@ -141,6 +155,7 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
           <div class="mx-auto max-w-5xl" data-tour="status"><StatusStrip /></div>
         </div>
         <main class="mx-auto w-full max-w-5xl px-4 pt-4 pb-28 sm:px-6 lg:px-10 lg:pt-6 lg:pb-12">
+          <ExtensionBanner class="mb-4" />
           <RouterView />
         </main>
       </div>
@@ -168,6 +183,8 @@ const showRail = computed(() => !['/today', '/tasks', '/habits'].includes(route.
   <Toasts />
   <DialogHost />
   <BlockingOffDialog />
+  <BlockingStatusDialog />
+  <FirstVisitDialog />
   <HelpDrawer />
   <TourHost />
   <Celebrate />

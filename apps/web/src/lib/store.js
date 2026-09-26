@@ -1,5 +1,5 @@
 import { reactive, computed, ref } from 'vue'
-import { computeBlocks, allSites, focusEndsAt } from '@focusgateway/core'
+import { computeBlocks, allSites, focusEndsAt, isOlderVersion } from '@focusgateway/core'
 import { connect, createLocalAdapter, readLocalState, clearLocalData, extensionPresent } from './api.js'
 
 export const store = reactive({
@@ -14,8 +14,12 @@ export const store = reactive({
   clockOffset: 0,
   toasts: [],
   // can blocking actually work here? see checkHealth and blockingIssue
-  health: { extension: false, hostAccess: null, incognito: null },
+  // version: the extension's version from its hello answer (bridge mode), see extensionOutdated
+  health: { extension: false, hostAccess: null, incognito: null, version: null },
 })
+
+/** This web app's version (root package.json, injected by vite.config.js). */
+export const APP_VERSION = typeof __FG_VERSION__ === 'string' ? __FG_VERSION__ : null
 
 let adapter = null
 
@@ -48,6 +52,7 @@ export async function init() {
   adapter = await connect()
   store.mode = adapter.mode
   if (adapter.hostAccess != null) store.health.hostAccess = adapter.hostAccess
+  if (adapter.version) store.health.version = adapter.version
   store.health.extension = adapter.mode !== 'local' || extensionPresent()
   if (adapter.mode === 'bridge' && !adapter.approved) {
     store.pendingApproval = true
@@ -76,15 +81,22 @@ const wantedHash = location.hash
 async function pollApproval() {
   while (store.pendingApproval) {
     await new Promise((r) => setTimeout(r, 2000))
-    const hello = await adapter.call('hello')
-    if (hello?.ok && hello.data.approved) {
-      store.pendingApproval = false
-      await refresh()
-      await adoptLocalSetup()
-      checkHealth()
-      location.hash = wantedHash && wantedHash !== '#/home' ? wantedHash : '#/'
-    }
+    await checkApproval()
   }
+}
+
+/** Asks the extension right now whether this site was approved ("Check again"). */
+export async function checkApproval() {
+  if (!store.pendingApproval || adapter?.mode !== 'bridge') return false
+  const hello = await adapter.call('hello')
+  if (!(hello?.ok && hello.data.approved) || !store.pendingApproval) return false
+  store.pendingApproval = false
+  if (hello.data.version) store.health.version = hello.data.version
+  await refresh()
+  await adoptLocalSetup()
+  checkHealth()
+  location.hash = wantedHash && wantedHash !== '#/home' ? wantedHash : '#/'
+  return true
 }
 
 /**
@@ -122,6 +134,7 @@ export async function checkHealth() {
     } else if (adapter.mode === 'bridge' && !store.pendingApproval) {
       const r = await adapter.call('hello')
       if (r?.ok && r.data.hostAccess != null) store.health.hostAccess = r.data.hostAccess
+      if (r?.ok && r.data.version) store.health.version = r.data.version
     }
   } catch {}
 }
@@ -138,6 +151,14 @@ export const blockingIssue = computed(() => {
   if (store.health.hostAccess === false) return 'no-access'
   return null
 })
+
+/**
+ * The connected extension is older than this web app (bridge mode only: inside the
+ * extension the app ships with it). Blocking still works, newer features may not.
+ */
+export const extensionOutdated = computed(
+  () => store.ready && store.mode === 'bridge' && !store.pendingApproval && isOlderVersion(store.health.version, APP_VERSION),
+)
 
 /** A focus session is running right now. */
 export function sessionRunning() {

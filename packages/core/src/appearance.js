@@ -1,14 +1,16 @@
-// The theme catalog. Each mode (Game, Calm) has a few complete themes: a fixed light or
-// dark tone, its own heading and body typefaces and its own palette and surfaces. The UI
-// and the backend share these ids. Colours, textures and font stacks live in
-// apps/web/src/style.css under [data-theme-id]. Swatches and fonts here are for pickers.
+// The theme catalog. Each mode (Game, Calm) has a few complete themes, each with its own
+// heading and body typefaces, shape language and palette, drawn in a light and a dark
+// variant. One colour mode setting (light, dark, or auto to match the device) picks the
+// variant for every theme. The UI and the backend share these ids. Colours, textures and
+// font stacks live in apps/web/src/style.css under [data-theme-id] and
+// [data-theme-id].dark. Swatches and fonts here are for pickers.
 
 export const APPEARANCE_MODES = ['game', 'minimal']
 
 // weight: how headings in this font are drawn, so pickers can preview them faithfully
 const font = (name, family, weight = 400) => ({ name, family, weight })
-// swatch: paper, card, ink, main accent, then supporting hues
-const theme = (id, name, tone, blurb, heading, body, swatch) => ({ id, name, tone, blurb, heading, body, swatch })
+// swatch per variant: paper, card, ink, main accent, then supporting hues
+const theme = (id, name, blurb, heading, body, light, dark) => ({ id, name, blurb, heading, body, swatch: { light, dark } })
 
 const SANS = 'system-ui, sans-serif'
 const SERIF = 'Georgia, serif'
@@ -19,38 +21,38 @@ export const APPEARANCE = {
       theme(
         'sunny',
         'Sunny Quest',
-        'light',
-        'Fresh cream and sky, coral pill buttons, bubbly and round',
+        'Cream and sky, coral pill buttons, bubbly and round',
         font('Fredoka', `'Fredoka Variable', ${SANS}`, 600),
         font('Nunito', `'Nunito Variable', ${SANS}`),
-        ['#fff8ea', '#ffffff', '#1f2a44', '#c9432c', '#1a7f86', '#f2b400', '#2f8a3b'],
+        ['#fff8ea', '#ffffff', '#1f2a44', '#bb3a23', '#1a868c', '#f2b400', '#287634'],
+        ['#182030', '#212a3d', '#fff4e0', '#ff8a6e', '#3cc4c9', '#ffb547', '#84d68e'],
       ),
       theme(
         'storybook',
         'Storybook',
-        'light',
         'Parchment and ink, berry and forest, wobbly hand drawn edges',
         font('Patrick Hand', `'Patrick Hand', 'Comic Sans MS', ${SANS}`),
         font('Atkinson Hyperlegible', `'Atkinson Hyperlegible Next Variable', ${SANS}`),
-        ['#f6ecd6', '#fdf8ea', '#3a2a1c', '#9a2c4b', '#2f6b3a', '#c98a1c', '#3f6f8f'],
+        ['#f6ecd6', '#fdf8ea', '#3a2a1c', '#962a49', '#2d6638', '#c98a1c', '#3f6f8f'],
+        ['#2a2118', '#33291e', '#f6ead2', '#f0a3b8', '#a8d596', '#f2c46a', '#8fb8d6'],
       ),
       theme(
         'arcade',
         'Arcade',
-        'dark',
         'Retro console, pixel type, square edges and hard shadows',
         font('Pixelify Sans', `'Pixelify Sans Variable', ui-monospace, monospace`, 600),
         font('Chakra Petch', `'Chakra Petch', ${SANS}`),
-        ['#17162b', '#211f3b', '#eeecf8', '#e25a45', '#eaa93a', '#6cbf4a', '#6d8cf2'],
+        ['#efedf8', '#ffffff', '#17162b', '#b53a24', '#8f5800', '#3f8f25', '#3f5fd0'],
+        ['#17162b', '#211f3b', '#eeecf8', '#ec6a52', '#efaf48', '#78c95b', '#8199f5'],
       ),
       theme(
         'night-owl',
         'Night Owl',
-        'dark',
-        'Deep navy sky, moon yellow and lilac, soft round glows',
+        'Night sky blues, moon yellow and lilac, soft round glows',
         font('Comfortaa', `'Comfortaa Variable', ${SANS}`, 700),
         font('Figtree', `'Figtree Variable', ${SANS}`),
-        ['#0f1830', '#16223e', '#e9edf8', '#f3cf63', '#b8a2ff', '#5fd0bd', '#f4a57a'],
+        ['#eef1fa', '#ffffff', '#141d38', '#5a42c6', '#f3cf63', '#12705f', '#a24d1c'],
+        ['#0f1830', '#16223e', '#e9edf8', '#f3cf63', '#b8a2ff', '#62d1be', '#f4a57a'],
       ),
     ],
   },
@@ -59,47 +61,51 @@ export const APPEARANCE = {
       theme(
         'paper',
         'Paper',
-        'light',
-        'Ivory notebook, ink blue and rust, crisp corners and hairlines',
+        'Notebook serifs, ink blue and rust, crisp corners and hairlines',
         font('Young Serif', `'Young Serif', ${SERIF}`),
         font('Source Serif 4', `'Source Serif 4 Variable', ${SERIF}`),
-        ['#fbf8f1', '#fffefa', '#1e2432', '#1f4e8c', '#a4461e', '#4f7c58', '#b08a2e'],
+        ['#fbf8f1', '#fffefa', '#1e2432', '#1f4e8c', '#a0441d', '#3c6845', '#b08a2e'],
+        ['#161a22', '#1c212b', '#ece6d8', '#8fb4ea', '#e59a74', '#93c19c', '#dcbc6a'],
       ),
       theme(
         'nordic',
         'Nordic',
-        'light',
-        'Cool grey white, fjord blue and pine, soft frosted glass',
+        'Cool greys, fjord blue and pine, soft frosted glass',
         font('Manrope', `'Manrope Variable', ${SANS}`, 700),
         font('Inter', `'Inter Variable', ${SANS}`),
-        ['#f4f6f8', '#ffffff', '#16202b', '#2d6690', '#2b6a4f', '#b25a3a', '#7a8fa3'],
+        ['#f4f6f8', '#ffffff', '#16202b', '#2a6189', '#2b6a4f', '#a3502d', '#7a8fa3'],
+        ['#121820', '#19212b', '#e8eef4', '#7fb6dc', '#7cc4a2', '#e39a78', '#95a7b8'],
       ),
       theme(
         'midnight',
         'Midnight Library',
-        'dark',
-        'Green black study, brass double rules, parchment text',
+        'Library green, brass double rules, old style serifs',
         font('Cormorant Garamond', `'Cormorant Garamond Variable', ${SERIF}`, 600),
         font('Spectral', `'Spectral', ${SERIF}`),
+        ['#f4efe2', '#fbf8ef', '#1a2a1f', '#235c3a', '#8e6c26', '#8a2f43', '#2f6a3f'],
         ['#0f1712', '#16211a', '#efe6d2', '#d4aa52', '#d77c8d', '#8fc39c', '#8a2f43'],
       ),
       theme(
         'studio',
         'Studio',
-        'dark',
-        'Warm graphite, terracotta and olive, pill buttons, mono labels',
+        'Graphite and cream, terracotta and olive, pill buttons, mono labels',
         font('Bricolage Grotesque', `'Bricolage Grotesque Variable', ${SANS}`, 700),
         font('IBM Plex Sans', `'IBM Plex Sans Variable', ${SANS}`),
-        ['#2a2622', '#342f2a', '#f3ecdf', '#e4885f', '#aebf6c', '#dcb65c', '#8fb4c9'],
+        ['#f5f0e8', '#fdfaf5', '#2a2622', '#a6472a', '#52661d', '#7f5f0c', '#3f6f8a'],
+        ['#2a2622', '#34302b', '#f3ecdf', '#e4885f', '#aebf6c', '#dcb65c', '#8fb4c9'],
       ),
     ],
   },
 }
 
 export const DEFAULT_APPEARANCE = {
-  game: { theme: 'sunny', night: null },
-  minimal: { theme: 'paper', night: null },
+  game: { theme: 'sunny' },
+  minimal: { theme: 'paper' },
 }
+
+/** Light or dark for every theme. auto follows the device. Light is the default for everyone. */
+export const COLOR_MODES = ['light', 'dark', 'auto']
+export const DEFAULT_COLOR_MODE = 'light'
 
 const modeOf = (mode) => (mode === 'minimal' ? 'minimal' : 'game')
 const hasTheme = (mode, id) => APPEARANCE[modeOf(mode)].themes.some((t) => t.id === id)
@@ -129,53 +135,68 @@ export const LEGACY_PALETTES = {
   },
 }
 
+/** Before look version 3 every theme had one fixed tone. These were the dark ones. */
+export const DARK_BEFORE_VARIANTS = ['arcade', 'night-owl', 'midnight', 'studio']
+
 /**
- * Turns an old { palette, heading, body } look plus the old theme switch into
- * { theme, night }. Light keeps the light theme, dark keeps the dark one, and
- * system (the old default) uses the light one by day and the dark one as night theme.
+ * Turns an old { palette, heading, body } look plus the old theme switch into { theme }.
+ * The old dark switch picks the palette's dark theme (drawn dark, see migrateAppearance),
+ * light and system (the old default) pick its light theme.
  */
 export function legacyAppearance(old, mode, oldTheme) {
   const m = modeOf(mode)
   const table = LEGACY_PALETTES[m]
   const [light, dark] = table[old?.palette] || Object.values(table)[0]
-  if (oldTheme === 'light') return { theme: light, night: null }
-  if (oldTheme === 'dark') return { theme: dark, night: null }
-  return { theme: light, night: dark }
+  return { theme: oldTheme === 'dark' ? dark : light }
 }
 
-/** The look for one mode, with missing or unknown ids replaced by defaults. */
+/**
+ * Version of the look settings. 2 made light the default. 3 gave every theme a light and
+ * a dark variant, replaced the night theme with settings.colorMode and dropped `night`.
+ */
+export const LOOK_VERSION = 3
+
+/** The look for one mode, { theme }, with a missing or unknown id replaced by the default. */
 export function appearanceFor(settings, mode) {
   const m = modeOf(mode)
   const saved = settings?.appearance?.[m]
-  const out = { ...DEFAULT_APPEARANCE[m] }
-  if (hasTheme(m, saved?.theme)) out.theme = saved.theme
-  if (hasTheme(m, saved?.night) && saved.night !== out.theme) out.night = saved.night
-  return out
+  return { theme: hasTheme(m, saved?.theme) ? saved.theme : DEFAULT_APPEARANCE[m].theme }
+}
+
+/** The saved colour mode, light when it is missing or unknown. */
+export const colorModeOf = (settings) => (COLOR_MODES.includes(settings?.colorMode) ? settings.colorMode : DEFAULT_COLOR_MODE)
+
+/** 'light' or 'dark': what a colour mode draws right now. */
+export const variantOf = (colorMode, systemDark) => (colorMode === 'dark' || (colorMode === 'auto' && !!systemDark) ? 'dark' : 'light')
+
+/** The theme and variant to draw right now. */
+export function activeLook(settings, mode, systemDark) {
+  return { theme: findTheme(mode, appearanceFor(settings, mode).theme), variant: variantOf(colorModeOf(settings), systemDark) }
 }
 
 /**
- * Old saves have no appearance at all or the palette shape. Those carry the old
- * system/light/dark switch into the new theme and night theme.
+ * Brings any saved look up to date: returns { appearance, colorMode }.
+ * - Current saves are only cleaned (unknown ids back to defaults, `night` dropped).
+ * - Older saves keep their theme ids. The colour mode turns dark only when the user picked
+ *   a dark look themselves: a theme that used to be dark-only as the theme of the mode in
+ *   use, or the old dark switch. Everything else, a night theme included, starts light.
  */
 export function migrateAppearance(settings) {
-  const out = {}
+  const appearance = {}
   for (const m of APPEARANCE_MODES) {
     const saved = settings?.appearance?.[m]
     const isNew = !!saved && typeof saved === 'object' && 'theme' in saved
-    out[m] = isNew ? appearanceFor(settings, m) : legacyAppearance(saved, m, settings?.theme)
+    appearance[m] = isNew ? appearanceFor(settings, m) : legacyAppearance(saved, m, settings?.theme)
   }
-  return out
-}
-
-/** The theme to draw right now: the night theme when the device is dark and one is set. */
-export function activeTheme(settings, mode, systemDark) {
-  const a = appearanceFor(settings, mode)
-  return findTheme(mode, systemDark && a.night ? a.night : a.theme)
+  if (settings?.lookVersion >= LOOK_VERSION) return { appearance, colorMode: colorModeOf(settings) }
+  const inUse = appearance[modeOf(settings?.uiMode)].theme
+  const pickedDark = DARK_BEFORE_VARIANTS.includes(inUse)
+  return { appearance, colorMode: pickedDark ? 'dark' : DEFAULT_COLOR_MODE }
 }
 
 /**
- * Merges a partial patch ({ game: { theme } } or { minimal: { night: null } }) into the
- * current value. Returns { value } or { error } naming the first unknown mode, key or id.
+ * Merges a partial patch ({ game: { theme } }) into the current value. Returns { value } or
+ * { error } naming the first unknown mode, key or id.
  */
 export function mergeAppearance(current, patch) {
   if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return { error: 'Appearance must be an object.' }
@@ -188,15 +209,10 @@ export function mergeAppearance(current, patch) {
     if (!part || typeof part !== 'object' || Array.isArray(part)) return { error: `Appearance for ${mode} must be an object.` }
     const label = mode === 'game' ? 'Game' : 'Calm'
     for (const [key, id] of Object.entries(part)) {
-      if (key !== 'theme' && key !== 'night') return { error: `Unknown appearance setting "${key}".` }
-      if (key === 'night' && id === null) {
-        value[mode].night = null
-        continue
-      }
+      if (key !== 'theme') return { error: `Unknown appearance setting "${key}".` }
       if (!hasTheme(mode, id)) return { error: `Unknown theme "${id}" for ${label}.` }
-      value[mode][key] = id
+      value[mode].theme = id
     }
-    if (value[mode].night === value[mode].theme) value[mode].night = null
   }
   return { value }
 }

@@ -1,7 +1,8 @@
 <script setup>
 // The dock: one button per study room window. A minimized window shows with its name,
 // click to bring it back. An open one has a dot, click to bring it to the front (or,
-// when it already is, minimize it). Plus "Reset layout".
+// when it already is, minimize it). Plus "Reset layout", which clears the room again.
+// On phones every button shows a short label under its icon, so the dock reads as a menu.
 import { computed } from 'vue'
 import RoomIcon from './RoomIcon.vue'
 
@@ -17,7 +18,6 @@ const list = computed(() =>
     // on phones the open windows are right there in the column, so only minimized ones show
     .filter((it) => !props.stacked || it.min),
 )
-const anyMin = computed(() => list.value.some((x) => x.min))
 defineExpose({ count: computed(() => list.value.length) })
 </script>
 
@@ -34,14 +34,14 @@ defineExpose({ count: computed(() => list.value.length) })
       @click="ctl.toggleMin(it.id)"
     >
       <RoomIcon :name="it.icon" :size="16" />
-      <span v-if="it.min" class="dock-label">{{ it.title }}</span>
+      <span v-if="it.min" class="dock-label">{{ stacked ? it.short || it.title : it.title }}</span>
       <i v-if="!it.min" class="dock-dot" />
     </button>
     <span class="dock-sep" />
     <button
       class="dock-btn"
       aria-label="Reset layout"
-      :title="`Reset layout${anyMin ? ', brings every window back' : ''}`"
+      title="Reset layout: tidy every window back into the dock"
       data-dock-reset
       @click="emit('reset')"
     >
@@ -76,6 +76,19 @@ defineExpose({ count: computed(() => list.value.length) })
 .dock-stacked {
   overflow-x: auto;
   scrollbar-width: none;
+  justify-content: space-around;
+}
+.dock-stacked .dock-btn {
+  flex-direction: column;
+  gap: 2px;
+  height: 46px;
+  min-width: 46px;
+  padding: 0 6px;
+  font-size: 10.5px;
+}
+.dock-stacked .dock-min {
+  background: transparent;
+  box-shadow: none;
 }
 .dock-btn {
   position: relative;

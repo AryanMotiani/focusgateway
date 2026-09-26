@@ -2,7 +2,7 @@
 
 FocusGateway blocks distracting websites until your work is done. It has tasks, habits, a weekly schedule and a cozy lofi study room, and it is free and open source. Your data stays on your computer.
 
-Every page has a **?** button in its top right corner. It explains that page and can replay its tour.
+Every page has a **?** button in its top right corner. It explains that page and can take you through a short tour of it.
 
 ## Contents
 
@@ -35,7 +35,7 @@ Every page has a **?** button in its top right corner. It explains that page and
 
 Optional: install the **lock agent** from the Install page so your blocks apply to every browser and app on the computer.
 
-Each page shows a short tour the first time you open it. Skip it with Esc, or replay it any time from the **?** button.
+The first time you open the app, a short intro shows what is always on screen, and points at the **?** button. After that nothing pops up by itself: explore anything, and press **?** whenever something is unclear. Each page's tour is in its **?** drawer.
 
 ## How blocking works
 
@@ -119,7 +119,16 @@ An honest mirror of what you promised yourself.
 
 ## The study room
 
-Home base: an illustrated room with windows you can arrange.
+Home base: an illustrated room that starts clean. Every window waits in the **dock** at the bottom, so you see the whole room. Open only what you need.
+
+Always on screen:
+
+- The **blocking pill** at the top: green **Blocking on** with what is active (for example "extension connected" or "2 rules active"), or red **Blocking off** with what to do ("add the extension", "approve this site"). Click it for the full checklist.
+- The **?** help button and the palette button for the theme.
+- The **eye**: clears everything so you can just enjoy the room, with a small timer and play button left. Press it again, or Z, to bring things back.
+- The **dock** with every window.
+
+In the dock (each shows a short tip the first time you open it):
 
 - **Focus**: the clock and the focus timer.
 - **Music**: lofi radio made live in your browser, so it keeps playing when YouTube is blocked. Play, skip, pick a named track, and mix in rain, cafe, fire or noise.
@@ -131,9 +140,11 @@ Home base: an illustrated room with windows you can arrange.
 Arranging windows:
 
 - Drag a window by its title bar. Resize it from any edge or corner.
-- Minimize sends it to the **dock** at the bottom. Click it there to bring it back. The reset button restores the default layout.
+- Click a window in the dock to open it. Minimize sends it back.
+- **Reset layout** (the last button in the dock) clears the room again: every window goes back to the dock.
+- Your layout is saved per screen size.
 - Maximize fills the room. Esc restores it.
-- On phones the windows stack under the room.
+- On phones the room fills the screen until you open something. Open windows stack under the room.
 
 Keys: Space play or pause, F full screen, C scene, D decorate, N scratchpad, Z hide the panels, T H B S planner tabs, Esc restore.
 
@@ -183,4 +194,4 @@ Press **Decorate** (or D) in the room.
 
 **Where is my data?** In the extension, on your computer. Export a backup from Settings any time.
 
-**How do I see a tour again?** Press **?** on the page and choose **Replay the tour**.
+**How do I see a tour?** Press **?** on the page and choose **Take the tour** (or **Replay the room intro** in the study room).

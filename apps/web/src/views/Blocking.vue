@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { gatedStatus, windowAt, isLocked, findSite, formatMinutes, tasksForRule } from '@focusgateway/core'
 import { store, blocks, blockingIssue } from '../lib/store.js'
-import BlockingOffBadge from '../components/help/BlockingOffBadge.vue'
+import BlockingStatus from '../components/help/BlockingStatus.vue'
 import { ruleWhy } from '../components/help/ruleWhy.js'
 import { withPin } from '../lib/actions.js'
 import { daysLabel } from '../lib/format.js'
@@ -69,7 +69,7 @@ function editRuleById(id) {
       </div>
     </header>
 
-    <BlockingOffBadge big />
+    <BlockingStatus />
 
     <section data-tour="blocking-gated">
       <div class="mb-3 flex items-center justify-between">

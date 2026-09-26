@@ -243,11 +243,12 @@ describe('import sanitizing', () => {
     const st = state.settings
     expect(st.failsafeWaitSeconds).toBe(30)
     expect('theme' in st).toBe(false)
-    // an unknown old palette and an unknown old switch fall back to the first light and dark themes
+    // an unknown old palette and an unknown old switch fall back to the first light theme, drawn light
     expect(st.appearance).toEqual({
-      game: { theme: 'sunny', night: 'night-owl' },
-      minimal: { theme: 'paper', night: 'midnight' },
+      game: { theme: 'sunny' },
+      minimal: { theme: 'paper' },
     })
+    expect(st.colorMode).toBe('light')
     expect(st.lofi).toEqual({
       volume: 1,
       scene: 'scene-night',

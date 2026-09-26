@@ -24,7 +24,7 @@ import {
   taskColor,
 } from './tasks.js'
 import { dateKey, fromDateKey, startOfDay, addDays } from './time.js'
-import { mergeAppearance } from './appearance.js'
+import { COLOR_MODES, mergeAppearance } from './appearance.js'
 
 export class FGError extends Error {
   constructor(code, message, details) {
@@ -802,6 +802,10 @@ export function createBackend({ storage, now = () => Date.now(), hashIterations,
         const r = mergeAppearance(s.settings.appearance, patch.appearance)
         if (r.error) fail('VALIDATION', r.error)
         s.settings.appearance = r.value
+      }
+      if ('colorMode' in patch) {
+        if (!COLOR_MODES.includes(patch.colorMode)) fail('VALIDATION', 'Colour mode must be light, dark or auto.')
+        s.settings.colorMode = patch.colorMode
       }
       if ('lofi' in patch) {
         const r = mergeLofi(s.settings.lofi, patch.lofi, ownsFn(s))

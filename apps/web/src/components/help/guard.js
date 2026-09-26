@@ -4,7 +4,15 @@
 import { reactive } from 'vue'
 import { blockingIssue } from '../../lib/store.js'
 
-export const guard = reactive({ open: false, issue: null, context: 'focus', resolve: null })
+export const guard = reactive({ open: false, issue: null, context: 'focus', resolve: null, status: false })
+
+/** The "Blocking status" checklist in a dialog, opened by the red "Blocking is off" chips. */
+export function showBlockingStatus() {
+  guard.status = true
+}
+export function closeBlockingStatus() {
+  guard.status = false
+}
 
 /**
  * Resolves true when the action should go ahead: blocking works, or the person chose to

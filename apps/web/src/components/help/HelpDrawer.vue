@@ -1,9 +1,10 @@
 <script setup>
 // The help drawer: what the current page is for, what each part means, how to use it, tips,
-// keyboard keys, "Replay the tour" and links to the full guides. Opened by the "?" buttons.
+// keyboard keys, the page's tour and links to the full guides. Opened by the "?" buttons.
+// Page tours only start from here ("Take the tour"), never by themselves.
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { help, closeHelp, startTour, TOURS } from '../../lib/tour.js'
+import { help, closeHelp, startTour, tourSeen, TOURS } from '../../lib/tour.js'
 import { HELP } from './helpContent.js'
 import { REPO_URL } from '../../config.js'
 import Icon from '../Icon.vue'
@@ -14,6 +15,8 @@ const TROUBLE = REPO_URL + '/blob/master/docs/TROUBLESHOOTING-blocking.md'
 
 const panel = ref(null)
 const page = computed(() => HELP[help.page] || HELP.today)
+// help.open in the dependency list: the seen list is not reactive, so re-read it on each open
+const tourLabel = computed(() => help.open && (page.value.tourLabel || (tourSeen(page.value.tour) ? 'Replay the tour' : 'Take the tour')))
 let before = null
 
 function replay(id) {
@@ -71,7 +74,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true))
 
             <div v-if="page.tour && TOURS[page.tour]" class="flex flex-wrap gap-2">
               <button class="btn btn-primary btn-sm" data-replay-tour @click="replay(page.tour)">
-                <Icon name="play" :size="13" /> Replay the tour
+                <Icon name="play" :size="13" /> {{ tourLabel }}
               </button>
               <button v-for="[id, label] in page.tours || []" :key="id" class="btn btn-sm" @click="replay(id)">{{ label }}</button>
             </div>

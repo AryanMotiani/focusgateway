@@ -34,7 +34,7 @@ async function connectedApp(context, extensionId, hash = '#/today') {
   const page = await context.newPage()
   await page.addInitScript((s) => {
     if (!localStorage.getItem('focusgateway:v1')) localStorage.setItem('focusgateway:v1', s)
-    localStorage.setItem('focusgateway:tours-seen', '["*"]') // tours are tested in help.spec.js
+    localStorage.setItem('focusgateway:tours-seen', '["*"]') // the intro is tested in room.spec.js
   }, JSON.stringify(saved))
   await page.goto(APP + hash)
   await expect(page.getByText('Approve this site in the extension')).toBeVisible()
@@ -95,6 +95,17 @@ test('custom sites picked for a focus session are blocked too', async ({ context
   await expect(tab).toHaveURL(/blocked\.html\?d=news\.ycombinator\.com/)
 })
 
+test('the blocking status checklist is all green once connected', async ({ context, extensionId }) => {
+  const app = await connectedApp(context, extensionId, '#/blocking')
+  await app.goto(APP + '#/blocking')
+  const status = app.locator('[data-blocking-status]')
+  await expect(status.locator('[data-blocking-status-summary]')).toHaveText('Ready to block')
+  for (const id of ['extension', 'approved', 'access'])
+    await expect(status.locator(`[data-check="${id}"]`)).toHaveAttribute('data-state', 'ok')
+  await expect(status.locator('[data-check="agent"]')).toHaveAttribute('data-state', 'off')
+  await expect(app.locator('[data-extension-banner]')).toHaveCount(0)
+})
+
 test('Test blocking in Settings reports that blocking works', async ({ context, extensionId }) => {
   const app = await connectedApp(context, extensionId, '#/settings')
   await app.goto(APP + '#/settings')
@@ -111,6 +122,7 @@ test('without approving the site, starting focus says loudly that nothing is blo
   await page.addInitScript(() => localStorage.setItem('focusgateway:tours-seen', '["*"]'))
   await page.goto(APP + '#/room')
   await page.getByRole('button', { name: 'Continue without blocking' }).click()
+  await page.locator('[data-dock="focus"]').click()
   await page.locator('[data-window="focus"]').getByRole('button', { name: 'Start focus' }).click()
   const dialog = page.locator('[data-blocking-off]')
   await expect(dialog).toBeVisible()
@@ -130,6 +142,7 @@ test('without approving the site, starting focus says loudly that nothing is blo
 test('leaving the study room during a session asks first', async ({ context, extensionId }) => {
   const app = await connectedApp(context, extensionId, '#/')
   await app.goto(APP + '#/')
+  await app.locator('[data-dock="focus"]').click()
   await app.locator('[data-window="focus"]').getByRole('button', { name: 'Start focus' }).click()
   await expect(app.getByText('Focus session started. Sites are blocked.')).toBeVisible()
   await app.getByRole('link', { name: 'Tasks' }).first().click()

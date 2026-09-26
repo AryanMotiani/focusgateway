@@ -11,13 +11,38 @@ const blockingBasics = {
   ],
 }
 
+// Every reason blocking can be off, in the order people run into them
+const blockingOff = {
+  h: 'Why is nothing blocked?',
+  items: [
+    'No extension in this browser: the app runs on its own. Tasks, habits, the timer and the room work, but sites still open. Add the extension from the Install page.',
+    'Extension installed, site not approved: click the puzzle piece in the toolbar, then FocusGateway, then Allow. Then press Check again.',
+    'Firefox without website access: click the FocusGateway icon and press Grant access, or use the Fix it button here.',
+    'Older extension: blocking still works, but update it from the Install page to use the latest features.',
+    "Private or incognito window: extensions are off there until you allow FocusGateway in your browser's extension settings.",
+    'Phones: browser extensions run on computers. Firefox for Android runs some extensions, but FocusGateway does not support it yet.',
+    'Click the red "Blocking is off" chip for a checklist with a fix for each step, or open the Blocking page.',
+  ],
+}
+
 export const HELP = {
   room: {
     title: 'The study room',
-    intro: 'Your home base: a cozy room with a focus timer, lofi music and your planner, all in windows you can arrange.',
+    intro:
+      'Your home base: a cozy room that starts clean. Everything you need waits in the dock at the bottom, open what you want and leave the rest tucked away.',
     sections: [
       {
-        h: 'Windows',
+        h: 'Always there',
+        items: [
+          'The blocking pill at the top says if site blocking works in this browser: green "Blocking on" with what is active, or red "Blocking off" with what to do. Click it for the full checklist.',
+          'The ? button opens this help. Every page has one.',
+          'The palette button changes the theme any time.',
+          'The eye clears everything so you can just enjoy the room, with a small timer and play button left. Press it again, or Z, to bring things back.',
+          'The dock at the bottom holds every window.',
+        ],
+      },
+      {
+        h: 'Windows in the dock',
         items: [
           'Focus: the clock and the focus timer. Start a session and the sites you picked stay blocked until it ends, breaks included.',
           'Music: lofi radio made in your browser. Play, skip, pick a track, and mix in rain, cafe, fire or noise.',
@@ -25,17 +50,18 @@ export const HELP = {
           'Status: level, XP, streak, what is blocked and the timer.',
           'Scratchpad: quick notes that stay on this device.',
           'Scene and music: the view outside the window and the music style.',
+          'The first time you open a window it shows a short tip about what it does.',
         ],
       },
       {
         h: 'Arrange them',
         items: [
+          'Click a window in the dock to open it, click it again (or its minimize button) to tuck it away.',
           'Drag a window by its title bar. Windows snap to edges and to each other.',
-          'Resize from any edge or corner.',
-          'Minimize sends a window to the dock at the bottom. Click it there to bring it back.',
-          'Maximize fills the room. Esc puts it back.',
-          'The reset button in the dock restores the default layout. Your layout is saved per screen size.',
-          'On phones the windows stack in a column under the room. They can still go to the dock or open full screen.',
+          'Resize from any edge or corner. Maximize fills the room, Esc puts it back.',
+          'Reset layout (the last button in the dock) clears the room again: every window goes back to the dock.',
+          'Your layout is saved per screen size.',
+          'On phones the open windows stack under the room. They can still go back to the dock or open full screen.',
         ],
       },
       {
@@ -62,9 +88,12 @@ export const HELP = {
           'Some rewards are badges you earn once, for example a streak or a number of focus hours. They can go in the room too.',
         ],
       },
+      blockingOff,
     ],
     tips: [
-      'Hide the panels (Z) to enjoy the room with just a small timer and the play button.',
+      'Trying the room before setup? It is a trial room: the timer and music work, and site blocking is off until you add the extension.',
+      'The palette button in the header changes the theme any time.',
+      'Not sure what something does? Open it. Each window explains itself the first time.',
       'Leaving the room during a session asks first. Your sites stay blocked either way.',
     ],
     keys: [
@@ -78,7 +107,8 @@ export const HELP = {
       ['Esc', 'Restore a maximized window, close decorate'],
     ],
     tour: 'room',
-    tours: [['decorate', 'Replay the decorate tour']],
+    tourLabel: 'Replay the room intro',
+    tours: [['decorate', 'Decorate tour']],
   },
   today: {
     title: 'Today',
@@ -96,6 +126,7 @@ export const HELP = {
         ],
       },
       blockingBasics,
+      blockingOff,
     ],
     tips: ['Your streak grows every day you finish every task that was due.', 'Add the one task that would make today a win.'],
     tour: 'today',
@@ -176,11 +207,21 @@ export const HELP = {
         items: [
           'Editing or deleting a rule while it is live needs your PIN. Deleting always does.',
           'A hard block can not overlap a task-gated window on the same site.',
+          'Without the extension you can still save rules. They start blocking once the extension is added.',
         ],
       },
+      {
+        h: 'Blocking status',
+        items: [
+          'The checklist on top shows each thing blocking needs: the extension, this site approved, website access, and the optional lock agent.',
+          'A green check is done. A red cross has a one-click fix next to it. Grey means optional or waiting on an earlier step.',
+          'Blocks running right now lists every active block and why it is on.',
+        ],
+      },
+      blockingOff,
       blockingBasics,
     ],
-    tips: ['Not sure blocking works? Settings, Test blocking checks it in one click.'],
+    tips: ['Not sure blocking works? Test blocking checks it in one click.'],
     tour: 'blocking',
   },
   habits: {
@@ -231,9 +272,9 @@ export const HELP = {
       {
         h: 'What is here',
         items: [
-          'Style and theme: Game (XP pops and sounds) or Calm, the theme, and a night theme for dark mode.',
+          'Style and theme: Game (XP pops and sounds) or Calm, the theme, and Light or Dark for every theme. The sun and moon button next to the palette flips it from any page.',
           'Weekly focus goal, notifications and the Failsafe wait time.',
-          'Test blocking: opens a test site with a one minute block and tells you if this browser really blocks.',
+          'Blocking status: a checklist of what blocking needs here, with a fix for each step, and Test blocking, which opens a test site with a one minute block.',
           'PIN: protects your rules. Forgot it? Use your recovery code.',
           'Lock agent: blocks in every browser and app on this computer.',
           'Connected websites: sites allowed to talk to the extension.',
@@ -255,8 +296,10 @@ export const HELP = {
           'Using the website? Click the FocusGateway icon (under the puzzle piece) and press Allow for this site. Until you do, nothing is blocked.',
           'Firefox: allow access to all websites when asked, or blocking stays off.',
           "Private windows: allow FocusGateway there in your browser's extension settings.",
+          'Phones: extensions run on computers, so blocking does too. Firefox for Android runs some extensions, but FocusGateway does not support it yet.',
         ],
       },
+      blockingOff,
       {
         h: 'Check it',
         items: ['Test blocking opens a test site with a one minute block and tells you if it was blocked.'],
