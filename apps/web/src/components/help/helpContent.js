@@ -272,7 +272,7 @@ export const HELP = {
       {
         h: 'What is here',
         items: [
-          'Style and theme: Game (XP pops and sounds) or Calm, the theme, and a night theme for dark mode. The palette button changes it from any page.',
+          'Style and theme: Game (XP pops and sounds) or Calm, the theme, and Light or Dark for every theme. The sun and moon button next to the palette flips it from any page.',
           'Weekly focus goal, notifications and the Failsafe wait time.',
           'Blocking status: a checklist of what blocking needs here, with a fix for each step, and Test blocking, which opens a test site with a one minute block.',
           'PIN: protects your rules. Forgot it? Use your recovery code.',

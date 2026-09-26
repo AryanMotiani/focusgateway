@@ -179,7 +179,11 @@ export const TOURS = {
     helpStep,
   ],
   settings: [
-    { target: '#look', title: 'Look', text: 'Game or Calm style, the theme, and a separate night theme for dark mode.' },
+    {
+      target: '#look',
+      title: 'Look',
+      text: 'Game or Calm style, the theme, and Light or Dark for every theme. The sun and moon button next to the palette flips it from any page.',
+    },
     {
       target: '[data-tour="settings-test"]',
       title: 'Test blocking',

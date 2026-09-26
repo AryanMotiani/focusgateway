@@ -581,7 +581,7 @@ const chipOn = 'room-glass room-pill room-on'
     <WelcomeGift
       v-if="onboarded && giftPending && panels && !tour.id"
       class="z-30"
-      :class="narrow ? 'fixed bottom-20 left-1/2 -translate-x-1/2' : 'absolute bottom-20 left-1/2 -translate-x-1/2'"
+      :class="narrow ? 'fixed inset-x-3 bottom-28 mx-auto' : 'absolute top-20 right-4'"
       @shop="((giftPending = false), decorate('shop'))"
       @close="giftPending = false"
     />

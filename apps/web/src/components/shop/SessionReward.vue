@@ -50,97 +50,51 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-[62] grid place-items-center overflow-y-auto bg-black/45 p-4 backdrop-blur-sm" @mousedown.self="close">
-    <div
-      class="pop-in w-full max-w-sm overflow-hidden rounded-3xl bg-hud text-hud-ink shadow-2xl"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Session reward"
-      data-session-reward
-    >
-      <div class="relative px-6 pt-7 pb-5 text-center">
-        <div class="pointer-events-none absolute top-[45%] left-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2">
-          <div class="rays h-full w-full" />
-        </div>
-        <p class="hud-label relative text-xs text-hud-muted">{{ completed ? 'Session complete' : 'Session ended early' }}</p>
-        <p ref="coinEl" class="relative mt-2 flex items-center justify-center gap-3">
-          <CoinIcon :size="46" class="spin" />
-          <span class="coin-text num text-6xl leading-none" data-reward-coins>+{{ shown }}</span>
-        </p>
-        <p class="relative mt-1 text-sm text-hud-muted">coins earned</p>
+  <div
+    class="pop-in fixed right-4 bottom-4 z-[62] w-[min(340px,calc(100vw-24px))] overflow-hidden rounded-2xl bg-hud p-3.5 text-hud-ink shadow-2xl max-sm:right-3 max-sm:bottom-20"
+    role="dialog"
+    aria-label="Session reward"
+    data-session-reward
+  >
+    <div class="flex items-center gap-3">
+      <p ref="coinEl" class="flex items-center gap-2">
+        <CoinIcon :size="30" class="spin" />
+        <span class="coin-text num text-3xl leading-none" data-reward-coins>+{{ shown }}</span>
+      </p>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm leading-tight font-bold">{{ completed ? 'Session complete' : 'Session ended early' }}</p>
+        <p class="truncate text-[11px] text-hud-muted">{{ rows.map((x) => x.label + (x.value ? ' ' + x.value : '')).join(' · ') }}</p>
       </div>
-
-      <div class="space-y-4 px-5 pb-5">
-        <ul class="space-y-1.5 text-sm">
-          <li v-for="row in rows" :key="row.label" class="flex items-center gap-2.5 rounded-xl bg-sunk px-3 py-2">
-            <Icon :name="row.icon" :size="15" :class="row.hot ? 'text-warm' : 'text-hud-muted'" />
-            <span class="flex-1">{{ row.label }}</span>
-            <b class="num" :class="row.hot ? 'text-warm' : 'coin-text'">{{ row.value }}</b>
-          </li>
-        </ul>
-
-        <div>
-          <p class="flex justify-between text-xs">
-            <span class="hud-label text-hud-muted">Level {{ progress.level }} · {{ progress.title }}</span>
-            <b class="num text-good">+{{ r.xp }} XP</b>
-          </p>
-          <span class="mt-1.5 block h-2.5 overflow-hidden rounded-full bg-sunk"
-            ><i
-              class="block h-full rounded-full bg-(--fg-hud-xpbar) transition-[width] duration-1000 ease-out"
-              :style="{ width: Math.max(3, bar * 100) + '%' }"
-          /></span>
-          <p class="num mt-1 text-right text-[11px] text-hud-muted">{{ progress.into }} / {{ progress.needed }} XP</p>
-        </div>
-
-        <div v-if="celebration.badge" class="flex items-center gap-3 rounded-2xl bg-sunk p-2.5">
-          <span class="grid h-10 w-10 place-items-center rounded-xl bg-xp text-hud"><Icon :name="celebration.badge.icon" /></span>
-          <span>
-            <span class="hud-label block text-[10px] text-hud-muted">Badge earned</span>
-            <span class="text-sm font-bold">{{ celebration.badge.name }}</span>
-          </span>
-        </div>
-
-        <div v-if="s.afford.length">
-          <p class="hud-label mb-2 text-[11px] text-hud-muted">You can now afford</p>
-          <div class="grid grid-cols-3 gap-2">
-            <RouterLink
-              v-for="it in s.afford"
-              :key="it.id"
-              to="/shop"
-              class="flex flex-col items-center gap-1 rounded-2xl bg-sunk p-2 text-center hover:brightness-110"
-              @click="close"
-            >
-              <span class="relative block h-12 w-full"><ItemPreview :item="it" /></span>
-              <span class="line-clamp-1 w-full text-[11px] font-bold">{{ it.name }}</span>
-              <span class="coin-text num flex items-center gap-1 text-[11px]"><CoinIcon :size="11" />{{ it.price }}</span>
-            </RouterLink>
-          </div>
-        </div>
-
-        <div class="flex gap-2">
-          <RouterLink v-if="s.afford.length" to="/shop" class="btn btn-primary flex-1" data-reward-shop @click="close"
-            ><Icon name="bag" :size="15" /> Shop</RouterLink
-          >
-          <button class="btn flex-1" :class="!s.afford.length && 'btn-primary'" @click="close">Nice</button>
-        </div>
-      </div>
+      <button class="shrink-0 rounded-full p-1 text-hud-muted hover:text-hud-ink" aria-label="Close" @click="close">
+        <Icon name="x" :size="14" />
+      </button>
+    </div>
+    <div class="mt-2.5 flex items-center gap-2 text-[11px]">
+      <span class="hud-label text-hud-muted">LV {{ progress.level }}</span>
+      <span class="block h-1.5 flex-1 overflow-hidden rounded-full bg-sunk"
+        ><i
+          class="block h-full rounded-full bg-(--fg-hud-xpbar) transition-[width] duration-1000 ease-out"
+          :style="{ width: Math.max(3, bar * 100) + '%' }"
+      /></span>
+      <b class="num text-good">+{{ r.xp }} XP</b>
+    </div>
+    <p v-if="celebration.badge" class="mt-2 flex items-center gap-1.5 text-xs">
+      <Icon :name="celebration.badge.icon" :size="13" class="text-xp" /> Badge earned: <b>{{ celebration.badge.name }}</b>
+    </p>
+    <div v-if="s.afford.length" class="mt-2.5 flex items-center gap-2">
+      <span class="relative block h-8 w-8 shrink-0"><ItemPreview :item="s.afford[0]" /></span>
+      <span class="min-w-0 flex-1 truncate text-xs"
+        >You can now afford <b>{{ s.afford[0].name }}</b
+        ><template v-if="s.afford.length > 1"> and {{ s.afford.length - 1 }} more</template></span
+      >
+      <RouterLink to="/shop" class="btn btn-sm btn-primary shrink-0" data-reward-shop @click="close"
+        ><Icon name="bag" :size="13" /> Shop</RouterLink
+      >
     </div>
   </div>
 </template>
 
 <style scoped>
-.rays {
-  background:
-    radial-gradient(circle, color-mix(in srgb, var(--fg-coin) 35%, transparent), transparent 30%),
-    repeating-conic-gradient(color-mix(in srgb, var(--fg-coin) 12%, transparent) 0 10deg, transparent 10deg 20deg);
-  mask-image: radial-gradient(circle, #000 12%, transparent 45%);
-  animation: turn 18s linear infinite;
-}
-@keyframes turn {
-  to {
-    transform: rotate(360deg);
-  }
-}
 .spin {
   animation: spin 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
