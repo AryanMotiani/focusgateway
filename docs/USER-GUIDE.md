@@ -29,7 +29,7 @@ Every page has a **?** button in its top right corner. It explains that page and
 2. Install the **browser extension**. Until the store listings are live you add it by hand:
    - Chrome, Edge, Brave, Opera: download the zip, unzip it into a folder you keep, open `chrome://extensions` (or `edge://`, `brave://`, `opera://`), turn on **Developer mode**, click **Load unpacked** and pick the folder.
    - Firefox: download the zip, unzip it, open `about:debugging`, This Firefox, **Load Temporary Add-on**, and pick `manifest.json`. Allow access to all websites when asked. A temporary add-on is removed when Firefox restarts.
-3. If you use the website, go back to its tab and reload it. Click the **puzzle piece** in the toolbar, then **FocusGateway**, and press **Allow** for the site. Pin FocusGateway so its icon stays visible.
+3. The extension opens FocusGateway by itself. If you were already using the website, it reloads that tab and carries on from there, no extra step. Pin FocusGateway (the **puzzle piece** in the toolbar) so its icon stays visible.
 4. Follow the setup: pick a style, create a PIN, save your recovery code, and try the Failsafe once. It takes about three minutes.
 5. Go to **Settings** and press **Test blocking**. When it says "Blocking works in this browser", you are ready.
 
@@ -172,7 +172,7 @@ Press **Decorate** (or D) in the room.
 
 **Sites are not blocked.** Press **Test blocking** in Settings first. Then see [TROUBLESHOOTING-blocking.md](TROUBLESHOOTING-blocking.md). The usual causes:
 
-- The website is not connected to the extension: click the puzzle piece, FocusGateway, **Allow**.
+- The website tab was open before you installed the extension: reload it.
 - No extension in this browser: install it from the Install page.
 - Firefox without access to websites: click the FocusGateway icon (red **!**) and press **Grant access**.
 - A private or incognito window: allow FocusGateway there in the browser's extension settings.
@@ -190,7 +190,9 @@ Press **Decorate** (or D) in the room.
 
 **Can I just switch the extension off?** Yes, on your own computer you can. With the lock agent the blocks stay in place at system level. FocusGateway makes giving in slow, deliberate and visible.
 
-**Why do I need to approve the website?** Any website could ask to talk to the extension. Approving it yourself in the toolbar popup keeps other sites out.
+**Why does the extension open the website?** The website always has the newest version of the app. The extension talks only to the official FocusGateway website, no other site. No internet? It opens the copy inside the extension instead, and you can pick that copy for good with **Use the offline copy** in the toolbar popup. What you have seen (the room intro, tips) is remembered in both.
+
+**Why does a copy on my own computer need Allow?** Only the official website is trusted by itself. A copy you run on `localhost` asks once in the toolbar popup.
 
 **Where is my data?** In the extension, on your computer. Export a backup from Settings any time.
 

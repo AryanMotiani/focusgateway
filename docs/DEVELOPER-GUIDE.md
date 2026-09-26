@@ -29,10 +29,18 @@ tests/e2e       Playwright tests that load the built extension (and the agent) i
 | Mode | When | Transport |
 |---|---|---|
 | `extension` | The app is opened from the extension (`chrome-extension://.../app/index.html`) | `runtime.sendMessage({ type: 'fg', cmd, payload })` |
-| `bridge` | A hosted copy (GitHub Pages) with the extension installed and the origin approved | `window.postMessage` to the content script `extension/src/bridge.js`, which forwards to the background. Payloads are sent as JSON copies (Vue reactive arrays can not be structured-cloned) |
+| `bridge` | The official hosted app (GitHub Pages) or a localhost copy, with the extension installed | `window.postMessage` to the content script `extension/src/bridge.js`, which forwards to the background. Payloads are sent as JSON copies (Vue reactive arrays can not be structured-cloned) |
 | `local` | No extension | The Backend runs in the page, data in `localStorage['focusgateway:v1']`. Nothing is blocked |
 
-In bridge mode the background only answers origins the user approved in the toolbar popup (`fg_approved_origins`). An unknown origin's `hello` puts it on a pending list and shows `?` on the badge.
+The bridge content script is injected only on the official app's path (`homepage` in the root `package.json`, for example `https://aryanmotiani.github.io/focusgateway/*`) and on `http://localhost/*` / `http://127.0.0.1/*`. `bridge.js` and the background both check the full URL (origin and path, see `extension/src/app-url.js`). The official app is trusted without a prompt. A localhost origin needs **Allow** in the toolbar popup (`fg_approved_origins`): its first `hello` puts it on a pending list and shows `?` on the badge. Other sites never get the bridge. Security notes: [SECURITY.md](../SECURITY.md).
+
+### Which copy of the app the extension opens
+
+The popup, the install welcome and the blocked page open the hosted app when it answers a quick `HEAD` request (`appUrl()` in `extension/src/app-url.js`), so extension users always get the current app, even from an older extension. The copy bundled in `app/` is the fallback: offline, no answer within 1.5 s, no website access (Firefox) or **Use the offline copy** ticked in the popup. `build.mjs` bakes the hosted URL in (`FG_APP_URL` overrides `homepage`).
+
+### What was seen: `state.ui`
+
+Tours, the room's first-open tips, one-time notices (`blocking-intro-hidden`, `blocking-start-seen`, `no-extension-seen`) and the shop's "New" marks live in `state.ui` (`packages/core/src/ui.js`), because the website and the extension page are different origins with separate `localStorage`. `ui.mark` adds to it (validated, whitelisted flags, lists capped at 40, never removes). `apps/web/src/lib/seen.js` mirrors it to `localStorage` for guests and older extensions, and once state exists it merges whatever this browser saw into it. `setup.adopt` and `data.import` join both sides, so a room intro taken on the website does not show again in the extension, and the other way round.
 
 `apps/web/src/lib/store.js` holds the reactive `store` (state, mode, clock, toasts, `health`), `call(cmd, payload)`, and computed helpers: `blocks`, `blockingIssue` (why blocking can not work here: `no-extension`, `not-approved`, `no-access`) and `sessionRunning()`.
 
@@ -46,7 +54,7 @@ In bridge mode the background only answers origins the user approved in the tool
 4. Sends notifications when a block starts or ends.
 5. Mirrors a snapshot to the lock agent if one is paired.
 
-`blocked.js` renders the blocked page. It reports `blocking.hit` for the Test blocking check. `popup.js` shows what is blocked, pending website approvals and permission warnings. `build.mjs` builds `dist/chromium` and `dist/firefox` (same code, different manifest background keys) and zips them.
+`blocked.js` renders the blocked page. It reports `blocking.hit` for the Test blocking check. `popup.js` shows what is blocked, pending website approvals and permission warnings. `build.mjs` builds `dist/chromium` and `dist/firefox` (same code, different manifest background keys) and zips them, plus `dist/e2e-chromium` for the end-to-end tests (the local preview `http://localhost:4173/` as its hosted app, never zipped).
 
 ### The lock agent
 
@@ -65,6 +73,7 @@ In bridge mode the background only answers origins the user approved in the tool
 | `overrides[]` | Failsafe unlocks: `{ ruleId, until }` |
 | `habits[]`, `habitLogs` | Habits and `{ habitId: { 'YYYY-MM-DD': true } }` |
 | `log[]`, `stats` | Event history and the running XP and badge counters |
+| `ui` | What was already seen: tours, room tips, one-time notices, the shop's "New" marks (`ui.js`) |
 | `settings` | Style, theme, notifications, Failsafe wait, lofi (scene, track, mix), room (avatar, placed decor) |
 | `runtime` | Things that are not data: rule status for transitions, the `blockTest` of Test blocking |
 | `security`, `agent` | PIN and recovery hashes, pairing. Never leave the Backend |
@@ -140,7 +149,7 @@ npm run build -w extension && npm run agent:build
 npm run test:e2e         # Playwright with the real extension (and the agent)
 ```
 
-End-to-end tests (`tests/e2e`) load `extension/dist/chromium` into a persistent Chromium context and map fake distracting sites (`youtube.com`, `reddit.com`, `example.com`, ...) to a local server with `--host-resolver-rules`. `blocking.spec.js` drives the hosted app on `localhost:4173` through the bridge: approve in the popup, start a focus session or create a rule in the UI, then check the sites redirect to `blocked.html`.
+End-to-end tests (`tests/e2e`) load `extension/dist/chromium` into a persistent Chromium context and map fake distracting sites (`youtube.com`, `reddit.com`, `example.com`, ...) to a local server with `--host-resolver-rules`. `blocking.spec.js` drives the app on `localhost:4173` through the bridge: approve in the popup, start a focus session or create a rule in the UI, then check the sites redirect to `blocked.html`. `parity.spec.js` uses `extension/dist/e2e-chromium` (`test.use({ extensionPath: E2E_BUILD })`), where `localhost:4173` plays the official hosted app: the install welcome and the popup open it, it is trusted without Allow, and what was seen carries between it and the bundled copy. `FG_SHOTS=<folder>` saves screenshots of those screens.
 
 ## Releasing
 

@@ -65,7 +65,7 @@ The web app runs in three modes and picks one on its own:
 | Mode | When | Blocking |
 |---|---|---|
 | Extension | Opened from the extension (toolbar icon) | Yes |
-| Bridge | Opened from a hosted copy (e.g. GitHub Pages) with the extension installed and the site approved in the extension | Yes |
+| Bridge | The official website (what the extension opens when online), or a localhost copy you allowed in the extension | Yes |
 | Standalone | Hosted copy, no extension | No. Tasks, habits and the room work, saved in the browser. Data can be moved into the extension later |
 
 ### Why it is hard to get around
@@ -100,7 +100,7 @@ npm run check        # everything CI checks for the JavaScript side: lint, forma
 
 Load the extension in Chrome: `chrome://extensions`, turn on Developer mode, **Load unpacked**, pick `extension/dist/chromium`. For Firefox use `about:debugging`, **Load Temporary Add-on**, pick `extension/dist/firefox/manifest.json`.
 
-If you set FocusGateway up on the website before installing the extension, you don't redo anything: approve the site in the extension's toolbar popup and your PIN, rules, tasks and habits move into the extension.
+If you set FocusGateway up on the website before installing the extension, you don't redo anything: the website connects to the extension by itself and your PIN, rules, tasks, habits and what you have already seen (the room intro, tips) move into the extension.
 
 ## Deploy for free
 

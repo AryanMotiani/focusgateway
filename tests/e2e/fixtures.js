@@ -5,7 +5,13 @@ import path from 'node:path'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
-const EXT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../extension/dist/chromium')
+const DIST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../extension/dist')
+// The release build: its official hosted app is the real website, so the local preview
+// (localhost:4173) is a development copy that needs "Allow" in the popup, like any localhost.
+export const RELEASE_BUILD = path.join(DIST, 'chromium')
+// The same build with the local preview as its hosted app (build.mjs, FG_E2E_APP_URL): opened by
+// the popup and the install welcome, and trusted without "Allow". Use with test.use({ extensionPath: E2E_BUILD }).
+export const E2E_BUILD = path.join(DIST, 'e2e-chromium')
 
 // A fake "distracting site": the browser resolves these names to our local server.
 const FAKE_SITES = [
@@ -23,6 +29,8 @@ const FAKE_SITES = [
 export const SITE_PORT = 8089
 
 export const test = base.extend({
+  extensionPath: [RELEASE_BUILD, { option: true }],
+
   fakeSite: [
     async ({}, use) => {
       const server = http.createServer((req, res) => res.end(`<h1>REAL SITE ${req.headers.host}</h1>`)).listen(SITE_PORT)
@@ -32,12 +40,13 @@ export const test = base.extend({
     { scope: 'worker' },
   ],
 
-  context: async ({}, use) => {
+  context: async ({ extensionPath: EXT, viewport }, use) => {
     if (!fs.existsSync(path.join(EXT, 'manifest.json'))) throw new Error('Build the extension first: npm run build')
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fg-e2e-'))
     const context = await chromium.launchPersistentContext(dir, {
       channel: 'chromium',
       headless: true,
+      ...(viewport ? { viewport } : {}),
       args: [
         `--disable-extensions-except=${EXT}`,
         `--load-extension=${EXT}`,

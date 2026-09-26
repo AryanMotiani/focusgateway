@@ -7,9 +7,10 @@
 // and, when someone lands on another page first after setup, one welcome step pointing at the
 // "?" button. Every page tour is still there, started from the help drawer (HelpDrawer.vue).
 // The room's windows get their own one-time tips when first opened (roomTips below).
+// What was seen is kept by lib/seen.js: in the saved state, so the website and the extension
+// share it, and in localStorage.
 import { reactive } from 'vue'
-
-const SEEN_KEY = 'focusgateway:tours-seen'
+import { isSeen, markSeen } from './seen.js'
 
 /** Route path to page id, shared by tours and help. */
 export function pageFor(path) {
@@ -229,29 +230,18 @@ export const TOURS = {
 }
 
 // ---------------------------------------------------------------- seen list
-function readSeen() {
-  try {
-    const v = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]')
-    return new Set(Array.isArray(v) ? v : [])
-  } catch {
-    return new Set()
-  }
-}
+/** Seen here or anywhere else (the website, the extension), or every tour switched off ("*"). */
 export function tourSeen(id) {
-  const seen = readSeen()
-  return seen.has(id) || seen.has('*')
+  return isSeen('tours', id) || isSeen('tours', '*')
 }
 export function markTourSeen(id) {
-  const seen = readSeen()
-  seen.add(id)
-  try {
-    localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]))
-  } catch {}
+  markSeen('tours', id)
 }
 
 // ---------------------------------------------------------------- running a tour
 export const tour = reactive({ id: null, steps: [], index: 0 })
-export const help = reactive({ open: false, page: null })
+// section: the id of a help section to scroll to when the drawer opens ("Learn more" links)
+export const help = reactive({ open: false, page: null, section: null })
 
 /** A step's element, if it is on screen now (hidden elements do not count). */
 export function stepTarget(step) {
@@ -335,9 +325,9 @@ export function endTour() {
   Object.assign(tour, { id: null, steps: [], index: 0 })
 }
 
-export function openHelp(page) {
+export function openHelp(page, section = null) {
   if (tour.id) endTour()
-  Object.assign(help, { open: true, page })
+  Object.assign(help, { open: true, page, section })
 }
 export function closeHelp() {
   help.open = false
@@ -346,7 +336,6 @@ export function closeHelp() {
 // ---------------------------------------------------------------- room tips
 // A small one-time tip the first time each study room window is opened from the dock, and the
 // first time decorate mode opens. "Got it" (or closing the window) and it never shows again.
-const TIPS_KEY = 'focusgateway:room-tips-seen'
 export const ROOM_TIPS = {
   status: 'Your level, XP, streak and what is blocked right now, always in view. Finish tasks, habits and focus sessions to fill the bar.',
   focus:
@@ -359,22 +348,10 @@ export const ROOM_TIPS = {
   decorate:
     'Drag an item into the room, or tap it to place it, and tap again to put it away. Avatar and Room change how you and the room look, Done saves.',
 }
-function readTips() {
-  try {
-    const v = JSON.parse(localStorage.getItem(TIPS_KEY) || '[]')
-    return new Set(Array.isArray(v) ? v : [])
-  } catch {
-    return new Set()
-  }
-}
 /** Seen, or every tour switched off (tests set tours-seen to ["*"]). */
 export function tipSeen(id) {
-  return readTips().has(id) || readSeen().has('*')
+  return isSeen('tips', id) || isSeen('tours', '*')
 }
 export function markTipSeen(id) {
-  const seen = readTips()
-  seen.add(id)
-  try {
-    localStorage.setItem(TIPS_KEY, JSON.stringify([...seen]))
-  } catch {}
+  markSeen('tips', id)
 }

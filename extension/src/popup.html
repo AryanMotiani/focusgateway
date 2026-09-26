@@ -53,6 +53,14 @@
       .status {
         font-size: 13px;
       }
+      .offline {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        margin-top: 8px;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -61,13 +69,20 @@
     <div id="pending"></div>
     <div class="status" id="status">Loading…</div>
     <div class="list" id="list"></div>
+    <!-- data-route: popup.js opens the hosted app (or the offline copy), the href is the fallback -->
     <div class="grid">
-      <a class="btn primary" href="app/index.html#/today" target="_blank">Today</a>
-      <a class="btn" href="app/index.html#/room" target="_blank">Study room</a>
-      <a class="btn" href="app/index.html#/tasks" target="_blank">Tasks</a>
-      <a class="btn" href="app/index.html#/habits" target="_blank">Habits</a>
+      <a class="btn primary" href="app/index.html#/today" data-route="/today" target="_blank">Today</a>
+      <a class="btn" href="app/index.html#/room" data-route="/room" target="_blank">Study room</a>
+      <a class="btn" href="app/index.html#/tasks" data-route="/tasks" target="_blank">Tasks</a>
+      <a class="btn" href="app/index.html#/habits" data-route="/habits" target="_blank">Habits</a>
     </div>
     <p class="muted" id="agent" style="font-size: 12px; margin: 12px 0 0"></p>
+    <label
+      class="muted offline"
+      title="Open the copy of the app inside the extension instead of the website. It works without internet, but updates only with the extension."
+    >
+      <input type="checkbox" id="offline" /> Use the offline copy
+    </label>
     <script src="popup.js"></script>
   </body>
 </html>

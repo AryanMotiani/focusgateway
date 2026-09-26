@@ -8,13 +8,13 @@ This page lists every cause we found, what we changed, and what can still go wro
 
 1. Open the **Blocking** page (or **Settings**). The **Blocking status** checklist at the top shows each thing blocking needs, with a green check, a red cross or a grey dot, and a one-click fix next to anything red:
    - **Extension connected**: the free extension is installed and talking to this page (and not older than the site).
-   - **This site approved**: the website is allowed to use the extension.
+   - **This site approved**: the website is allowed to use the extension. The official website always is, a copy on your own computer (`localhost`) needs Allow once.
    - **Website access granted**: the extension may reach websites (Firefox can install it without).
    - **Lock agent** (optional): blocks in other browsers and apps too.
    - **Blocks running right now**: every active block and why it is on, or why a rule is not running.
 2. Press **Test blocking** under the checklist. It turns on a one minute block for `example.com`, opens it in a new tab and tells you whether the extension caught it.
 3. A red **Blocking is off** chip in the status bar opens the same checklist.
-4. On the website (aryanmotiani.github.io/focusgateway), a page that says **Approve this site in the extension** means one more step: click the puzzle piece in the toolbar, then FocusGateway, then **Allow**. Then press **Check again**.
+4. On a copy of the app on your own computer (`localhost`), a page that says **Approve this site in the extension** means one more step: click the puzzle piece in the toolbar, then FocusGateway, then **Allow**. Then press **Check again**. The official website (aryanmotiani.github.io/focusgateway) connects by itself. If it does not, reload its tab (it was open before the extension was installed).
 5. Firefox: if the FocusGateway icon shows a red **!**, click it and press **Grant access**.
 6. Private or incognito window? Extensions do not run there unless you allow FocusGateway in the browser's extension settings.
 7. On a phone? Browser extensions run on computers. Firefox for Android runs some extensions, but FocusGateway does not support it yet. Tasks, habits and the room still work.

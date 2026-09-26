@@ -38,7 +38,10 @@ import HelpButton from '../components/help/HelpButton.vue'
 import BlockingPill from '../components/help/BlockingPill.vue'
 import QuickTheme from '../components/look/QuickTheme.vue'
 import RoomTip from '../components/room/RoomTip.vue'
-import { ROOM_TIPS, tipSeen, markTipSeen, tour } from '../lib/tour.js'
+import { ROOM_TIPS, tipSeen, markTipSeen, tour, tourSeen } from '../lib/tour.js'
+import { isSeen, markSeen } from '../lib/seen.js'
+import BlockingWays from '../components/help/BlockingWays.vue'
+import { useRouter } from 'vue-router'
 
 const player = lofi()
 const saved = store.state?.settings?.lofi || {}
@@ -263,6 +266,26 @@ const startDrag = (id, e) => roomEl.value?.startDrag(id, e)
 // the starter gift card: shows until claimed and closed (components/shop/WelcomeGift.vue)
 const giftPending = ref(!store.state?.shop?.giftAt)
 const shopNew = computed(() => freshAffordable.value.length)
+
+// The start card: once, after the room intro has ended, the three ways to block for someone who
+// has no rules yet. It comes before the starter gift so the two never stack.
+const router = useRouter()
+const startCard = computed(
+  () =>
+    onboarded.value &&
+    panels.value &&
+    !tour.id &&
+    tourSeen('room') &&
+    !store.state.rules.length &&
+    !store.state.focus?.active &&
+    !isSeen('flags', 'blocking-start-seen') &&
+    !isSeen('flags', 'blocking-intro-hidden'),
+)
+function startWay(way) {
+  markSeen('flags', 'blocking-start-seen')
+  if (way === 'focus') return ctl.restore('focus')
+  router.push({ path: '/blocking', query: { new: way } })
+}
 function decorate(tab) {
   if (!onboarded.value) return
   if (typeof tab === 'string') decorTab.value = tab
@@ -584,8 +607,16 @@ const chipOn = 'room-glass room-pill room-on'
     />
 
     <!-- the starter gift, once: how coins work, and enough for one small thing (after the intro) -->
+    <BlockingWays
+      v-if="startCard"
+      variant="card"
+      class="z-30"
+      :class="narrow ? 'fixed inset-x-3 bottom-28 mx-auto' : 'absolute top-20 right-4'"
+      @setup="startWay"
+      @dismiss="markSeen('flags', 'blocking-start-seen')"
+    />
     <WelcomeGift
-      v-if="onboarded && giftPending && panels && !tour.id"
+      v-if="onboarded && giftPending && panels && !tour.id && !startCard"
       class="z-30"
       :class="narrow ? 'fixed inset-x-3 bottom-28 mx-auto' : 'absolute top-20 right-4'"
       @shop="((giftPending = false), decorate('shop'))"

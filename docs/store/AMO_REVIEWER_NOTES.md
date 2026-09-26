@@ -6,7 +6,7 @@ Paste the "Notes to reviewer" section into the submission form. Attach the sourc
 
 FocusGateway is a free, open-source (MIT) site blocker for students: https://github.com/AryanMotiani/focusgateway
 
-**What it does:** blocks sites the user chooses during time windows they schedule (optionally until attached tasks are done), with a local task list, habit tracker and a study room whose music is synthesized with the Web Audio API. All data stays in `browser.storage.local`. The extension makes no network requests except to an optional helper program on the user's own computer (`http://127.0.0.1:47621`, the "lock agent"), which is not needed to review it.
+**What it does:** blocks sites the user chooses during time windows they schedule (optionally until attached tasks are done), with a local task list, habit tracker and a study room whose music is synthesized with the Web Audio API. All data stays in `browser.storage.local`. The extension makes no network requests except a `HEAD` request to its own website (https://aryanmotiani.github.io/focusgateway/) to see whether it can open it in a tab, and an optional helper program on the user's own computer (`http://127.0.0.1:47621`, the "lock agent"), which is not needed to review it. Offline, it opens the copy of the app in `app/` instead.
 
 **How to test:** after installing, a FocusGateway tab opens with a short setup. Choose any PIN and go through the steps. Open Blocking, add a Hard block for YouTube that covers the current time, then visit youtube.com: the tab shows the extension's blocked page.
 
@@ -14,7 +14,7 @@ FocusGateway is a free, open-source (MIT) site blocker for students: https://git
 
 **Linter warning:** `UNSAFE_VAR_ASSIGNMENT` in `app/assets/index-*.js` comes from the Vue runtime (it inserts the compiled static parts of templates with `innerHTML`). The app code has no `v-html` and never inserts user data as HTML.
 
-**Permissions:** see the table in `docs/store/LISTING.md` in the source archive. Short version: `<all_urls>` and `declarativeNetRequest` to block any site the user picks, `tabs` to move already open tabs of a newly blocked site to the blocked page, `alarms` for schedules, `notifications` for block start and end, `storage`/`unlimitedStorage` for local data.
+**Permissions:** see the table in `docs/store/LISTING.md` in the source archive. Short version: `<all_urls>` and `declarativeNetRequest` to block any site the user picks, `tabs` to move already open tabs of a newly blocked site to the blocked page, `alarms` for schedules, `notifications` for block start and end, `storage`/`unlimitedStorage` for local data. The content script `bridge.js` runs only on `https://aryanmotiani.github.io/focusgateway/*` (the official web app) and on `localhost`/`127.0.0.1` for development, never on other sites.
 
 ## Build instructions (source code submission)
 
@@ -30,7 +30,7 @@ npm run build:ext
 The Firefox build is then in `extension/dist/firefox/`, and the uploaded package is `extension/dist/focusgateway-firefox-<version>.zip`, which is a zip of that folder. `npm run build:ext` runs `extension/build.mjs`, which:
 
 1. builds the Vue app with Vite into `apps/web/dist-ext` (copied to `app/` in the package),
-2. bundles `extension/src/{background,bridge,blocked,popup}.js` with esbuild (IIFE, minified),
+2. bundles `extension/src/{background,bridge,blocked,popup,grant}.js` with esbuild (IIFE, minified), with the website address from `homepage` in `package.json` built in,
 3. copies the HTML, CSS and icons, and writes `manifest.json`.
 
 Every dependency comes from the public npm registry at the versions pinned in `package-lock.json`. No other tools or network access are needed.

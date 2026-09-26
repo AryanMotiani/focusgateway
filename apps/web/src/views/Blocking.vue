@@ -1,5 +1,6 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { gatedStatus, windowAt, isLocked, findSite, formatMinutes, tasksForRule } from '@focusgateway/core'
 import { store, blocks, blockingIssue } from '../lib/store.js'
 import BlockingStatus from '../components/help/BlockingStatus.vue'
@@ -12,6 +13,9 @@ import TaskEditor from '../components/TaskEditor.vue'
 import FocusCard from '../components/FocusCard.vue'
 import FailsafeFlow from '../components/FailsafeFlow.vue'
 import HelpButton from '../components/help/HelpButton.vue'
+import BlockingWays from '../components/help/BlockingWays.vue'
+import { isSeen, markSeen } from '../lib/seen.js'
+import { openHelp } from '../lib/tour.js'
 
 const editor = ref(null)
 const taskFor = ref(null)
@@ -50,6 +54,34 @@ async function remove(r) {
 function editRuleById(id) {
   editor.value = { rule: store.state.rules.find((r) => r.id === id) }
 }
+
+// No rules yet: the three ways to block, until "Not now" (remembered with the seen list, so the
+// website and the extension agree). The focus section stays either way.
+const noRules = computed(() => !store.state.rules.length)
+const introHidden = computed(() => isSeen('flags', 'blocking-intro-hidden'))
+const showWays = computed(() => noRules.value && !introHidden.value)
+const focusSection = ref(null)
+function setUp(way) {
+  if (way === 'gated' || way === 'hard') return (editor.value = { mode: way })
+  // focus: bring the focus card into view, ready to start
+  nextTick(() => {
+    focusSection.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    focusSection.value?.querySelector('button')?.focus({ preventScroll: true })
+  })
+}
+function notNow() {
+  markSeen('flags', 'blocking-intro-hidden')
+  markSeen('flags', 'blocking-start-seen')
+}
+// the room's start card links here with ?new=gated|hard|focus
+const route = useRoute()
+const router = useRouter()
+onMounted(() => {
+  const way = route.query.new
+  if (!['gated', 'hard', 'focus'].includes(way)) return
+  router.replace({ path: '/blocking' })
+  setUp(way)
+})
 </script>
 
 <template>
@@ -60,6 +92,14 @@ function editRuleById(id) {
         <p class="text-sm text-muted">
           Everything that keeps you off distracting sites. Blocks stack: a site is blocked if any rule says so.
         </p>
+        <button
+          v-if="noRules && introHidden"
+          class="mt-1 flex items-center gap-1 text-sm font-semibold text-accent hover:underline"
+          data-how-blocking
+          @click="openHelp('blocking', 'ways')"
+        >
+          <Icon name="info" :size="14" /> How blocking works
+        </button>
       </div>
       <div class="flex items-center gap-2">
         <button class="btn btn-primary" data-tour="blocking-new" @click="editor = { mode: 'gated' }">
@@ -69,9 +109,12 @@ function editRuleById(id) {
       </div>
     </header>
 
+    <!-- no rules yet: the three ways first, the checklist under them -->
+    <BlockingWays v-if="showWays" @setup="setUp" @dismiss="notNow" />
+
     <BlockingStatus />
 
-    <section data-tour="blocking-gated">
+    <section v-if="!showWays" data-tour="blocking-gated">
       <div class="mb-3 flex items-center justify-between">
         <h2 class="text-lg font-semibold">Task-Gated windows</h2>
         <button class="btn btn-sm" @click="editor = { mode: 'gated' }"><Icon name="plus" :size="14" /> Add</button>
@@ -118,7 +161,7 @@ function editRuleById(id) {
       </div>
     </section>
 
-    <section data-tour="blocking-hard">
+    <section v-if="!showWays" data-tour="blocking-hard">
       <div class="mb-3 flex items-center justify-between">
         <h2 class="text-lg font-semibold">Hard blocks</h2>
         <button class="btn btn-sm" @click="editor = { mode: 'hard' }"><Icon name="plus" :size="14" /> Add</button>
@@ -164,7 +207,7 @@ function editRuleById(id) {
       </div>
     </section>
 
-    <section class="card p-5" data-tour="blocking-focus">
+    <section ref="focusSection" class="card scroll-mt-24 p-5" data-tour="blocking-focus">
       <h2 class="text-lg font-semibold">Focus mode</h2>
       <p class="mb-4 text-sm text-muted">Start right now, no scheduling. Sites stay blocked through work and break rounds.</p>
       <FocusCard />

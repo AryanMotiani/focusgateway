@@ -11,12 +11,25 @@ const blockingBasics = {
   ],
 }
 
+// The three ways to block, each with an example. The Blocking page's empty state and the start
+// card in the room ("Learn more") open this section.
+export const blockingWays = {
+  id: 'ways',
+  h: 'Three ways to block',
+  items: [
+    "Task-gated window: sites open only after that window's tasks are done. Example: weekdays 4 to 7 pm, YouTube and Instagram stay blocked until your homework is ticked off. Tasks still open when the window ends keep it blocking.",
+    'Hard block: fixed times, no matter what. Example: every night 11 pm to 7 am, no Reddit or YouTube. Switch off Failsafe for exam week and not even Failsafe opens it.',
+    'Focus session: blocks sites while a timer runs, no schedule needed. Example: 25 minutes of work and a 5 minute break, and the sites stay blocked through the break too.',
+    'They stack: a site is blocked if any of them says so.',
+  ],
+}
+
 // Every reason blocking can be off, in the order people run into them
 const blockingOff = {
   h: 'Why is nothing blocked?',
   items: [
     'No extension in this browser: the app runs on its own. Tasks, habits, the timer and the room work, but sites still open. Add the extension from the Install page.',
-    'Extension installed, site not approved: click the puzzle piece in the toolbar, then FocusGateway, then Allow. Then press Check again.',
+    'Extension installed, page not connected: reload this tab (it was open before the install). A copy on your own computer needs Allow once: the puzzle piece in the toolbar, then FocusGateway, then Allow.',
     'Firefox without website access: click the FocusGateway icon and press Grant access, or use the Fix it button here.',
     'Older extension: blocking still works, but update it from the Install page to use the latest features.',
     "Private or incognito window: extensions are off there until you allow FocusGateway in your browser's extension settings.",
@@ -183,15 +196,7 @@ export const HELP = {
     title: 'Blocking',
     intro: 'Every rule that keeps you off distracting sites. A site is blocked if any rule or session says so.',
     sections: [
-      {
-        h: 'Kinds of blocks',
-        items: [
-          'Task-gated window: blocked during the window until the tasks attached to it are done. If the window ends with tasks open, it keeps blocking until you finish them.',
-          'Hard block: blocked for the whole window, no matter what. Good for sleep, classes and exams.',
-          'No-failsafe hard block: fully locked while it runs. Not even Failsafe opens it.',
-          'Focus session: block sites right now for a set time, no rule needed.',
-        ],
-      },
+      blockingWays,
       {
         h: 'Is it blocking right now?',
         items: [

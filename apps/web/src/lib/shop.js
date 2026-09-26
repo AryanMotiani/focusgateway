@@ -1,10 +1,11 @@
 // The shop in the app: coins, what is owned, buying, and what is new since the last visit.
 // The rules (prices, levels, earning) all live in packages/core/src/economy.js.
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { coinsOf, ownsFn, SHOP_ITEMS, focusLive, affordableItems } from '@focusgateway/core'
 import { store, call, toast } from './store.js'
 import { progress, isGame } from './rewards.js'
 import { sfx } from './sfx.js'
+import { shopKnown, setShopKnown } from './seen.js'
 
 export const wallet = computed(() => coinsOf(store.state))
 /** Coins to spend right now (never shown below 0, see economy.js). */
@@ -18,21 +19,10 @@ export const ownsItem = (id) => hasFn.value(id)
 export const live = computed(() => (store.state?.focus?.active ? focusLive(store.state, store.now) : null))
 
 // ---- "New": what became buyable or affordable since the last visit to the shop.
-// known[id] is 1 when it was seen unlocked, 2 when it was seen affordable.
-const KNOWN_KEY = 'focusgateway:shop-known'
-function load() {
-  try {
-    return JSON.parse(localStorage.getItem(KNOWN_KEY) || 'null')
-  } catch {
-    return null
-  }
-}
-const known = ref(load())
-function save() {
-  try {
-    localStorage.setItem(KNOWN_KEY, JSON.stringify(known.value))
-  } catch {}
-}
+// known[id] is 1 when it was seen unlocked, 2 when it was seen affordable. Kept by lib/seen.js,
+// so the website and the extension agree on what is new.
+const known = shopKnown
+const save = (next) => setShopKnown(next)
 
 /** Every item for sale, with its state for this player. */
 export const catalog = computed(() => {
@@ -53,8 +43,7 @@ export const catalog = computed(() => {
 // what can be bought right away: that shows as new, so the shop says hello at the start.
 export function initKnown() {
   if (known.value || !store.state) return
-  known.value = Object.fromEntries(catalog.value.filter((i) => i.rank === 1).map((i) => [i.id, 1]))
-  save()
+  save(Object.fromEntries(catalog.value.filter((i) => i.rank === 1).map((i) => [i.id, 1])))
 }
 
 /** Affordable things not seen yet: they light the dot on the shop buttons. */
@@ -64,8 +53,7 @@ export const freshAffordable = computed(() => (known.value ? catalog.value.filte
 export function markSeen() {
   const next = { ...(known.value || {}) }
   for (const i of catalog.value) if (i.rank > (next[i.id] || 0)) next[i.id] = i.rank
-  known.value = next
-  save()
+  save(next)
 }
 
 /** What `coins` more made affordable: for "You can now afford" after a session. */

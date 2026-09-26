@@ -4,14 +4,31 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-26
+
+The extension now opens the current app, and what you have already seen follows you between the website and the extension.
+
+### Fixed
+
+- The extension no longer shows an old app. v1.1.0 shipped a copy of the app built before the clean study room, so after setup the add-on opened every window and the old tutorials. The popup, the install welcome, the blocked page and Failsafe now open the FocusGateway website when online (always the newest version), and the copy inside the extension when offline or when **Use the offline copy** is ticked in the popup.
+- The room intro, the first-open tips and other one-time notices no longer come back when you switch between the website and the extension. They are saved with your data (`state.ui`, new `ui.mark` command), merged with what the browser remembers, and carried over when the website hands its setup to the extension.
+
 ### Added
 
+- Blocking page with no rules: "You have not blocked any sites yet" with the three ways to block (task-gated window, hard block, focus session), each with Set one up and Learn more, and "Not now, I will just use the study room".
+- A small start card in the room after the intro, once, with the same three choices and Maybe later. It comes before the starter gift, never on top of the intro.
+- The Blocking help explains the three ways with an example each.
 - Clear signs of why blocking may not work: a one-time "Site blocking needs the free extension" dialog, a trial room notice, a Blocking status checklist (Blocking page, Settings and the red chip) with a fix for each step, a two step approval guide with Check again, and banners for missing website access and an extension older than the site.
-- A palette button on every page, the study room included, to change the style, theme and night theme any time.
+- A palette button on every page, the study room included, to change the style, theme and Light or Dark any time.
 
 ### Changed
 
-- Light is the default look: new users get Sunny Quest with no night theme, and old saves that followed the system setting now get the light theme. Saves that picked dark keep a dark theme.
+- The study room starts clean: every window waits in the dock, a short 4 step intro runs once, and each window explains itself the first time it opens.
+- Light is the default look: new users get Sunny Quest, and old saves that followed the system setting now get the light theme. Saves that picked dark keep a dark theme.
+
+### Security
+
+- The website bridge runs only on the official app (`https://aryanmotiani.github.io/focusgateway/*`) and on localhost for development, instead of every site. The page's origin and path are checked again before anything is relayed. The official app connects without the Allow step, a localhost copy still asks. PIN checks are unchanged. See SECURITY.md.
 
 ## [1.1.0] - 2026-09-25
 
